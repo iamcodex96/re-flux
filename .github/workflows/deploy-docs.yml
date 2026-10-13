@@ -1,0 +1,55 @@
+name: Deploy re;Flux documentation
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Create the workspace lockfile on the runner before the clean install.
+      - name: Resolve workspace lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify library, tests, tree-shaking and package contents
+        run: |
+          npm run typecheck
+          npm run typecheck:tests
+          npm test -- --runInBand
+          npm run build:lib
+          node scripts/check-tree-shaking.mjs
+          node scripts/check-package-files.mjs
+      - name: Typecheck and build documentation
+        env:
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
+        run: npm run build --workspace=re-flux-docs
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/docs/dist
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

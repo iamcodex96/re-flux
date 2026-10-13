@@ -1,0 +1,1000 @@
+{
+  "app": {
+    "view": {
+      "docs": {
+        "navigation": [
+          {
+            "label": "GETTING STARTED",
+            "links": [
+              {
+                "id": "overview",
+                "label": "Introduction"
+              },
+              {
+                "id": "install",
+                "label": "Installation"
+              }
+            ]
+          },
+          {
+            "label": "ANIMATIONS",
+            "links": [
+              {
+                "id": "animation",
+                "label": "Animation"
+              },
+              {
+                "id": "parameters",
+                "label": "Parameters"
+              },
+              {
+                "id": "timing-examples",
+                "label": "Delay, repeat & yoyo"
+              },
+              {
+                "id": "controls",
+                "label": "Control methods"
+              },
+              {
+                "id": "callback-examples",
+                "label": "Live callbacks"
+              },
+              {
+                "id": "timeline",
+                "label": "Timeline"
+              },
+              {
+                "id": "offsets",
+                "label": "Offsets"
+              },
+              {
+                "id": "offset-explorer",
+                "label": "Compare offsets"
+              },
+              {
+                "id": "nested-timeline",
+                "label": "Nested timelines"
+              }
+            ]
+          },
+          {
+            "label": "AUTHORING API",
+            "links": [
+              {
+                "id": "keyframes-dom",
+                "label": "Keyframes & DOM targets"
+              },
+              {
+                "id": "svg-path-morph",
+                "label": "SVG path morphing"
+              }
+            ]
+          },
+          {
+            "label": "REACTIVITY",
+            "links": [
+              {
+                "id": "reactivity",
+                "label": "Reactive state"
+              },
+              {
+                "id": "await-example",
+                "label": "await / promises"
+              },
+              {
+                "id": "easings",
+                "label": "Easings"
+              },
+              {
+                "id": "easing-gallery",
+                "label": "Compare curves"
+              }
+            ]
+          },
+          {
+            "label": "MOTION STREAMS",
+            "links": [
+              {
+                "id": "retarget-motion",
+                "label": "Retarget streams"
+              },
+              {
+                "id": "smooth-stream",
+                "label": "Stream smoothing"
+              },
+              {
+                "id": "adaptive-tween",
+                "label": "Adaptive tweening"
+              },
+              {
+                "id": "render-adapters",
+                "label": "Rendering adapters"
+              }
+            ]
+          },
+          {
+            "label": "GESTURES & LIFECYCLE",
+            "links": [
+              {
+                "id": "gesture-physics",
+                "label": "Gesture physics"
+              },
+              {
+                "id": "motion-lifecycle",
+                "label": "Motion preferences"
+              },
+              {
+                "id": "scroll-triggers",
+                "label": "Scroll triggers"
+              }
+            ]
+          },
+          {
+            "label": "PERFORMANCE",
+            "links": [
+              {
+                "id": "frame-observability",
+                "label": "Frame observability"
+              }
+            ]
+          }
+        ],
+        "section": {
+          "overview": {
+            "title": "Introduction",
+            "subtitle": "Start here",
+            "description": "Control an animation’s timing, inspect every update, and connect motion to any layer of your application."
+          },
+          "install": {
+            "title": "Installation",
+            "subtitle": "Install the core and create your first instance.",
+            "description": "RxJS is a peer dependency. During source development, the playground resolves the library through Vite’s @lib alias. Consumer applications install the published package as @re-code/flux."
+          },
+          "animation": {
+            "title": "One animation, one playhead",
+            "subtitle": "Animation controls time; your application decides which properties to render.",
+            "description": "An instance tracks normalized progress, resolves easing, and emits lifecycle callbacks. This demo uses those values to update position, rotation, and opacity in real time."
+          },
+          "parameters": {
+            "title": "Parameters",
+            "subtitle": "Options are fixed when an instance is created.",
+            "description": "Options are immutable after creation. To change duration, delay, or easing, stop the animation and create a new instance."
+          },
+          "timing-examples": {
+            "title": "Delay, repeat & yoyo",
+            "subtitle": "Try each parameter and see how it changes the animation clock.",
+            "description": "Delay postpones the active start. Repeat counts additional repeats, and yoyo reverses progress on alternating cycles. Apply options to create a new instance."
+          },
+          "controls": {
+            "title": "Methods and callbacks",
+            "subtitle": "Chainable controls for managing the full lifecycle.",
+            "description": "The API also provides onStart, onComplete, onPause, onResume, and onStop. They run when the corresponding state transition occurs, not when the instance is created."
+          },
+          "callback-examples": {
+            "title": "Live callbacks",
+            "subtitle": "Callbacks describe transitions; you do not need to log an event on every frame.",
+            "description": "This log listens for onStart, onPause, onResume, onStop, and onComplete. The onUpdate callback moves the box without flooding the log with dozens of entries per second."
+          },
+          "timeline": {
+            "title": "Timeline",
+            "subtitle": "Coordinates multiple animations on a shared timeline.",
+            "description": "A Timeline coordinates its children using global time and moves them with seekLocal(ms). Entries can overlap or rewind without creating a separate loop for each child."
+          },
+          "offsets": {
+            "title": "Timeline offsets",
+            "subtitle": "Express sequence timing without manual timestamp arithmetic.",
+            "description": "An omitted offset appends after the previous item. Numeric offsets are absolute; +=, -= and < express relative, overlapping, or parallel timing."
+          },
+          "offset-explorer": {
+            "title": "Compare offsets",
+            "subtitle": "Change the offset and inspect how the segments line up.",
+            "description": "The chart is built from Timeline.segments, so the visual layout reflects the same timing model used by the runtime."
+          },
+          "nested-timeline": {
+            "title": "Nested timelines & composition helpers",
+            "subtitle": "Compose a timeline inside another timeline.",
+            "description": "Nest timelines when building larger scenes, or use sequence(), parallel(), and staggered() to compose reusable AnimatableItems without manually calculating every offset."
+          },
+          "reactivity": {
+            "title": "Reactive state",
+            "subtitle": "Progress and state are first-class RxJS streams.",
+            "description": "Subscribe to progress$ and state$ to connect animations to application state. Remember to unsubscribe when the consumer no longer needs updates."
+          },
+          "await-example": {
+            "title": "Await completion",
+            "subtitle": "Animation and Timeline are thenable.",
+            "description": "Await resolves when the active cycle completes and rejects if the cycle is stopped before completion. Use try/finally for cleanup."
+          },
+          "easings": {
+            "title": "Easings",
+            "subtitle": "Resolve a curve by name or pass a custom function.",
+            "description": "Easing transforms normalized progress. The animation engine remains responsible for time; the easing function only shapes how progress maps to a value."
+          },
+          "easing-gallery": {
+            "title": "Compare easing curves",
+            "subtitle": "Compare curves and inspect their effect on a moving value.",
+            "description": "Elastic and bounce curves can overshoot or reverse direction. Use unclamped progress when that behavior is part of the desired motion."
+          },
+          "retarget-motion": {
+            "title": "Retarget motion streams",
+            "subtitle": "Change a target without resetting current position and velocity.",
+            "description": "retargetMotion() consumes a stream of target values and emits samples containing position and velocity while using the shared frame coordinator."
+          },
+          "smooth-stream": {
+            "title": "Smooth asynchronous streams",
+            "subtitle": "Interpolate timestamped values using a bounded latency buffer.",
+            "description": "smoothStream() handles irregular arrivals by rendering behind the newest available input. Late samples that fall behind the output cursor are ignored instead of moving time backwards."
+          },
+          "adaptive-tween": {
+            "title": "Adaptive tweening",
+            "subtitle": "Adjust transition duration to match incoming data cadence.",
+            "description": "adaptiveTween() estimates the interval between accepted timestamps and adapts each transition duration. It preserves the rendered value during retargeting, but does not preserve physical velocity."
+          },
+          "render-adapters": {
+            "title": "Headless render adapters",
+            "subtitle": "Connect value streams to browser rendering without importing renderer bindings into the core.",
+            "description": "Optional subpaths expose DOM styles, SVG attributes, Canvas 2D drawing and structural Three.js transforms. These adapters are opt-in and remain outside the headless core."
+          },
+          "keyframes-dom": {
+            "title": "Keyframes & DOM targets",
+            "subtitle": "Define typed value sequences in the headless core, or opt into selector-based CSS animation from the DOM entry point.",
+            "description": "keyframes() returns a reusable Keyframes<T> animatable item. Offsets are normalized from 0 to 1; missing offsets are distributed between known offsets, and each frame can set the easing for its outgoing segment."
+          },
+          "gesture-physics": {
+            "title": "Production-grade gesture physics",
+            "subtitle": "Treat pointer input as a lifecycle, not just a stream of coordinates.",
+            "description": "pointerGestures$ captures the active pointer when supported, observes release and cancellation outside the element, and cancels safely when capture is lost, the window blurs, or the document becomes hidden. dragInertia applies axis locking, filtered velocity in units per second, dynamic bounds, and stops outward velocity at a hard edge. Unsubscribe to release capture and all listeners."
+          },
+          "motion-lifecycle": {
+            "title": "Motion preferences & lifecycle",
+            "subtitle": "Reduce motion and pause hidden-page work per instance.",
+            "description": "MotionPreferences observes prefers-reduced-motion and document visibility. Pass it to a directly played Animation or to the Timeline that controls a composed scene; the parent timeline policy governs its children. Finite motion can jump to its final state, unbounded playback suspends while reduced motion is requested, and pauseWhenHidden pauses/resumes around tab visibility without imposing a global policy."
+          },
+          "frame-observability": {
+            "title": "Frame observability & leak diagnostics",
+            "subtitle": "Measure shared scheduler work and assert teardown in tests.",
+            "description": "FrameCoordinator publishes frame work duration, rolling averages, maximum work, subscriber counts, queued read/write tasks, and clock state. metrics$ does not itself start the frame loop. getDiagnostics() returns an immutable snapshot; assertIdle() throws with the outstanding work counts when a coordinator still has consumers or scheduled tasks."
+          },
+          "scroll-triggers": {
+            "title": "Scroll triggers & scrubbed timelines",
+            "subtitle": "Turn scroll boundaries into lifecycle events and normalized timeline progress.",
+            "description": "createScrollTrigger() supports explicit start/end anchors, directional enter/leave callbacks, refresh after layout changes, and optional Timeline scrubbing. Scroll updates are coalesced through the shared frame coordinator; destroy the controller to remove listeners and pending work."
+          }
+        },
+        "ui": {
+          "pageTitle": "Documentation",
+          "pageDescription": "API guide with live examples.",
+          "version": "v0.1 · initial API",
+          "openPlaygrounds": "Open playgrounds",
+          "onThisPage": "Documentation sections",
+          "apiReference": "API reference",
+          "typescript": "TypeScript",
+          "rxjs": "RxJS 7.8",
+          "raf": "requestAnimationFrame",
+          "copyCode": "Copy code",
+          "copied": "Copied ✓",
+          "interactiveExample": "Interactive example",
+          "basicMotion": "Basic motion",
+          "progress": "Progress",
+          "easedProgress": "Eased progress",
+          "duration": "Duration",
+          "play": "Play",
+          "pause": "Pause",
+          "stop": "Stop",
+          "restart": "Restart",
+          "seek": "Seek",
+          "applyOptions": "Apply options",
+          "playResume": "Play / Resume",
+          "clearRecreate": "Clear / recreate",
+          "eventConsole": "Event console",
+          "noEvents": "No events yet. Press Play to begin.",
+          "eventsFromRun": "Events from one run",
+          "lifecycleLogger": "Lifecycle logger",
+          "timingOptionsPlayground": "Timing options playground",
+          "configurePlayback": "Configure playback",
+          "totalDuration": "Total duration",
+          "enabled": "enabled",
+          "disabled": "disabled",
+          "methodsAndCallbacks": "Methods and callbacks",
+          "optionTypeDescription": "Option / behavior",
+          "description": "Description",
+          "option": "Option",
+          "default": "Default",
+          "required": "Required",
+          "newPlayground": "New playground",
+          "valuesPhysics": "Values & Physics",
+          "exploreApi": "Explore API patterns",
+          "readyCompose": "Ready to compose motion.",
+          "tryAnimation": "Try Animation",
+          "navigationAriaLabel": "Documentation navigation",
+          "noScripts": "Examples run on the same core used by your application.",
+          "installCommand": "npm install @re-code/flux rxjs",
+          "documentationBreadcrumb": "Documentation",
+          "animationBreadcrumb": "Animation",
+          "typescriptLabel": "TypeScript",
+          "timelineInspector": "Timeline inspector",
+          "sequenceAndOverlap": "Sequence and overlap",
+          "start": "start",
+          "end": "end",
+          "translateRotateOpacity": "translate · rotate · opacity",
+          "durationColumn": "Duration (ms)",
+          "easeColumn": "Eased progress",
+          "optionTypeColumn": "Type",
+          "durationOneCycle": "Duration of one cycle, in milliseconds.",
+          "initialWait": "Initial wait before the animation starts.",
+          "easingDescription": "An easing name or a custom interpolation function.",
+          "additionalRepeats": "Additional repeats; Infinity keeps the cycle running.",
+          "alternateDirection": "Alternates direction between iterations.",
+          "optionsImmutable": "Options are immutable after creation. To change duration, delay, or easing, stop the animation and create a new instance.",
+          "delayRepeatYoyoDescription": "Delay postpones the active start. Repeat counts additional repeats, and yoyo reverses progress on alternating cycles. Select Apply options to create an instance with this configuration.",
+          "timingOptionsPlaygroundTitle": "Timing options playground",
+          "pathStart": "start",
+          "pathEnd": "end of path",
+          "yoyo": "Yoyo",
+          "applyPlaybackOptions": "Apply options",
+          "playResumeSymbol": "▶ Play",
+          "pauseSymbol": "Ⅱ Pause",
+          "restartSymbol": "↻ Restart",
+          "stopSymbol": "■ Stop",
+          "playMethodDescription": "Starts or resumes. If the animation has completed, it starts a new cycle.",
+          "pauseMethodDescription": "Pauses the clock without losing the current time position.",
+          "stopMethodDescription": "Cancels the pending cycle, resets to idle, and rejects its promise.",
+          "restartMethodDescription": "Creates a new completion cycle and starts from zero.",
+          "seekMethodDescription": "Jumps to a specific time, clamped to the instance’s valid range.",
+          "updateMethodDescription": "Receives linear progress and progress transformed by easing.",
+          "lifecycleCallbackDescription": "The API also provides onStart, onComplete, onPause, onResume, and onStop. They run when the corresponding state transition occurs, not when the instance is created.",
+          "callbackLogDescription": "This log listens for onStart, onPause, onResume, onStop, and onComplete. The onUpdate callback moves the box without flooding the log with dozens of entries per second.",
+          "liveEventsFromRun": "Events from one run",
+          "clearOrRecreate": "Clear / recreate",
+          "noEventsYet": "No events yet. Press Play to begin.",
+          "timelineRulerStart": "0 ms",
+          "timelineInspectorTitle": "Timeline inspector",
+          "compositionTree": "Composition tree",
+          "sceneNestedGroup": "Scene with a nested group",
+          "secondItemPosition": "Second item position",
+          "offsetExplorer": "Offset explorer",
+          "omittedOffset": "omitted",
+          "afterPreviousEnds": "After the previous item ends.",
+          "absoluteStart250": "Absolute start at 250 ms.",
+          "hundredAfterPrevious": "100 ms after the previous item ends.",
+          "overlapPrevious": "Overlaps the previous item by 100 ms.",
+          "sameStartAsPrevious": "Starts at the same time as the last item added.",
+          "openTimelinePlaygroundPrompt": "Want to change durations and offsets from a control panel? Open the Timeline Playground ↗",
+          "promiseStatus": "Promise status",
+          "playAndAwait": "▶ Play and await",
+          "stopReject": "■ Stop (reject)",
+          "stopRejectsPromisePrefix": "If you call",
+          "stopRejectsPromiseSuffix": "before completion, the pending cycle rejects with",
+          "stopRejectsPromiseTail": "Use try/catch when the outcome matters.",
+          "promiseRejectionExplanation": "re;Flux internally marks the rejection as observed to avoid unhandledrejection, but the error is still delivered to your catch.",
+          "interactiveCurve": "Interactive curve",
+          "exploreEasing": "Explore easing",
+          "playCurve": "▶ Play curve",
+          "reset": "↻ Reset",
+          "compareAllCurves": "To compare all curves and see more examples,",
+          "openEasingsPlayground": "open the Easings Playground ↗",
+          "tryEasing": "Try easing ↗",
+          "selectCurve": "Selected curve",
+          "reactivityStopNote": "When an animation is stopped before completion, its active promise rejects. Catch the error if that is an expected control path.",
+          "retargetNumericNote": "This operator is for numeric targets. Cancellation switches the destination, while continuity comes from carrying value and velocity in the physical state—not from switchMap alone.",
+          "smoothStreamTimestampPrefix": "Every input timestamp must use the same monotonic time origin as requestAnimationFrame timestamps, normally",
+          "smoothStreamTimestampSuffix": "Convert remote server timestamps to a client monotonic clock before passing them in.",
+          "smoothStreamPlaygroundPrompt": "The Reactive streams tab in the Motion playground lets you send values at irregular intervals and compare the latest input with the smoothed output.",
+          "adaptiveOptions": "Options",
+          "optionLabel": "Option",
+          "defaultLabel": "Default",
+          "descriptionLabel": "Description",
+          "minDurationDescription": "Minimum transition duration in milliseconds.",
+          "maxDurationDescription": "Maximum transition duration in milliseconds.",
+          "durationFactorDescription": "Multiplier applied to the estimated input cadence.",
+          "cadenceSmoothingDescription": "EMA weight for each new cadence measurement, in (0, 1].",
+          "initialCadenceDescription": "Initial cadence estimate in milliseconds.",
+          "easingOptionDescription": "Easing function or registered easing name for each transition.",
+          "staleAfterDescription": "Mark outputs stale after this many milliseconds without a source sample.",
+          "interpolateOptionDescription": "Maps the current value, target and eased progress to the value emitted for the frame.",
+          "adaptiveOutputsDescription": "Each output includes the current value, progress, estimated cadence, chosen transition duration and transition start timestamp. Duplicate and out-of-order source timestamps are ignored. Try the Adaptive tween tab in the Motion playground to compare fast, slow and jittery sample cadences.",
+          "optionalAdapters": "TypeScript · optional adapters",
+          "adapterImplementationNote": "DOM, SVG, Canvas and structural Three.js adapters are implemented as opt-in entry points. Canvas pixels are not restored on unsubscribe; configure clearOnUnsubscribe when clearing is desired.",
+          "domAnimateEntryNote": "animate() is deliberately exported from @re-code/flux/dom rather than the root entry point. It accepts a CSS selector, a single element, or an iterable such as an array or NodeList, and combines all targets/properties into one timeline. Each property can define its own keyframes and timing while sharing the same playhead. Selectors are resolved once when the function is called.",
+          "domAnimationBehavior": "DOM animation behavior",
+          "optionBehavior": "Option / behavior",
+          "propertyDefinitionDescription": "Each CSS property accepts a scalar target, an array of evenly spaced values, or an object with values or explicit keyframes.",
+          "propertyTimingDescription": "Every property may override global defaults. If no global duration is provided, every property must define its own duration. Property delay is added to global delay and stagger.",
+          "keyframeOffsetDescription": "Offsets are normalized to 0–1. Each keyframe’s easing applies to the segment leading away from that keyframe.",
+          "staggerDescription": "Extra delay in milliseconds per target, or a function receiving the target index and element.",
+          "disposeDescription": "Cancels active playback if needed, releases style subscriptions and restores original inline declarations.",
+          "cssInterpolationDescription": "Values with matching numeric templates and units interpolate numerically. Incompatible values change discretely at the endpoint; for transforms, provide explicit arrays whose string templates match.",
+          "headlessImportDescription": "The headless package has no selector or document dependency. Import keyframes from @re-code/flux for renderer-independent values, and import animate from @re-code/flux/dom only when you need DOM selection and CSS styles.",
+          "keyframesPlaygroundPrompt": "Try the Keyframes & DOM API playground to compare multi-stage value sequences with selector-based stagger animations.",
+          "motionPlaygroundPrompt": "Explore Tween<T>, retargetable spring motion, sampled velocity, and read/write coordination from the shared frame clock.",
+          "useHeadlessPrompt": "Use the headless core for typed values and timelines, or opt into selector-based DOM animation through @re-code/flux/dom.",
+          "timelineTotalDurationLabel": "Total duration",
+          "segmentsLabel": "Segments",
+          "childrenLabel": "Children",
+          "offsetLabel": "Offset",
+          "meaningLabel": "Meaning",
+          "exampleLabel": "Example",
+          "totalDurationLabel": "Total duration",
+          "progressLabel": "Progress",
+          "durationLabel": "Duration",
+          "stateLabel": "State",
+          "offsetValueLabel": "Offset",
+          "releaseVelocity": "Release velocity (units per second)",
+          "inertiaFriction": "Inertia friction",
+          "springStiffness": "Spring stiffness",
+          "springDamping": "Spring damping",
+          "durationMilliseconds": "Duration (milliseconds)",
+          "delayMilliseconds": "Delay (milliseconds)",
+          "repeatCount": "Repeat count",
+          "seekAnimationProgress": "Seek animation progress",
+          "seekTimelineProgress": "Seek timeline progress",
+          "seekOffsetProgress": "Seek offset example progress",
+          "seekNestedProgress": "Seek nested timeline progress",
+          "seekTweenProgress": "Seek tween progress",
+          "seekSequenceProgress": "Seek keyframe sequence",
+          "segmentDuration": "Segment duration (milliseconds)",
+          "offsetDelay": "Offset delay (milliseconds)",
+          "offsetOverlap": "Offset overlap (milliseconds)",
+          "absoluteStartTime": "Absolute start time (milliseconds)",
+          "staggerMilliseconds": "Stagger (ms)",
+          "durationMs": "Duration (ms)",
+          "sceneLabel": "scene",
+          "timelineReveal": "Timeline reveal",
+          "animationCluster": "Animation cluster",
+          "timelineMove": "Timeline move",
+          "animationSettle": "Animation settle",
+          "animationOutro": "Animation outro",
+          "entrance": "Entrance",
+          "movement": "Movement",
+          "emphasis": "Emphasis",
+          "playCurveButton": "Play curve",
+          "resetPositions": "Reset positions",
+          "interactiveExampleUpper": "INTERACTIVE EXAMPLE",
+          "progressUpper": "PROGRESS",
+          "easedProgressUpper": "EASED PROGRESS",
+          "durationUpper": "DURATION",
+          "timingOptionsPlaygroundUpper": "TIMING OPTIONS PLAYGROUND",
+          "totalDurationUpper": "TOTAL DURATION",
+          "lifecycleLoggerUpper": "LIFECYCLE LOGGER",
+          "interactiveCurveUpper": "INTERACTIVE CURVE",
+          "timelineInspectorUpper": "TIMELINE INSPECTOR",
+          "offsetExplorerUpper": "OFFSET EXPLORER",
+          "compositionTreeUpper": "COMPOSITION TREE",
+          "offsetUpper": "OFFSET",
+          "segmentsUpper": "SEGMENTS",
+          "childrenUpper": "CHILDREN",
+          "playbackCodeTitle": "TypeScript · Playback",
+          "timelineCodeTitle": "TypeScript · Timeline",
+          "offsetsCodeTitle": "TypeScript · Offsets",
+          "compositionCodeTitle": "TypeScript · Composition",
+          "easingCodeTitle": "TypeScript · Easings",
+          "customEasingCodeTitle": "TypeScript · Custom Easing",
+          "retargetCodeTitle": "TypeScript · retargetMotion",
+          "smoothStreamCodeTitle": "TypeScript · smoothStream",
+          "adaptiveTweenCodeTitle": "TypeScript · adaptiveTween",
+          "optionalAdaptersCodeTitle": "TypeScript · optional adapters",
+          "keyframesDomCodeTitle": "TypeScript · keyframes and DOM targets",
+          "repeatsLabel": "Repeats",
+          "repeatIndefinitely": "Repeat indefinitely",
+          "alternateDirectionYoyo": "Alternate direction (yoyo)",
+          "easingLabel": "Easing",
+          "offsetRule": "Offset rule",
+          "first": "First",
+          "second": "Second",
+          "reveal": "reveal",
+          "cluster": "cluster",
+          "move": "move",
+          "settle": "settle",
+          "outro": "outro",
+          "timelineLabel": "Timeline",
+          "smoothStreamLateDataExplanation": "Every input timestamp must use the same monotonic time origin as requestAnimationFrame timestamps, normally",
+          "retargetNumericText": "This operator is for numeric targets. Cancellation switches the destination, while continuity comes from carrying value and velocity in the physical state—not from switchMap alone.",
+          "streamPlaygroundText": "The Reactive streams tab in the Motion playground lets you send values at irregular intervals and compare the latest input with the smoothed output.",
+          "adaptiveOutputDescription": "Each output includes the current value, progress, estimated cadence, chosen transition duration and transition start timestamp. Duplicate and out-of-order source timestamps are ignored. Try the Adaptive tween tab in the Motion playground to compare fast, slow and jittery sample cadences.",
+          "adaptersDescription": "DOM, SVG, Canvas and structural Three.js adapters are implemented as opt-in entry points. Canvas pixels are not restored on unsubscribe; configure clearOnUnsubscribe when clearing is desired.",
+          "domAnimateDescription": "animate() is deliberately exported from @re-code/flux/dom rather than the root entry point. It accepts a CSS selector, a single element, or an iterable such as an array or NodeList, and combines all targets/properties into one timeline. Each property can define its own keyframes and timing while sharing the same playhead. Selectors are resolved once when the function is called.",
+          "keyframesPlaygroundDescription": "Try the Keyframes & DOM API playground to compare multi-stage value sequences with selector-based stagger animations.",
+          "motionPlaygroundDescription": "Explore Tween<T>, retargetable spring motion, sampled velocity, and read/write coordination from the shared frame clock.",
+          "headlessDescription": "Use the headless core for typed values and timelines, or opt into selector-based DOM animation through @re-code/flux/dom.",
+          "timestampClientConversion": "Convert remote server timestamps to a client monotonic clock before passing them in.",
+          "minDurationDesc": "Minimum transition duration in milliseconds.",
+          "maxDurationDesc": "Maximum transition duration in milliseconds.",
+          "cadenceEmaDesc": "EMA weight for each new cadence measurement, in (0, 1].",
+          "initialCadenceDesc": "Initial cadence estimate in milliseconds.",
+          "interpolateRequiredDesc": "Maps the current value, target and eased progress to the value emitted for the frame.",
+          "keyframePropertyDesc": "Each CSS property accepts a scalar target, an array of evenly spaced values, or an object with values or explicit keyframes.",
+          "propertyTimingsDesc": "Every property may override global defaults. If no global duration is provided, every property must define its own duration. Property delay is added to global delay and stagger.",
+          "keyframeOffsetEaseDesc": "Offsets are normalized to 0–1. Each keyframe’s easing applies to the segment leading away from that keyframe.",
+          "staggerValueDesc": "Extra delay in milliseconds per target, or a function receiving the target index and element.",
+          "disposeAdapterDesc": "Cancels active playback if needed, releases style subscriptions and restores original inline declarations.",
+          "cssInterpolationDesc": "Values with matching numeric templates and units interpolate numerically. Incompatible values change discretely at the endpoint; for transforms, provide explicit arrays whose string templates match.",
+          "easingNameSuffix": " name or a custom interpolation function.",
+          "easingPrefix": "An ",
+          "moreRepeatsDesc": "Additional repeats; ",
+          "infinityKeepsCycle": " keeps the cycle running.",
+          "noScriptsNote": "Examples run on the same core used by your application.",
+          "childrenFour": "4",
+          "rxjsVersion": "RxJS 7.8",
+          "cssRaf": "requestAnimationFrame",
+          "offsetOmittedExample": ".add(next)",
+          "offsetAbsoluteExample": ".add(next, 250)",
+          "offsetPlusExample": ".add(next, '+=100')",
+          "offsetMinusExample": ".add(next, '-=100')",
+          "offsetParallelExample": ".add(next, '<')",
+          "repeatChoices": [
+            {
+              "title": "0 · once",
+              "value": 0
+            },
+            {
+              "title": "1 · two cycles",
+              "value": 1
+            },
+            {
+              "title": "2 · three cycles",
+              "value": 2
+            },
+            {
+              "title": "3 · four cycles",
+              "value": 3
+            }
+          ],
+          "offsetPresetChoices": [
+            {
+              "title": "Omitted · sequential",
+              "value": "sequential"
+            },
+            {
+              "title": "+=150 · delay",
+              "value": "+=150"
+            },
+            {
+              "title": "-=150 · overlap",
+              "value": "-=150"
+            },
+            {
+              "title": "< · parallel",
+              "value": "<"
+            },
+            {
+              "title": "300 · absolute",
+              "value": "absolute"
+            }
+          ],
+          "offsetTimingRows": [
+            {
+              "offset": "omitted",
+              "meaning": "After the previous item ends.",
+              "example": ".add(next)"
+            },
+            {
+              "offset": "250",
+              "meaning": "Absolute start at 250 ms.",
+              "example": ".add(next, 250)"
+            },
+            {
+              "offset": "+=100",
+              "meaning": "100 ms after the previous item ends.",
+              "example": ".add(next, '+=100')"
+            },
+            {
+              "offset": "-=100",
+              "meaning": "Overlaps the previous item by 100 ms.",
+              "example": ".add(next, '-=100')"
+            },
+            {
+              "offset": "<",
+              "meaning": "Starts at the same time as the last item added.",
+              "example": ".add(next, '<')"
+            }
+          ],
+          "motionStageLabels": [
+            "Entrance",
+            "Movement",
+            "Emphasis"
+          ],
+          "offsetObjectLabels": [
+            "First",
+            "Second"
+          ],
+          "nestedTreeLabels": [
+            "reveal",
+            "cluster",
+            "move",
+            "settle",
+            "outro"
+          ],
+          "easingDescriptionPrefix": "An ",
+          "easingDescriptionSuffix": " name or a custom interpolation function.",
+          "repeatDescriptionPrefix": "Additional repeats; ",
+          "repeatDescriptionSuffix": " keeps the cycle running.",
+          "stopMethodFullDescription": "Cancels the pending cycle, resets to idle, and rejects its promise.",
+          "callbacksFullDescription": "The API also provides onStart, onComplete, onPause, onResume, and onStop. They run when the corresponding state transition occurs, not when the instance is created.",
+          "callbackFullDescription": "This log listens for onStart, onPause, onResume, onStop, and onComplete. The onUpdate callback moves the box without flooding the log with dozens of entries per second.",
+          "promiseRejectionPrefix": "re;Flux internally marks the rejection as observed to avoid",
+          "promiseRejectionMiddle": "but the error is still delivered to your",
+          "timelinePromptPrefix": "Want to change durations and offsets from a control panel?",
+          "openTimelinePlayground": "Open the Timeline Playground ↗",
+          "streamPlaygroundPrefix": "The",
+          "streamPlaygroundLink": "Reactive streams tab in the Motion playground",
+          "streamPlaygroundSuffix": "lets you send values at irregular intervals and compare the latest input with the smoothed output.",
+          "adaptiveOutputPrefix": "Each output includes the current value, progress, estimated cadence, chosen transition duration and transition start timestamp. Duplicate and out-of-order source timestamps are ignored. Try the",
+          "adaptivePlaygroundLink": "Adaptive tween tab in the Motion playground",
+          "adaptiveOutputSuffix": "to compare fast, slow and jittery sample cadences.",
+          "adapterNotePrefix": "DOM, SVG, Canvas and structural Three.js adapters are implemented as opt-in entry points. Canvas pixels are not restored on unsubscribe; configure",
+          "adapterNoteSuffix": "when clearing is desired.",
+          "domIntroPrefix": "animate() is deliberately exported from",
+          "domIntroMiddle": "rather than the root entry point. It accepts a CSS selector, a single element, or an iterable such as an array or",
+          "domIntroSuffix": "and combines all targets/properties into one timeline. Each property can define its own keyframes and timing while sharing the same playhead. Selectors are resolved once when the function is called.",
+          "headlessIntroPrefix": "The headless package has no selector or document dependency. Import",
+          "headlessIntroMiddle": "from",
+          "headlessIntroAnd": "for renderer-independent values, and import",
+          "headlessIntroOnly": "only when you need DOM selection and CSS styles.",
+          "tryKeyframesPrefix": "Try the",
+          "tryKeyframesLink": "Keyframes & DOM API playground",
+          "tryKeyframesSuffix": "to compare multi-stage value sequences with selector-based stagger animations.",
+          "cadenceSmoothingFullDesc": "EMA weight for each new cadence measurement, in (0, 1].",
+          "keyframePropertyTitle": "Each CSS property accepts a scalar target, an array of evenly spaced values, or an object with values or explicit keyframes.",
+          "motionCardPrefix": "Explore",
+          "motionCardSuffix": "retargetable spring motion, sampled velocity, and read/write coordination from the shared frame clock.",
+          "headlessCardPrefix": "Use the headless core for typed values and timelines, or opt into selector-based DOM animation through",
+          "docsArticleAriaLabel": "Documentation article",
+          "docsNavigationAriaLabel": "Documentation section index",
+          "animationProgressAriaLabel": "Animation progress",
+          "animationTimingProgressAriaLabel": "Animation timing progress",
+          "timelineProgressAriaLabel": "Timeline progress",
+          "offsetProgressAriaLabel": "Offset example progress",
+          "nestedProgressAriaLabel": "Nested timeline progress",
+          "easingProgressAriaLabel": "Easing progress",
+          "animationCodeTitle": "TypeScript · Animation",
+          "asyncAwaitCodeTitle": "TypeScript · Async / Await",
+          "defaultAnimationDuration": "1,100 ms",
+          "easingTrackEnd": "1,000 ms",
+          "easingCurveLabelPrefix": "Easing curve",
+          "selectEasingLabelPrefix": "Select",
+          "timingExamplesExplanation": "Delay postpones the active start. Repeat counts additional cycles, and yoyo reverses progress on alternating cycles. Select Apply options to create an instance with this configuration.",
+          "timingEasingName": "easeInOutCubic",
+          "typescriptRxjsLabel": "TypeScript · RxJS",
+          "typescriptCallbacksLabel": "TypeScript · Callbacks",
+          "playCallbackButton": "▶ Play / Resume",
+          "pauseCallbackButton": "Ⅱ Pause",
+          "stopCallbackButton": "■ Stop",
+          "fluentMethodReturn": "→ this",
+          "callbackReturnLabel": "callback",
+          "stopRejectsPromiseFinal": "Use try/catch when the outcome matters.",
+          "propertyOptionLabel": "Property",
+          "keyframeOptionLabel": "Keyframe",
+          "cssInterpolationLabel": "CSS interpolation",
+          "offsetOmitted": "omitted",
+          "segmentAriaLabelTemplate": "{label}: starts at {start} ms and lasts {duration} ms",
+          "genericSegmentPrefix": "Segment",
+          "timelineSegmentLabels": [
+            "Entrance",
+            "Movement",
+            "Emphasis"
+          ],
+          "nestedSegmentLabels": [
+            "Entrance",
+            "Nested group",
+            "Exit"
+          ],
+          "defaultAnimationDurationLabel": "1,100 ms",
+          "offsetAbsoluteLabel": "300 ms",
+          "awaitReady": "ready",
+          "awaitPending": "pending",
+          "awaitResolved": "resolved",
+          "awaitRejectedPrefix": "rejected: ",
+          "awaitRejectedFallback": "rejected",
+          "awaitReadyKind": "ready",
+          "awaitPendingKind": "pending",
+          "awaitResolvedKind": "resolved",
+          "awaitRejectedKind": "rejected",
+          "viewExampleCode": "View TypeScript",
+          "canvasDemoAriaLabel": "An animated circle drawn to Canvas 2D using the shared frame coordinator",
+          "liveExample": "Live example",
+          "visualExampleAriaLabel": "Animated demonstration of this API",
+          "demoReady": "Ready",
+          "demoPlaying": "Playing",
+          "demoPaused": "Paused",
+          "demoStreamStopped": "Stream stopped",
+          "demoPromisePending": "Promise pending…",
+          "demoPromiseResolved": "await resolved",
+          "demoCallbackStarted": "onStart()",
+          "demoCallbackCompleted": "onComplete()",
+          "retargetDemoCaption": "Position and velocity are preserved",
+          "smoothStreamDemoCaption": "Timestamped samples → smoothed value",
+          "adaptiveTweenDemoCaption": "Incoming cadence → adaptive duration",
+          "repeatYoyoDemoCaption": "repeat: Infinity · yoyo: true",
+          "repeatYoyoCodeTitle": "Repeat and yoyo",
+          "compositionHelpersCodeTitle": "Sequence, parallel & staggered composition",
+          "docsNavigationTitle": "On this page",
+          "mobilePageLabel": "Documentation page",
+          "chooseDocsPageAriaLabel": "Choose a documentation page",
+          "apiPlaygroundLink": "API Playground",
+          "visualShowcaseLink": "Visual showcase",
+          "svgMorphTitle": "Morph SVG paths with different commands",
+          "svgMorphDescription": "normalizeSvgPathPair() converts supported path commands to absolute cubic curves, subdivides contours to matching segment counts and heuristically aligns closed contours. Subpaths are paired by order, and paired paths must agree on open versus closed geometry. The helper has a bounded segment count to avoid unexpectedly expensive morphs.",
+          "svgMorphCodeTitle": "TypeScript · SVG path normalization"
+        },
+        "snippets": {
+          "install": "npm install @re-code/flux rxjs\n\nimport { Animation } from '@re-code/flux';\n\nconst fade = new Animation({\n  duration: 600,\n  easing: 'easeOutCubic',\n});\n\nfade.play();\nawait fade;",
+          "animation": "const animation = new Animation({\n  duration: 900,\n  delay: 120,\n  repeat: 1,\n  yoyo: true,\n  easing: 'easeOutCubic',\n  onUpdate: (progress, easedProgress) => {\n    element.style.opacity = String(easedProgress);\n  },\n});\n\nanimation.play();",
+          "timeline": "const entrance = new Animation({ duration: 700 });\nconst move = new Animation({ duration: 900 });\nconst finish = new Animation({ duration: 500 });\n\nconst timeline = new Timeline();\ntimeline\n  .add(entrance)\n  .add(move, '-=180')\n  .add(finish, '<');\n\ntimeline.play();\nawait timeline;",
+          "reactivity": "const progress$ = animation.progress$;\nconst state$ = animation.state$;\n\nconst subscription = progress$.subscribe((progress) => {\n  element.style.transform =\n    `translateX(${progress * 180}px)`;\n});\n\ntry {\n  await animation;\n} finally {\n  subscription.unsubscribe();\n}",
+          "easing": "import { Easings, resolveEasing } from '@re-code/flux';\n\nconst ease = resolveEasing('easeOutBounce');\nconst halfway = ease(0.5);\n\nconst custom = (t: number) => t * t * t;\nnew Animation({ duration: 600, easing: custom });",
+          "timing": "const animation = new Animation({\n  duration: 800,\n  delay: 200,\n  repeat: 2, // 2 additional repeats\n  yoyo: true,\n  easing: 'easeInOutCubic',\n});\n\nanimation.play();",
+          "callbacks": "const events: string[] = [];\nconst animation = new Animation({\n  duration: 700,\n  delay: 100,\n  onStart: () => events.push('start'),\n  onUpdate: (progress, eased) => {\n    element.style.opacity = String(eased);\n    element.dataset.progress = String(progress);\n  },\n  onPause: () => events.push('pause'),\n  onResume: () => events.push('resume'),\n  onStop: () => events.push('stop'),\n  onComplete: () => events.push('complete'),\n});\n\nanimation.play();",
+          "await": "const animation = new Animation({ duration: 700 });\n\nasync function run(): Promise<void> {\n  animation.restart();\n  try {\n    await animation;\n    console.log('Animation completed');\n  } catch (error) {\n    console.error('The animation cycle did not complete', error);\n  }\n}\n\nvoid run();",
+          "offsets": "const first = new Animation({ duration: 700 });\nconst second = new Animation({ duration: 450 });\nconst timeline = new Timeline().add(first);\n\ntimeline.add(second, '-=150'); // overlaps by 150 ms\nconsole.table(timeline.segments);\ntimeline.play();",
+          "nested": "const reveal = new Animation({ duration: 450 });\nconst move = new Animation({ duration: 700 });\nconst settle = new Animation({ duration: 400 });\n\nconst group = new Timeline()\n  .add(move)\n  .add(settle, '-=180');\n\nconst scene = new Timeline()\n  .add(reveal)\n  .add(group, '-=100');\n\nscene.play(); // the parent controls nested children too",
+          "easingGallery": "const easingNames = [\n  'linear', 'easeInQuad', 'easeOutCubic',\n  'easeInOutQuart', 'easeOutElastic', 'easeOutBounce',\n] as const;\n\nconst sample = resolveEasing('easeOutElastic');\nconst y = sample(0.65); // transformed progress\n\nnew Animation({\n  duration: 900,\n  easing: sample, // a function can be passed directly too\n});",
+          "retargetMotion": "import { Subject, shareReplay } from 'rxjs';\nimport { retargetMotion } from '@re-code/flux';\n\nconst targets$ = new Subject<number>();\nconst motion$ = targets$.pipe(\n  retargetMotion({ initialValue: 0, stiffness: 220, damping: 28 }),\n  shareReplay({ bufferSize: 1, refCount: true }),\n);\n\nconst subscription = motion$.subscribe(({ value, velocity }) => {\n  console.log({ value, velocity });\n});\ntargets$.next(120);\ntargets$.next(40); // preserves current position and velocity\n\n// Unsubscribe or complete targets$ when the motion is no longer needed.",
+          "smoothStream": "import { smoothStream } from '@re-code/flux';\n\nconst smoothed$ = timestampedSamples$.pipe(\n  smoothStream({\n    targetLatency: 100,\n    staleAfter: 1_000,\n    maxBufferSize: 120,\n    interpolate: (from, to, progress) => from + (to - from) * progress,\n  }),\n);\n\n// Inputs are { value, timestamp }, timestamped with performance.now().\n// Output is sampled on the shared RAF clock and never extrapolates.",
+          "adaptiveTween": "import { adaptiveTween } from '@re-code/flux';\n\nconst adaptive$ = timestampedSamples$.pipe(\n  adaptiveTween({\n    minDuration: 20,\n    maxDuration: 220,\n    durationFactor: 1.5,\n    cadenceSmoothing: 0.3,\n    interpolate: (from, to, progress) => from + (to - from) * progress,\n  }),\n);\n\nadaptive$.subscribe(({ value, estimatedCadence, targetDuration, transitionStartTimestamp }) => {\n  render(value);\n  console.log({ estimatedCadence, targetDuration, transitionStartTimestamp });\n});",
+          "adapters": "import { map } from 'rxjs';\nimport { bindStyle } from '@re-code/flux/dom';\nimport { bindSvgAttributes } from '@re-code/flux/svg';\nimport { bindCanvas } from '@re-code/flux/canvas';\nimport { bindThreeObject } from '@re-code/flux/three';\n\nconst styleBinding = bindStyle(element, motion$.pipe(\n  map(({ value }) => ({ transform: `translateX(${value}px)` })),\n));\nconst svgBinding = bindSvgAttributes(circle, motion$.pipe(\n  map(({ value }) => ({ cx: value, opacity: 1 })),\n));\nconst canvasBinding = bindCanvas(context, values$, (ctx, value) => drawValue(ctx, value));\nconst threeBinding = bindThreeObject(mesh, transformSnapshots$);\n\nstyleBinding.unsubscribe();\nsvgBinding.unsubscribe();\ncanvasBinding.unsubscribe();\nthreeBinding.unsubscribe();",
+          "keyframesDom": "import { keyframes } from '@re-code/flux';\nimport { animate } from '@re-code/flux/dom';\n\nconst sequence = keyframes({\n  duration: 900,\n  keyframes: [\n    { value: 0, offset: 0 },\n    { value: 140, offset: 0.35, easing: 'easeOutCubic' },\n    { value: 70, offset: 0.68, easing: 'easeInOutQuad' },\n    { value: 180, offset: 1 },\n  ],\n});\n\nconst entrance = animate('.card', {\n  properties: {\n    opacity: { values: [0, 1], duration: 220, easing: 'easeOutQuad' },\n    transform: {\n      keyframes: [\n        { value: 'translateY(16px)', offset: 0, easing: 'easeOutCubic' },\n        { value: 'translateY(0px)', offset: 1 },\n      ],\n      duration: 500,\n      delay: 40,\n    },\n  },\n  stagger: (index) => index * 70,\n});\n\nsequence.play();\nentrance.play();\n// Later: entrance.dispose() restores original inline styles and releases bindings.",
+          "repeatYoyo": "const pulse = new Animation({\n  duration: 880,\n  repeat: Infinity,\n  yoyo: true,\n  easing: 'easeInOutCubic',\n  onUpdate: (_progress, easedProgress) => {\n    element.style.transform = `translate(-50%, -50%) scale(${0.72 + easedProgress * 0.46})`;\n    element.style.opacity = String(0.48 + easedProgress * 0.52);\n    element.style.borderRadius = `${12 + easedProgress * 10}px`;\n  },\n});\n\npulse.play();",
+          "compositionHelpers": "import { keyframes, sequence, parallel, staggered } from '@re-code/flux';\n\nconst items = [\n  keyframes({ duration: 460, keyframes: [{ value: 0 }, { value: 1 }] }),\n  keyframes({ duration: 620, keyframes: [{ value: 0 }, { value: 1 }] }),\n  keyframes({ duration: 540, keyframes: [{ value: 0 }, { value: 1 }] }),\n];\n\nsequence(items).play(); // one after another\nparallel(items).play(); // all at time zero\nstaggered(items, 100, { from: 'center' }).play();",
+          "gesturePhysics": "import { map } from 'rxjs';\nimport { pointerGestures$, dragInertia } from '@re-code/flux';\n\nlet grabOffset = 0;\nconst initialHandleOffset = handle.getBoundingClientRect().left\n  - container.getBoundingClientRect().left;\n\nconst dragSubscription = pointerGestures$(handle, { capturePointer: true }).pipe(\n  map((event) => {\n    if (event.type === 'down') {\n      grabOffset = event.x - handle.getBoundingClientRect().left;\n    }\n    // Convert the pointer location into the handle's top-left coordinate.\n    return { ...event, x: event.x - grabOffset };\n  }),\n  dragInertia({\n    axis: 'x',\n    getBounds: () => {\n      const rect = container.getBoundingClientRect();\n      return { minX: rect.left, maxX: rect.right - handle.getBoundingClientRect().width };\n    },\n  }),\n).subscribe(({ x, vx, phase }) => {\n  const origin = container.getBoundingClientRect().left;\n  handle.style.transform = `translateX(${x - origin - initialHandleOffset}px)`;\n  handle.dataset.phase = phase;\n  handle.dataset.velocity = String(vx);\n});\n\n// Call on component teardown; pointer capture and listeners are released.\ndragSubscription.unsubscribe();",
+          "motionLifecycle": "import { Animation, MotionPreferences, Timeline } from '@re-code/flux';\n\nconst preferences = new MotionPreferences();\nconst entrance = new Animation({\n  duration: 320,\n  motion: {\n    preferences,\n    reducedMotion: 'finish',\n    pauseWhenHidden: true,\n  },\n});\nentrance.play();\n\n// Or apply a policy to a composed scene instead of each child:\nconst scene = new Timeline({ motion: { preferences, pauseWhenHidden: true } })\n  .add(new Animation({ duration: 320 }));\nscene.play();\n\n// In app teardown: removes media-query/document listeners.\npreferences.destroy();",
+          "frameObservability": "import { frameCoordinator } from '@re-code/flux';\n\nconst metricsSubscription = frameCoordinator.metrics$.subscribe((metrics) => {\n  telemetry.record('animation-frame-work', {\n    lastMs: metrics.lastFrameWorkMs,\n    averageMs: metrics.averageFrameWorkMs,\n    maxMs: metrics.maxFrameWorkMs,\n    activeSubscribers: metrics.activeFrameSubscribers,\n    pendingReads: metrics.pendingReadTasks,\n    pendingWrites: metrics.pendingWriteTasks,\n  });\n});\n\n// Teardown: metrics observation never owns or starts the RAF clock.\nmetricsSubscription.unsubscribe();\n\n// In an isolated test after all consumers are disposed:\n// frameCoordinator.assertIdle();",
+          "svgMorph": "import { BehaviorSubject } from 'rxjs';\nimport { bindSvgPathMorph, normalizeSvgPathPair } from '@re-code/flux/svg';\n\nconst from = 'M 10 10 L 90 10 L 50 90 Z';\nconst to = 'M 50 5 C 100 5 100 95 50 95 C 0 95 0 5 50 5 Z';\n\n// Inspect compatible cubic command sequences, or let bindSvgPathMorph\n// normalize these paths internally when creating the binding.\nconst normalized = normalizeSvgPathPair(from, to);\nconsole.log(normalized.segmentsPerSubpath);\n\nconst progress$ = new BehaviorSubject(0);\nconst binding = bindSvgPathMorph(pathElement, progress$, from, to, {\n  maxSegmentsPerSubpath: 128,\n});\nprogress$.next(0.5);\n\n// On component teardown:\nbinding.unsubscribe();",
+          "scrollTrigger": "import { Animation, Timeline } from '@re-code/flux';\nimport { createScrollTrigger } from '@re-code/flux/dom';\n\nconst reveal = new Timeline().add(new Animation({\n  duration: 700,\n  onUpdate: (progress) => {\n    panel.style.opacity = String(progress);\n    panel.style.transform = `translateY(${(1 - progress) * 24}px)`;\n  },\n}));\n\nconst trigger = createScrollTrigger(panel, {\n  start: 'top 85%',\n  end: 'bottom 20%',\n  timeline: reveal, // scrubs the timeline to the trigger progress\n  onEnter: () => console.log('entered'),\n  onLeaveBack: () => console.log('left backwards'),\n});\n\n// Call after app-driven layout changes if automatic ResizeObserver refresh is insufficient.\ntrigger.refresh();\n// In component teardown:\ntrigger.destroy();"
+        },
+        "pageNavigation": [
+          {
+            "label": "GETTING STARTED",
+            "links": [
+              {
+                "label": "Introduction",
+                "to": "/docs/introduction",
+                "page": "introduction"
+              }
+            ]
+          },
+          {
+            "label": "AUTHORING API",
+            "links": [
+              {
+                "label": "Animation",
+                "to": "/docs/animation",
+                "page": "animation"
+              },
+              {
+                "label": "Timelines",
+                "to": "/docs/timelines",
+                "page": "timelines"
+              }
+            ]
+          },
+          {
+            "label": "REACTIVE MOTION",
+            "links": [
+              {
+                "label": "Reactive state & easing",
+                "to": "/docs/reactivity",
+                "page": "reactivity"
+              },
+              {
+                "label": "Motion streams",
+                "to": "/docs/streams",
+                "page": "streams"
+              }
+            ]
+          },
+          {
+            "label": "RENDERING",
+            "links": [
+              {
+                "label": "Render adapters",
+                "to": "/docs/rendering",
+                "page": "rendering"
+              }
+            ]
+          },
+          {
+            "label": "INTERACTIONS",
+            "links": [
+              {
+                "label": "Gestures & lifecycle",
+                "to": "/docs/interactions",
+                "page": "interactions"
+              }
+            ]
+          },
+          {
+            "label": "PERFORMANCE",
+            "links": [
+              {
+                "label": "Frame observability",
+                "to": "/docs/performance",
+                "page": "performance"
+              }
+            ]
+          }
+        ],
+        "pages": {
+          "introduction": {
+            "label": "Introduction",
+            "title": "Introduction",
+            "description": "A practical guide to composing animation with TypeScript and RxJS."
+          },
+          "animation": {
+            "label": "Animation",
+            "title": "Animation API",
+            "description": "Create, configure and control individual animations with a typed, reactive engine."
+          },
+          "timelines": {
+            "label": "Timelines",
+            "title": "Compose animation timelines",
+            "description": "Build sequences, overlaps and nested motion without manual timestamp arithmetic."
+          },
+          "reactivity": {
+            "label": "Reactive state & easing",
+            "title": "Reactive state and easing",
+            "description": "Connect animation progress to application state and choose the right motion curve."
+          },
+          "streams": {
+            "label": "Motion streams",
+            "title": "Build motion from live data",
+            "description": "Retarget, smooth and adapt animation to values that arrive over time."
+          },
+          "rendering": {
+            "label": "Render adapters",
+            "title": "Render motion across targets",
+            "description": "Keep animation logic separate from DOM, SVG, Canvas and other rendering surfaces."
+          },
+          "interactions": {
+            "label": "Gestures & lifecycle",
+            "title": "Interactive motion and lifecycle",
+            "description": "Handle gesture physics, reduced motion and page visibility with explicit lifecycle rules."
+          },
+          "performance": {
+            "label": "Frame observability",
+            "title": "Measure animation work",
+            "description": "Inspect per-frame work and verify that scheduled tasks and subscriptions are cleaned up."
+          }
+        }
+      },
+      "navigation": {
+        "homeAriaLabel": "re;Flux home",
+        "skipToMainContent": "Skip to main content",
+        "mainNavigationAriaLabel": "Main navigation",
+        "documentation": "Documentation",
+        "roadmap": "Roadmap",
+        "switchToLightTheme": "Switch to light theme",
+        "switchToDarkTheme": "Switch to dark theme",
+        "footerTagline": "Deterministic motion, powered by RxJS.",
+        "strictTypeScript": "Strict TypeScript",
+        "vue": "Vue 3",
+        "rxjs": "RxJS 7.8",
+        "vuetify": "Vuetify 4"
+      },
+      "home": {
+        "eyebrow": "Reactive animation toolkit",
+        "titleLine": "Motion",
+        "titleAccent": "follows the flow.",
+        "description": "A lightweight web animation library with a fluent API, observable state, and timelines you can control like time itself.",
+        "exploreApi": "Explore the API",
+        "tryMotion": "Try motion & gestures",
+        "stats": [
+          {
+            "title": "RxJS 7.8",
+            "caption": "shared clock"
+          },
+          {
+            "title": "0 zombie loops",
+            "caption": "canceled on teardown"
+          },
+          {
+            "title": "await",
+            "caption": "thenable API"
+          }
+        ],
+        "showcase": {
+          "eyebrow": "BUILT TO MOVE",
+          "title": "Not just an animation API.",
+          "description": "See the same reactive engine drive staggered targets, typed motion, and coordinated timelines.",
+          "play": "Play motion showcase",
+          "pause": "Pause motion showcase",
+          "paused": "Motion paused",
+          "playing": "Live motion",
+          "reduced": "Reduced motion preference is enabled",
+          "cascadeTitle": "Staggered targets",
+          "cascadeDescription": "One timeline, many targets.",
+          "keyframesTitle": "Keyframe motion",
+          "keyframesDescription": "Values flow through each segment.",
+          "timelineTitle": "Shared timeline",
+          "timelineDescription": "Coordinated tracks, one clock.",
+          "ariaLabel": "Live re;Flux animation showcase",
+          "cascadeAriaLabel": "Staggered animation targets",
+          "keyframesAriaLabel": "Keyframe motion preview",
+          "timelineAriaLabel": "Coordinated timeline tracks"
+        },
+        "playgroundEyebrow": "PLAYGROUND DIRECTORY",
+        "playgroundTitle": "Explore the playgrounds.",
+        "playgroundDescription": "Try re;Flux interactively: animation controls, timeline composition, easing curves, headless Tween values, spring retargeting, drag inertia, spring-follow gestures, and real-time stream smoothing.",
+        "features": [
+          {
+            "index": "01 / CORE",
+            "title": "Animation",
+            "icon": "mdi-motion-play-outline",
+            "to": "/animation",
+            "description": "Control duration, delay, repeats, yoyo, easing, and callbacks from a single instance.",
+            "link": "Open playground"
+          },
+          {
+            "index": "02 / COMPOSE",
+            "title": "Timeline",
+            "icon": "mdi-timeline-text-outline",
+            "to": "/timeline",
+            "description": "Sequence or overlap animations with numeric and expressive offsets, including nested timelines.",
+            "link": "Open playground"
+          },
+          {
+            "index": "03 / MOTION",
+            "title": "Easings",
+            "icon": "mdi-chart-bell-curve-cumulative",
+            "to": "/easings",
+            "description": "Compare curves and see how they change motion without changing the clock or timeline.",
+            "link": "Explore curves"
+          },
+          {
+            "index": "04 / PHYSICS + GESTURES",
+            "title": "Gesture physics",
+            "icon": "mdi-waveform",
+            "to": "/playground/gestures",
+            "description": "Explore axis locking, pointer-driven drag, filtered velocity, dynamic bounds and spring-follow behavior in an isolated playground.",
+            "link": "Open gesture playground"
+          },
+          {
+            "index": "05 / AUTHORING API",
+            "title": "Keyframes & DOM",
+            "icon": "mdi-code-braces",
+            "to": "/api",
+            "description": "Compose typed keyframes, target elements by CSS selector, animate element arrays together, and stagger their entrances.",
+            "link": "Explore authoring API"
+          }
+        ],
+        "ctaEyebrow": "Less boilerplate",
+        "ctaTitleLineOne": "Imperative control.",
+        "ctaTitleLineTwo": "Reactive state.",
+        "ctaButton": "Read the documentation",
+        "codeExample": "const entrance = new Animation({\n  duration: 700,\n  easing: 'easeOutCubic',\n});\n\nentrance.play();\nawait entrance;",
+        "heroVisual": {
+          "ariaLabel": "Live reactive animation engine visualization",
+          "clockLabel": "requestAnimationFrame",
+          "flowLabel": "Observable",
+          "timelineLabel": "timeline",
+          "clockAriaLabel": "Shared animation frame clock",
+          "orbitAriaLabel": "Reactive keyframe orbit",
+          "frameAriaLabel": "Live animation timing visualization"
+        },
+        "capabilities": {
+          "eyebrow": "MOTION, MADE VISIBLE",
+          "title": "One engine. Many kinds of motion.",
+          "description": "Watch staggered entrances, property-level timing, spring retargeting, and irregular data streams—all driven by re;Flux.",
+          "ariaLabel": "Animated re;Flux capabilities showcase",
+          "cascadeTitle": "Stagger",
+          "cascadeDescription": "A single delay function choreographs every target.",
+          "cascadeAriaLabel": "Seven animated targets moving with a staggered delay",
+          "propertyTitle": "Per-property timing",
+          "propertyDescription": "Transform, opacity, and shape can follow their own clocks.",
+          "propertyAriaLabel": "A shape animates using separate property timings",
+          "springTitle": "Spring retargeting",
+          "springDescription": "New targets preserve position and velocity mid-flight.",
+          "springAriaLabel": "A dot following changing spring targets along a track",
+          "streamTitle": "Live stream smoothing",
+          "streamDescription": "Irregular samples become a continuous frame-aligned line.",
+          "streamAriaLabel": "Live smoothed stream preview",
+          "streamChartAriaLabel": "Line chart showing interpolated live values",
+          "springPositionLabel": "position",
+          "springRetargetLabel": "retargeting",
+          "springVelocityLabel": "velocity",
+          "propertyTag": "transform · opacity · radius",
+          "streamTag": "smoothStream()"
+        }
+      }
+    }
+  }
+}
