@@ -3,6 +3,7 @@ export type {
   CssStyleMap,
   CssAnimatableValue,
   CssPropertyFrames,
+  CssPropertyFramesFactory,
   DOMAnimationTarget,
   DOMPropertyKeyframe,
   DOMPropertyTimingOptions,

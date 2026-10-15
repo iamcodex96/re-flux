@@ -87,7 +87,8 @@
     "check:tree-shaking": "npm run build:lib && node scripts/check-tree-shaking.mjs",
     "check:package": "npm run build:lib && node scripts/check-package-files.mjs",
     "check:visual-lab": "node scripts/check-visual-lab.mjs",
-    "check:playground-lifecycle": "node scripts/check-playground-lifecycle.mjs"
+    "check:playground-lifecycle": "node scripts/check-playground-lifecycle.mjs",
+    "check:release": "node scripts/check-release-tag.mjs"
   },
   "peerDependencies": {
     "rxjs": "^7.8.0"
@@ -124,5 +125,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamcodex96/re-flux.git"
   }
 }

@@ -284,6 +284,62 @@ describe('animate() DOM API', () => {
     animation.dispose();
   });
 
+  it('supports explicit from/to property definitions', () => {
+    const element = createElement({ opacity: '0.2' });
+    const animation = animate(element, {
+      duration: 100,
+      easing: 'linear',
+      properties: { opacity: { from: 0, to: 1 } },
+    });
+
+    animation.seek(25);
+    expect(element.style.getPropertyValue('opacity')).toBe('0.25');
+    animation.seek(100);
+    expect(element.style.getPropertyValue('opacity')).toBe('1');
+    animation.dispose();
+    expect(element.style.getPropertyValue('opacity')).toBe('0.2');
+  });
+
+  it('resolves value factories once per target with index and total context', () => {
+    const first = createElement({ transform: 'translateX(0px)' });
+    const second = createElement({ transform: 'translateX(0px)' });
+    const calls: Array<{ target: Element; index: number; total: number }> = [];
+    const animation = animate([first, second], {
+      duration: 100,
+      easing: 'linear',
+      properties: {
+        transform: (target, index, total) => {
+          calls.push({ target, index, total });
+          return [`translateX(${index * 50}px)`, `translateX(${(total - index) * 100}px)`];
+        },
+      },
+    });
+
+    expect(calls).toEqual([
+      { target: first, index: 0, total: 2 },
+      { target: second, index: 1, total: 2 },
+    ]);
+    animation.seek(50);
+    expect(first.style.getPropertyValue('transform')).toBe('translateX(100px)');
+    expect(second.style.getPropertyValue('transform')).toBe('translateX(75px)');
+    animation.dispose();
+    expect(first.style.getPropertyValue('transform')).toBe('translateX(0px)');
+    expect(second.style.getPropertyValue('transform')).toBe('translateX(0px)');
+  });
+
+  it('rejects incomplete or mixed from/to definitions before style mutation', () => {
+    const element = createElement({ opacity: '1' });
+    expect(() => animate(element, {
+      duration: 100,
+      properties: { opacity: { from: 0 } as never },
+    })).toThrow('must define exactly one of "values", "keyframes", or both "from" and "to"');
+    expect(() => animate(element, {
+      duration: 100,
+      properties: { opacity: { from: 0, to: 1, values: [0, 1] } as never },
+    })).toThrow('must define exactly one of "values", "keyframes", or both "from" and "to"');
+    expect(element.style.getPropertyValue('opacity')).toBe('1');
+  });
+
   it('supports independent property durations and delays without a global duration', () => {
     const element = createElement({ opacity: '0', transform: 'translateX(0px)' });
     const animation = animate(element, {

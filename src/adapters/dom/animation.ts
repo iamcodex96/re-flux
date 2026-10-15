@@ -15,7 +15,14 @@ interface OriginalStyle {
 
 /** A CSS property value. Arrays are interpreted as evenly distributed property keyframes. */
 export type CssAnimatableValue = string | number;
-export type CssPropertyFrames = CssAnimatableValue | readonly CssAnimatableValue[];
+/**
+ * Returns property values for one resolved target. The callback runs once per target when
+ * `animate()` is created, so it should be deterministic and free of playback-time side effects.
+ */
+export type CssPropertyFramesFactory = (target: Element, index: number, total: number) =>
+  CssAnimatableValue | readonly CssAnimatableValue[];
+/** Arrays are interpreted as evenly distributed property keyframes. A factory can customize values per target. */
+export type CssPropertyFrames = CssAnimatableValue | readonly CssAnimatableValue[] | CssPropertyFramesFactory;
 export type DOMAnimationTarget = string | Element | Iterable<Element>;
 
 /** A CSS keyframe can define its own normalized offset and the easing for its outgoing segment. */
@@ -31,10 +38,14 @@ export interface DOMPropertyTimingOptions {
   readonly yoyo?: boolean;
 }
 
-/** Property-level frames with independent timing. Provide either `values` or `keyframes`. */
+/**
+ * Property-level frames with independent timing. Choose exactly one value definition:
+ * `from` + `to`, `values`, or `keyframes`.
+ */
 export type DOMPropertyOptions = DOMPropertyTimingOptions & (
-  | { readonly values: CssPropertyFrames; readonly keyframes?: never }
-  | { readonly keyframes: readonly DOMPropertyKeyframe[]; readonly values?: never }
+  | { readonly values: CssPropertyFrames; readonly keyframes?: never; readonly from?: never; readonly to?: never }
+  | { readonly keyframes: readonly DOMPropertyKeyframe[]; readonly values?: never; readonly from?: never; readonly to?: never }
+  | { readonly from: CssAnimatableValue; readonly to: CssAnimatableValue; readonly values?: never; readonly keyframes?: never }
 );
 
 /** A property may use the shorthand syntax or its own keyframes and timing configuration. */
@@ -206,7 +217,7 @@ export function animate(targets: DOMAnimationTarget, options: DOMAnimateOptions)
       }
 
       for (const property of propertyEntries) {
-        const keyframes = resolveDOMPropertyKeyframes(element, property);
+        const keyframes = resolveDOMPropertyKeyframes(element, property, elementIndex, elements.length);
         const keyframeItem = new Keyframes<string>({
           duration: property.duration,
           repeat: property.repeat,
@@ -245,12 +256,19 @@ function normalizeDOMProperties(options: DOMAnimateOptions): NormalizedDOMProper
     } else {
       const hasValues = 'values' in definition && definition.values !== undefined;
       const hasKeyframes = 'keyframes' in definition && definition.keyframes !== undefined;
-      if (hasValues === hasKeyframes) {
+      const hasFrom = 'from' in definition && definition.from !== undefined;
+      const hasTo = 'to' in definition && definition.to !== undefined;
+      if (hasValues && hasKeyframes) {
         throw new TypeError(`CSS property "${cssProperty}" must define exactly one of "values" or "keyframes".`);
+      }
+      if (hasFrom !== hasTo || ((hasFrom || hasTo) && (hasValues || hasKeyframes)) || (!hasValues && !hasKeyframes && !hasFrom)) {
+        throw new TypeError(`CSS property "${cssProperty}" must define exactly one of "values", "keyframes", or both "from" and "to".`);
       }
       frames = hasKeyframes
         ? { kind: 'keyframes', keyframes: definition.keyframes as readonly DOMPropertyKeyframe[] }
-        : { kind: 'values', values: definition.values as CssPropertyFrames };
+        : hasFrom && hasTo
+          ? { kind: 'values', values: [definition.from as CssAnimatableValue, definition.to as CssAnimatableValue] }
+          : { kind: 'values', values: definition.values as CssPropertyFrames };
     }
     const propertyOptions = isOptions ? definition : undefined;
     const duration = propertyOptions?.duration ?? options.duration;
@@ -297,6 +315,8 @@ function isDOMPropertyOptions(definition: CssPropertyDefinition): definition is 
 function resolveDOMPropertyKeyframes(
   target: Element,
   property: NormalizedDOMProperty,
+  targetIndex: number,
+  targetCount: number,
 ): Array<{ value: string; offset?: number; easing?: EasingOption }> {
   if (property.frames.kind === 'keyframes') {
     return property.frames.keyframes.map((frame) => ({
@@ -306,7 +326,7 @@ function resolveDOMPropertyKeyframes(
     }));
   }
 
-  const values = resolvePropertyFrames(target, property.cssProperty, property.frames.values);
+  const values = resolvePropertyFrames(target, property.cssProperty, property.frames.values, targetIndex, targetCount);
   return values.map((value, valueIndex) => ({
     value: toCssValue(property.cssProperty, value),
     offset: values.length === 1 ? 1 : valueIndex / (values.length - 1),
@@ -401,14 +421,26 @@ function resolvePropertyFrames(
   target: Element,
   cssProperty: string,
   propertyFrames: CssPropertyFrames,
+  targetIndex: number,
+  targetCount: number,
 ): CssAnimatableValue[] {
-  if (Array.isArray(propertyFrames)) {
-    const frames = [...propertyFrames] as CssAnimatableValue[];
+  const resolved = typeof propertyFrames === 'function'
+    ? propertyFrames(target, targetIndex, targetCount)
+    : propertyFrames;
+
+  if (Array.isArray(resolved)) {
+    const frames = [...resolved] as CssAnimatableValue[];
     if (frames.length === 0) throw new RangeError(`CSS property "${cssProperty}" cannot have an empty keyframe array.`);
+    if (frames.some((value) => typeof value !== 'string' && typeof value !== 'number')) {
+      throw new TypeError(`Every value for CSS property "${cssProperty}" must be a string or number.`);
+    }
     if (frames.length === 1) return [readComputedValue(target, cssProperty), frames[0]!];
     return frames;
   }
-  return [readComputedValue(target, cssProperty), propertyFrames as CssAnimatableValue];
+  if (typeof resolved !== 'string' && typeof resolved !== 'number') {
+    throw new TypeError(`The values factory for CSS property "${cssProperty}" must return a string, number, or array of strings/numbers.`);
+  }
+  return [readComputedValue(target, cssProperty), resolved];
 }
 
 function readComputedValue(target: Element, cssProperty: string): string {
