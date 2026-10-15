@@ -19,3 +19,4 @@
 
 - Replace `YOUR_DOCS_URL` in `README.md`.
 - Confirm that npm Trusted Publishing is configured for owner/repository `iamcodex96/re-flux`, workflow `publish-npm.yml`, and environment `npm`.
+- Keep the corresponding workflow files in `ci/workflows/` and `.github/workflows/` in sync.
