@@ -1,5 +1,6 @@
 import { Observable, type OperatorFunction, type Subscription } from 'rxjs';
-import type { MotionSample, RetargetMotionOperatorOptions } from '../types.js';
+import type { MotionSample } from '../types/physics.js';
+import type { RetargetMotionOperatorOptions } from '../types/streams.js';
 import { RetargetableMotion } from '../physics/RetargetableMotion.js';
 
 /**

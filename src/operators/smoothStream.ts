@@ -1,5 +1,5 @@
 import { Observable, type OperatorFunction, type Subscription } from 'rxjs';
-import type { SmoothedStreamSample, SmoothStreamOptions, TimestampedValue } from '../types.js';
+import type { SmoothedStreamSample, SmoothStreamOptions, TimestampedValue } from '../types/streams.js';
 import { frameCoordinator } from '../core/FrameCoordinator.js';
 
 interface NormalizedOptions<T> {

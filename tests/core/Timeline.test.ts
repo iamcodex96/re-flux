@@ -231,4 +231,37 @@ describe('Timeline labels and transport controls', () => {
     expect(() => timeline.timeScale(0)).toThrow('greater than zero');
     expect(() => timeline.timeScale(Number.NaN)).toThrow('finite');
   });
+  it('locks structural edits after playback starts until stop resets the timeline', async () => {
+    const timeline = new Timeline().add(new Animation({ duration: 100 }));
+    const completion = timeline.toPromise();
+
+    timeline.play();
+    expect(() => timeline.add(new Animation({ duration: 20 }))).toThrow('stop() before editing');
+    expect(() => timeline.addLabel('late')).toThrow('stop() before editing');
+    expect(() => timeline.removeLabel('intro')).toThrow('stop() before editing');
+
+    timeline.stop();
+    await expect(completion).rejects.toThrow('Animation stopped before completion');
+    expect(() => timeline.add(new Animation({ duration: 20 }))).not.toThrow();
+    expect(() => timeline.addLabel('after-stop')).not.toThrow();
+  });
+
+  it('locks nested timeline edits while a parent controls its playhead', () => {
+    const nested = new Timeline().add(new Animation({ duration: 100 }));
+    const parent = new Timeline().add(nested);
+
+    parent.play();
+    expect(() => nested.add(new Animation({ duration: 10 }))).toThrow('stop() before editing');
+    parent.stop();
+    expect(() => nested.add(new Animation({ duration: 10 }))).not.toThrow();
+  });
+
+  it('rejects direct and indirect nested Timeline cycles', () => {
+    const first = new Timeline();
+    const second = new Timeline();
+    expect(() => first.add(first)).toThrow('cannot contain itself');
+    first.add(second);
+    expect(() => second.add(first)).toThrow('nested Timeline cycle');
+  });
+
 });

@@ -34,17 +34,21 @@ The P1 core-contract hardening pass is implemented in source and covered by new 
 
 **Contract:** each adjacent segment gets its own resolved interpolator. The default interpolator rejects incompatible structures; a custom interpolator explicitly owns every segment and may bridge different shapes.
 
-### P2 — Define whether a playing Timeline is editable
+### P1 — Define whether a playing Timeline is editable
 
-`Timeline.add()` and label operations remain available after playback starts. Adding a segment can change total duration and normalized progress while the playhead is already active. Dynamic editing may eventually be useful, but the current behavior should be a deliberate contract rather than an accidental side effect.
+**Status: implemented in this refactor and covered by deterministic regression tests.**
 
-**Recommendation:** initially either reject structural mutations after playback begins or define deterministic live-edit semantics and test them. A future sequence/editor API can support explicit editing if needed.
+Structural changes (`add`, `addLabel`, and `removeLabel`) are rejected after playback begins or the playhead is moved to a non-zero time. Call `stop()` before editing, which resets the playhead and unlocks the structure. Nested timelines lock recursively while the parent controls their playhead and unlock when the parent stops/resets.
 
-### P2 — Make the observable ownership contract clearer
+**Contract:** no implicit live-editing semantics before 1.0. A later timeline editor API can add explicit live mutation if there's a concrete use case.
 
-`progress$`, `state$` and `Tween.value$` are exposed as `BehaviorSubject`s, so consumers can call `.next()` and mutate engine-owned state. This is convenient for snapshot reads (`.value`) but weakens invariants in a public library. Changing it now could be breaking.
+### P1 — Make the observable ownership contract clearer
 
-**Recommendation:** before 1.0, consider exposing `Observable` views alongside read-only snapshot getters while keeping internal subjects private. If `.value` must remain public, document the compatibility/migration path.
+**Status: implemented in this refactor and covered by utility tests.**
+
+Engine-owned state uses private `BehaviorSubject`s and exposes read-only Observable views. Existing synchronous `.value` reads remain available on the exposed state views, while `.next()`, `.error()`, and `.complete()` are no longer exposed. This applies to Animation/Timeline progress and state, Tween/Keyframes values, and RetargetableMotion streams.
+
+**Contract:** state mutation belongs to the engine. Consumer code may subscribe and read snapshots but cannot directly push values into engine-owned streams.
 
 ### P2 — Strict easing-name diagnostics
 
@@ -62,5 +66,5 @@ Path parsing, cubic/quadratic/arc command normalization, closed-contour alignmen
 2. **Completed in this pass:** implemented shared finite/non-negative timing validation and repeat-count validation.
 3. **Completed in this pass:** separated manual scrubbing from clock-driven running state and propagated timeline pause state to active children.
 4. **Completed in this pass:** validates each adjacent keyframe segment and invokes the matching segment interpolator.
-5. Next: decide the pre-1.0 observable and live-Timeline mutation contracts.
+5. **Completed in this refactor:** locks Timeline structural mutation during active/non-zero playback, including nested timelines, and exposes engine-owned state through read-only views.
 6. Implemented in the SVG adapter: supported path commands are converted to cubic segments, contours are subdivided and closed-contour alignment is attempted without adding SVG parsing to the core.

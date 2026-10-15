@@ -1,5 +1,7 @@
 import { BehaviorSubject, type Subscription } from 'rxjs';
-import type { AnimatableItem, AnimationOptions, AnimationState, EasingFunction } from '../types.js';
+import { readonlyBehavior, type ReadonlyBehaviorObservable } from '../utils/readOnlyBehavior.js';
+import type { AnimatableItem, AnimationOptions, AnimationState } from '../types/animation.js';
+import type { EasingFunction } from '../types/easing.js';
 import { Completion } from './Completion.js';
 import { frameCoordinator } from './FrameCoordinator.js';
 import { MotionLifecycleController } from './MotionLifecycleController.js';
@@ -10,8 +12,10 @@ const STOPPED_ERROR = 'Animation stopped before completion';
 
 /** Controls a timed animation and lets a Timeline move it with seekLocal(). */
 export class Animation implements AnimatableItem, PromiseLike<void> {
-  readonly progress$ = new BehaviorSubject<number>(0);
-  readonly state$ = new BehaviorSubject<AnimationState>('idle');
+  private readonly progressSubject = new BehaviorSubject<number>(0);
+  private readonly stateSubject = new BehaviorSubject<AnimationState>('idle');
+  readonly progress$: ReadonlyBehaviorObservable<number> = readonlyBehavior(this.progressSubject);
+  readonly state$: ReadonlyBehaviorObservable<AnimationState> = readonlyBehavior(this.stateSubject);
 
   private readonly options: Readonly<AnimationOptions>;
   private readonly easing: EasingFunction;
@@ -118,7 +122,7 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
     this.currentTime = 0;
     this.hasStarted = false;
     this.hasCompleted = false;
-    this.progress$.next(0);
+    this.progressSubject.next(0);
     this.setState('idle');
     if (wasPending) this.completion.reject(new Error(STOPPED_ERROR));
     return this;
@@ -132,7 +136,7 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
     this.currentTime = 0;
     this.hasStarted = false;
     this.hasCompleted = false;
-    this.progress$.next(0);
+    this.progressSubject.next(0);
     this.setState('idle');
     return this.play();
   }
@@ -176,7 +180,7 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
 
     const progress = this.calculateProgress(target, completeNow);
     const easedProgress = this.easing(progress);
-    this.progress$.next(progress);
+    this.progressSubject.next(progress);
     this.options.onUpdate?.(progress, easedProgress);
 
     if (completeNow && !this.hasCompleted) {
@@ -205,7 +209,7 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
     this.currentTime = 0;
     this.hasStarted = false;
     this.hasCompleted = false;
-    this.progress$.next(0);
+    this.progressSubject.next(0);
     this.setState('idle');
     this.completion.ensurePending();
   }
@@ -283,6 +287,6 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
   }
 
   private setState(state: AnimationState): void {
-    if (this.state$.value !== state) this.state$.next(state);
+    if (this.state$.value !== state) this.stateSubject.next(state);
   }
 }

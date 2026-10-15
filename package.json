@@ -78,7 +78,7 @@
     "dev": "npm run dev --workspace=re-flux-docs",
     "build": "npm run build:lib && npm run build --workspace=re-flux-docs",
     "preview": "npm run preview --workspace=re-flux-docs",
-    "prepack": "npm run typecheck && npm run typecheck:tests && npm test -- --runInBand && npm run build:lib && node scripts/check-tree-shaking.mjs && node scripts/check-package-files.mjs",
+    "prepack": "npm run check:roadmap && npm run check:workflow-sync && npm run typecheck && npm run typecheck:tests && npm test -- --runInBand && npm run build:lib && node scripts/check-tree-shaking.mjs && node scripts/check-package-files.mjs",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
     "test:coverage": "npm test -- --coverage",
@@ -88,7 +88,10 @@
     "check:package": "npm run build:lib && node scripts/check-package-files.mjs",
     "check:visual-lab": "node scripts/check-visual-lab.mjs",
     "check:playground-lifecycle": "node scripts/check-playground-lifecycle.mjs",
-    "check:release": "node scripts/check-release-tag.mjs"
+    "check:release": "node scripts/check-release-tag.mjs",
+    "sync:roadmap": "node scripts/sync-roadmap.mjs --write",
+    "check:roadmap": "node scripts/sync-roadmap.mjs --check",
+    "check:workflow-sync": "node scripts/check-workflow-sync.mjs"
   },
   "peerDependencies": {
     "rxjs": "^7.8.0"
@@ -129,5 +132,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/iamcodex96/re-flux.git"
+  },
+  "homepage": "https://iamcodex96.github.io/re-flux/",
+  "bugs": {
+    "url": "https://github.com/iamcodex96/re-flux/issues"
   }
 }

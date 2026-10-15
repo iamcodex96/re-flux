@@ -1,5 +1,5 @@
 import { Observable, type OperatorFunction, type Subscription } from 'rxjs';
-import type { AdaptiveTweenOptions, AdaptiveTweenSample, TimestampedValue } from '../types.js';
+import type { AdaptiveTweenOptions, AdaptiveTweenSample, TimestampedValue } from '../types/streams.js';
 import { resolveEasing } from '../utils/easings.js';
 import { frameCoordinator } from '../core/FrameCoordinator.js';
 

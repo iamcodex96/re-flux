@@ -1,5 +1,8 @@
 import { BehaviorSubject } from 'rxjs';
-import type { AnimatableItem, AnimationState, EasingFunction, KeyframesOptions, ValueKeyframe, ValueInterpolator } from '../types.js';
+import { readonlyBehavior, type ReadonlyBehaviorObservable } from '../utils/readOnlyBehavior.js';
+import type { AnimatableItem, AnimationState } from '../types/animation.js';
+import type { EasingFunction } from '../types/easing.js';
+import type { KeyframesOptions, ValueKeyframe, ValueInterpolator } from '../types/values.js';
 import { Animation } from '../core/Animation.js';
 import { resolveEasing } from '../utils/easings.js';
 import { resolveInterpolator } from './interpolate.js';
@@ -15,9 +18,10 @@ interface NormalizedKeyframe<T> {
  * Offsets are normalized to 0..1; omitted offsets are distributed evenly between specified offsets.
  */
 export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
-  readonly value$: BehaviorSubject<T>;
-  readonly progress$: BehaviorSubject<number>;
-  readonly state$: BehaviorSubject<AnimationState>;
+  private readonly valueSubject: BehaviorSubject<T>;
+  readonly value$: ReadonlyBehaviorObservable<T>;
+  readonly progress$: ReadonlyBehaviorObservable<number>;
+  readonly state$: ReadonlyBehaviorObservable<AnimationState>;
 
   private readonly animation: Animation;
   private readonly frames: readonly NormalizedKeyframe<T>[];
@@ -34,7 +38,8 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
     );
     this.defaultEasing = resolveEasing(options.easing);
     this.onValueUpdate = options.onUpdate;
-    this.value$ = new BehaviorSubject<T>(this.frames[0]!.value);
+    this.valueSubject = new BehaviorSubject<T>(this.frames[0]!.value);
+    this.value$ = readonlyBehavior(this.valueSubject);
 
     const { keyframes: _keyframes, interpolate: _interpolate, onUpdate, easing: _easing, ...animationOptions } = options;
     this.animation = new Animation({
@@ -91,7 +96,7 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
   /** @internal Restores the first value silently when an owning Timeline moves before this item. */
   resetInternal(): void {
     this.animation.resetInternal();
-    this.value$.next(this.frames[0]!.value);
+    this.valueSubject.next(this.frames[0]!.value);
   }
 
   toPromise(): Promise<void> {
@@ -143,7 +148,7 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
   }
 
   private publishValue(value: T, progress: number): void {
-    this.value$.next(value);
+    this.valueSubject.next(value);
     this.onValueUpdate?.(value, progress);
   }
 }

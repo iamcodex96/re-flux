@@ -1,4 +1,4 @@
-import type { ValueInterpolator } from '../types.js';
+import type { ValueInterpolator } from '../types/values.js';
 
 type AnyRecord = Record<string, unknown>;
 

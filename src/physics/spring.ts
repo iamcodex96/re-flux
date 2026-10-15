@@ -1,4 +1,4 @@
-import type { SpringOptions, SpringState, SpringStepResult } from '../types.js';
+import type { SpringOptions, SpringState, SpringStepResult } from '../types/physics.js';
 
 export const DEFAULT_SPRING_OPTIONS: Required<SpringOptions> = Object.freeze({
   stiffness: 260,

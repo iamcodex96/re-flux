@@ -1,74 +1,38 @@
-# CI, publishing and maintenance
+# Releases and npm publishing
 
-## GitHub Actions
+## Release contract
 
-The workflow in `.github/workflows/ci.yml` is the quality gate for pull requests and pushes to `main`. It runs library/test type checks, Jest, Visual Lab and Playground lifecycle checks, tree-shaking/package audits, and the complete library + Vue docs build. The separate `.github/workflows/deploy-docs.yml` deploys GitHub Pages from `main`. Matching workflow copies are also kept under `ci/workflows/` for repository organization; GitHub Actions executes only files under `.github/workflows/`.
+- The package version lives in the root `package.json`.
+- Every release tag must exactly match that version, prefixed with `v` (for example, package version `0.1.1` uses tag `v0.1.1`).
+- `package-lock.json` is committed. CI uses `npm ci`; it must never generate or rewrite the lockfile.
+- CI, roadmap generation, workflow-copy synchronization, type checks, tests, tree-shaking, and package allowlist checks must pass before publication.
 
-Before enabling CI, commit the root workspace `package-lock.json`. The workflow deliberately uses `npm ci` and never creates or updates a lockfile on the runner. When manifests change, update it locally with `npm install`, review the diff, and commit it with the manifest changes.
+## npm Trusted Publishing (OIDC)
 
-In the repository settings, set **Settings → Pages → Build and deployment → Source → GitHub Actions**. The docs workflow builds with the repository subpath as Vite's base URL and deploys `apps/docs/dist`.
+The `publish-npm.yml` workflow publishes on version tags using npm Trusted Publishing. Configure a trusted publisher for the existing `@re-code/flux` package on npm with:
 
-## npm releases
+- **GitHub owner:** `iamcodex96`
+- **Repository:** `re-flux`
+- **Workflow file:** `publish-npm.yml`
+- **GitHub environment:** `npm`
 
-`.github/workflows/publish-npm.yml` runs only when a `v*` tag is pushed. It verifies that the tag exactly matches the `version` in `package.json`, checks that package repository metadata matches the current GitHub repository, installs dependencies from the committed lockfile, and runs `npm publish`. npm's `prepack` script runs the library type checks, tests, build, tree-shaking check and package-content audit before the tarball is created.
+The workflow requests `id-token: write` and publishes with provenance. Do not add a long-lived npm token to GitHub Actions secrets when using Trusted Publishing. If npm's trusted publisher configuration has not been created, the publish job will fail rather than fall back to a token.
 
-### Required repository metadata
+## Create a release
 
-Set `package.json`'s `repository` field to the actual GitHub repository URL before publishing. Use the exact owner and repository name from the GitHub remote, for example:
+1. Update the root package version and commit the changes.
+2. Wait for CI on `main` to pass.
+3. Push the matching tag:
 
-```json
-"repository": {
-  "type": "git",
-  "url": "git+https://github.com/OWNER/REPOSITORY.git"
-}
-```
+   ```bash
+   git tag v0.1.1
+   git push origin v0.1.1
+   ```
 
-Do not keep `OWNER/REPOSITORY` literally; the `check:release` script verifies that the field matches the `GITHUB_REPOSITORY` value for the release workflow.
+4. Confirm the `Publish to npm` workflow succeeds and verify the published version with `npm view @re-code/flux version`.
 
-### Configure npm Trusted Publishing
+Use the actual next version, not necessarily `0.1.1`.
 
-The release workflow uses npm Trusted Publishing (OIDC), avoiding a long-lived write token in GitHub Actions. Configure it once the package exists on npm:
+## Workflow locations
 
-1. Open the `@re-code/flux` package settings on npmjs.com and find **Trusted publishing**.
-2. Add **GitHub Actions** as the publisher.
-3. Use the exact GitHub owner and repository, workflow filename `publish-npm.yml`, and GitHub Environment name `npm`.
-4. Allow direct `npm publish` for this publisher. The workflow grants `id-token: write` only to the publishing job and uses a GitHub-hosted runner with a supported npm CLI.
-5. Optionally protect the GitHub `npm` environment with required reviewers. If configured in npm, the environment name must remain exactly `npm`.
-
-Trusted publishing can only be configured from the npm package's settings, so a package's *first-ever* version must be bootstrapped once using a maintainer-authenticated publish. After that version exists, configure Trusted Publishing and let the tag workflow handle subsequent releases. Do not create the Trusted Publisher configuration until you are ready to complete its first successful publish; npm documents that new configurations must complete a successful publish within two days.
-
-To release a new version:
-
-1. Update `version` in `package.json` and the root lockfile if npm updates it.
-2. Run the local checks and wait for the `main` CI workflow to pass.
-3. Commit the version change and create a matching tag, e.g. `git tag v0.1.1`.
-4. Push the tag with `git push origin v0.1.1`.
-5. Confirm the `Publish @re-code/flux to npm` workflow succeeds and inspect the package/provenance on npmjs.com.
-
-Never reuse an already published version. The tag must exactly match the package version.
-
-## Local release checks
-
-Run the following before tagging a release:
-
-```bash
-npm run typecheck
-npm run typecheck:tests
-npm test -- --runInBand
-npm run check:visual-lab
-npm run check:playground-lifecycle
-npm run check:tree-shaking
-npm run check:package
-npm run build
-npm pack --dry-run
-```
-
-`check:release` is run inside GitHub Actions for a tag because it depends on GitHub's `GITHUB_REF_TYPE`, `GITHUB_REF_NAME`, and `GITHUB_REPOSITORY` variables.
-
-## Package and tree-shaking contract
-
-- Publish only compiled `dist/` output, public type declarations, README, license and this document; the docs app, demos, tests and benchmarks stay out of the package.
-- Keep `sideEffects: false` only while importing library modules has no observable import-time side effects.
-- Keep ESM entry points and the `exports` map aligned. Core modules must not import DOM, SVG, Canvas or Three.js adapters.
-- Optional renderers must not introduce runtime dependencies into unrelated entry points.
-- Benchmark meaningful runtime changes before optimizing; do not use bundle-size improvements as a substitute for runtime correctness tests.
+GitHub runs workflows only from `.github/workflows/`. Identical source copies are also kept in `ci/workflows/` for repository organization. The `check:workflow-sync` script verifies that each pair remains byte-for-byte identical.

@@ -1,9 +1,9 @@
-name: Publish @re-code/flux to npm
+name: Publish to npm
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
 
 permissions:
   contents: read
@@ -14,31 +14,38 @@ concurrency:
 
 jobs:
   publish:
-    name: Validate and publish package
     runs-on: ubuntu-latest
+    environment: npm
     permissions:
       contents: read
       id-token: write
-    environment:
-      name: npm
     steps:
-      - name: Check out release tag
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js for npm Trusted Publishing
+        uses: actions/setup-node@v4
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-          package-manager-cache: false
-      - name: Ensure npm supports Trusted Publishing
-        run: npm install --global 'npm@^11.5.1'
-      - name: Require committed workspace lockfile
-        run: test -f package-lock.json
-      - name: Install dependencies
+          cache: npm
+      - name: Install locked dependencies
         run: npm ci
-      - name: Verify release tag and repository metadata
+      - name: Validate release tag and package metadata
         run: npm run check:release
-      - name: Publish package with npm Trusted Publishing
-        run: npm publish --access public
+      - name: Check canonical roadmap and workflow copies
+        run: |
+          npm run check:roadmap
+          npm run check:workflow-sync
+      - name: Type-check library and tests
+        run: |
+          npm run typecheck
+          npm run typecheck:tests
+      - name: Run tests
+        run: npm test -- --runInBand
+      - name: Build and verify package
+        run: |
+          npm run build:lib
+          node scripts/check-tree-shaking.mjs
+          node scripts/check-package-files.mjs
+      - name: Publish with npm Trusted Publishing (OIDC)
+        run: npm publish --provenance --access public

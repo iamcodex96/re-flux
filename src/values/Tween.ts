@@ -1,7 +1,9 @@
 import { BehaviorSubject } from 'rxjs';
-import type { AnimationState, TweenOptions, ValueInterpolator } from '../types.js';
+import { readonlyBehavior, type ReadonlyBehaviorObservable } from '../utils/readOnlyBehavior.js';
+import type { AnimationState } from '../types/animation.js';
+import type { TweenOptions, ValueInterpolator } from '../types/values.js';
 import { Animation } from '../core/Animation.js';
-import type { AnimatableItem } from '../types.js';
+import type { AnimatableItem } from '../types/animation.js';
 import { resolveInterpolator } from './interpolate.js';
 
 /**
@@ -9,9 +11,10 @@ import { resolveInterpolator } from './interpolate.js';
  * Numbers, compatible CSS-like strings/colors, arrays and plain objects interpolate by default; provide a custom interpolator for other types.
  */
 export class Tween<T> implements AnimatableItem, PromiseLike<void> {
-  readonly value$: BehaviorSubject<T>;
-  readonly progress$: BehaviorSubject<number>;
-  readonly state$: BehaviorSubject<AnimationState>;
+  private readonly valueSubject: BehaviorSubject<T>;
+  readonly value$: ReadonlyBehaviorObservable<T>;
+  readonly progress$: ReadonlyBehaviorObservable<number>;
+  readonly state$: ReadonlyBehaviorObservable<AnimationState>;
 
   private readonly animation: Animation;
   private readonly from: T;
@@ -22,14 +25,15 @@ export class Tween<T> implements AnimatableItem, PromiseLike<void> {
     this.from = options.from;
     this.to = options.to;
     this.interpolate = resolveInterpolator(options.from, options.to, options.interpolate);
-    this.value$ = new BehaviorSubject<T>(options.from);
+    this.valueSubject = new BehaviorSubject<T>(options.from);
+    this.value$ = readonlyBehavior(this.valueSubject);
 
     const { from: _from, to: _to, interpolate: _interpolate, onUpdate, ...animationOptions } = options;
     this.animation = new Animation({
       ...animationOptions,
       onUpdate: (progress, easedProgress) => {
         const value = this.interpolate(this.from, this.to, easedProgress);
-        this.value$.next(value);
+        this.valueSubject.next(value);
         onUpdate?.(value, progress, easedProgress);
       },
     });
@@ -59,12 +63,12 @@ export class Tween<T> implements AnimatableItem, PromiseLike<void> {
 
   stop(): this {
     this.animation.stop();
-    this.value$.next(this.from);
+    this.valueSubject.next(this.from);
     return this;
   }
 
   restart(): this {
-    this.value$.next(this.from);
+    this.valueSubject.next(this.from);
     this.animation.restart();
     return this;
   }
@@ -82,7 +86,7 @@ export class Tween<T> implements AnimatableItem, PromiseLike<void> {
   /** @internal Resets the value and timing state without lifecycle callbacks. */
   resetInternal(): void {
     this.animation.resetInternal();
-    this.value$.next(this.from);
+    this.valueSubject.next(this.from);
   }
 
   toPromise(): Promise<void> {

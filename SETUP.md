@@ -1,25 +1,29 @@
-# re;Flux CI/CD setup
+# Repository setup
 
-This patch includes the requested workflow files in `ci/workflows/` and matching copies in `.github/workflows/`.
+## GitHub Pages
 
-**Important:** GitHub Actions only discovers workflow files under `.github/workflows/`. Keep those operational copies in place; the `ci/workflows/` copies are included for the repository organization you requested. If a workflow is edited, keep the two copies in sync.
+1. Open **Settings → Pages** in the GitHub repository.
+2. Set the source to **GitHub Actions**.
+3. Confirm the public documentation URL is `https://iamcodex96.github.io/re-flux/` (or update `README.md` and this file if the repository or domain changes).
 
-## Included automation
+The deployment workflow starts only after the `CI` workflow for the same `main` commit succeeds. The docs build command is `npm run build --workspace=re-flux-docs`, and the artifact directory is `apps/docs/dist`.
 
-- `ci.yml`: validates types, tests, library/package boundaries, and the documentation build on pull requests and pushes to `main`.
-- `deploy-docs.yml`: builds `apps/docs` and deploys it to GitHub Pages on pushes to `main` (or manual dispatch).
-- `publish-npm.yml`: publishes `@re-code/flux` when a `v*` Git tag is pushed, using npm Trusted Publishing (OIDC), not a long-lived npm token.
+## npm Trusted Publishing
 
-## One-time GitHub configuration
+Configure npm Trusted Publishing for `@re-code/flux` using GitHub owner `iamcodex96`, repository `re-flux`, workflow `publish-npm.yml`, and GitHub environment `npm`. No npm token secret should be configured for this flow.
 
-1. In the repository, open **Settings → Pages** and choose **GitHub Actions** as the deployment source.
-2. Confirm the root `package-lock.json` is committed and in sync with `package.json` and `apps/docs/package.json`.
-3. `package.json` must contain the actual repository URL. This patch adds `https://github.com/iamcodex96/re-flux` based on the repository metadata in the provided archive.
-4. In npm package settings for `@re-code/flux`, configure **Trusted Publishing** for GitHub Actions using repository `iamcodex96/re-flux`, workflow filename `publish-npm.yml`, and GitHub environment `npm`. The package already needs to exist on npm.
-5. After changing the package version, commit it and push a matching tag. For example, version `1.2.3` must be tagged `v1.2.3`.
+## Local checks
 
-The current workflow uses Node 24 and npm 11.5.1+ for Trusted Publishing. Publishing runs only on tags, and `scripts/check-release-tag.mjs` checks the tag/version/repository match before publishing.
+```bash
+npm ci
+npm run sync:roadmap
+npm run check:roadmap
+npm run check:workflow-sync
+npm run typecheck
+npm run typecheck:tests
+npm test -- --runInBand
+npm run build:lib
+npm run build --workspace=re-flux-docs
+```
 
-## README
-
-Replace `YOUR_DOCS_URL` in `README.md` with the deployed documentation URL before publishing the updated README to npm. README changes do not update the npm page until a new package version is published.
+Keep `.github/workflows/` and `ci/workflows/` synchronized; the CI script checks the copies.

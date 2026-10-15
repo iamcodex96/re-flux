@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable, Subscription, type Subscriber } from 'rxjs';
-import type { AnimationFrameTick } from '../types.js';
+import type { AnimationFrameTick } from '../types/frames.js';
 import { animationFrame$ } from '../utils/animationFrame.js';
 
 /** Callback run during a frame coordinator phase. */

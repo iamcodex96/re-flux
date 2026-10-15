@@ -9,39 +9,47 @@ permissions:
   contents: read
 
 concurrency:
-  group: re-flux-ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validate:
-    name: Validate library and docs
+  quality:
+    name: Quality checks (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
           cache: npm
-          cache-dependency-path: package-lock.json
-      - name: Require committed workspace lockfile
-        run: test -f package-lock.json
-      - name: Install dependencies
+      - name: Install locked dependencies
         run: npm ci
+      - name: Check canonical roadmap
+        run: npm run check:roadmap
+      - name: Check workflow copies
+        run: npm run check:workflow-sync
       - name: Type-check library
         run: npm run typecheck
       - name: Type-check tests
         run: npm run typecheck:tests
-      - name: Run Jest
+      - name: Run Jest suite
         run: npm test -- --runInBand
-      - name: Check Visual Lab lifecycle and layout
+      - name: Check Visual Lab structure
         run: npm run check:visual-lab
       - name: Check Playground lifecycle
         run: npm run check:playground-lifecycle
-      - name: Verify tree-shaking boundaries
-        run: npm run check:tree-shaking
+      - name: Build library
+        run: npm run build:lib
+      - name: Verify tree-shaking
+        run: node scripts/check-tree-shaking.mjs
       - name: Verify package contents
-        run: npm run check:package
-      - name: Build library and documentation
-        run: npm run build
+        run: node scripts/check-package-files.mjs
+      - name: Build documentation
+        if: matrix.node == 24
+        run: npm run build --workspace=re-flux-docs

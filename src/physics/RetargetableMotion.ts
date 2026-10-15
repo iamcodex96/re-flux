@@ -1,5 +1,7 @@
 import { BehaviorSubject, type Subscription } from 'rxjs';
-import type { AnimationState, MotionSample, RetargetableMotionOptions, SpringOptions } from '../types.js';
+import { readonlyBehavior, type ReadonlyBehaviorObservable } from '../utils/readOnlyBehavior.js';
+import type { AnimationState } from '../types/animation.js';
+import type { MotionSample, RetargetableMotionOptions, SpringOptions } from '../types/physics.js';
 import { frameCoordinator } from '../core/FrameCoordinator.js';
 import { DEFAULT_SPRING_OPTIONS, stepSpring } from './spring.js';
 
@@ -8,11 +10,16 @@ import { DEFAULT_SPRING_OPTIONS, stepSpring } from './spring.js';
  * Every active instance consumes the shared FrameCoordinator rather than creating its own RAF loop.
  */
 export class RetargetableMotion {
-  readonly sample$: BehaviorSubject<MotionSample>;
-  readonly value$: BehaviorSubject<number>;
-  readonly velocity$: BehaviorSubject<number>;
-  readonly target$: BehaviorSubject<number>;
-  readonly state$ = new BehaviorSubject<AnimationState>('idle');
+  private readonly sampleSubject: BehaviorSubject<MotionSample>;
+  private readonly valueSubject: BehaviorSubject<number>;
+  private readonly velocitySubject: BehaviorSubject<number>;
+  private readonly targetSubject: BehaviorSubject<number>;
+  private readonly stateSubject = new BehaviorSubject<AnimationState>('idle');
+  readonly sample$: ReadonlyBehaviorObservable<MotionSample>;
+  readonly value$: ReadonlyBehaviorObservable<number>;
+  readonly velocity$: ReadonlyBehaviorObservable<number>;
+  readonly target$: ReadonlyBehaviorObservable<number>;
+  readonly state$: ReadonlyBehaviorObservable<AnimationState> = readonlyBehavior(this.stateSubject);
 
   private readonly options: Required<SpringOptions>;
   private readonly onUpdate: ((sample: MotionSample) => void) | undefined;
@@ -30,10 +37,14 @@ export class RetargetableMotion {
     this.onUpdate = options.onUpdate;
     this.onComplete = options.onComplete;
     const initialSample = Object.freeze({ value: initialValue, velocity: 0, timestamp: 0 });
-    this.sample$ = new BehaviorSubject<MotionSample>(initialSample);
-    this.value$ = new BehaviorSubject(initialValue);
-    this.velocity$ = new BehaviorSubject(0);
-    this.target$ = new BehaviorSubject(initialValue);
+    this.sampleSubject = new BehaviorSubject<MotionSample>(initialSample);
+    this.valueSubject = new BehaviorSubject(initialValue);
+    this.velocitySubject = new BehaviorSubject(0);
+    this.targetSubject = new BehaviorSubject(initialValue);
+    this.sample$ = readonlyBehavior(this.sampleSubject);
+    this.value$ = readonlyBehavior(this.valueSubject);
+    this.velocity$ = readonlyBehavior(this.velocitySubject);
+    this.target$ = readonlyBehavior(this.targetSubject);
   }
 
   get currentSample(): MotionSample {
@@ -46,7 +57,7 @@ export class RetargetableMotion {
     if (!Number.isFinite(target)) throw new RangeError('The motion target must be a finite number.');
 
     this.activeOptions = normalizeOptions({ ...this.activeOptions, ...options });
-    this.target$.next(target);
+    this.targetSubject.next(target);
 
     const current = this.currentSample;
     if (Math.abs(target - current.value) <= this.activeOptions.restDelta
@@ -86,7 +97,7 @@ export class RetargetableMotion {
     this.stopClock();
     const current = this.currentSample;
     this.publish({ value: current.value, velocity: 0, timestamp: current.timestamp });
-    this.target$.next(current.value);
+    this.targetSubject.next(current.value);
     this.setState('idle');
     return this;
   }
@@ -96,11 +107,11 @@ export class RetargetableMotion {
     if (this.disposed) return;
     this.stop();
     this.disposed = true;
-    this.sample$.complete();
-    this.value$.complete();
-    this.velocity$.complete();
-    this.target$.complete();
-    this.state$.complete();
+    this.sampleSubject.complete();
+    this.valueSubject.complete();
+    this.velocitySubject.complete();
+    this.targetSubject.complete();
+    this.stateSubject.complete();
   }
 
   private ensureClock(): void {
@@ -155,14 +166,14 @@ export class RetargetableMotion {
 
   private publish(sample: MotionSample): MotionSample {
     const frozen = Object.freeze(sample);
-    this.sample$.next(frozen);
-    this.value$.next(frozen.value);
-    this.velocity$.next(frozen.velocity);
+    this.sampleSubject.next(frozen);
+    this.valueSubject.next(frozen.value);
+    this.velocitySubject.next(frozen.velocity);
     return frozen;
   }
 
   private setState(state: AnimationState): void {
-    if (this.state$.value !== state) this.state$.next(state);
+    if (this.state$.value !== state) this.stateSubject.next(state);
   }
 
   private assertNotDisposed(): void {
