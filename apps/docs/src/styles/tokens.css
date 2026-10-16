@@ -1,7 +1,7 @@
-/*
- * Semantic color aliases are derived from the active Vuetify theme.
- * Keep literal brand colors in plugins/vuetify.ts so dark/light themes stay in sync.
- */
+
+
+
+
 .v-application {
   --rx-color-background: rgb(var(--v-theme-background));
   --rx-color-surface: rgb(var(--v-theme-surface));
@@ -23,7 +23,7 @@
   --rx-color-on-surface: rgb(var(--v-theme-on-surface));
   --rx-shadow-focus: 0 0 0 3px rgba(var(--v-theme-primary), 0.28);
 
-  /* Backwards-compatible aliases used by the visualization-only stylesheet. */
+   
   --bg: var(--rx-color-background);
   --panel: var(--rx-color-surface);
   --panel-soft: var(--rx-color-surface-raised);
@@ -42,14 +42,14 @@
   --rx-site-header-height: 68px;
   --rx-font-body: 'Manrope', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --rx-font-mono: 'DM Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
-  --mono: var(--rx-font-mono); /* Legacy alias used by visualization geometry. */
+  --mono: var(--rx-font-mono);  
   --rx-font-size-xs: 0.6875rem;
   --rx-font-size-sm: 0.8125rem;
   --rx-font-size-md: 0.9375rem;
   --rx-font-size-lg: 1.125rem;
   --rx-font-size-xl: 1.5rem;
 
-  /* Spacing uses a 4 px base unit; prefer Vuetify spacing utilities in templates. */
+   
   --rx-space-1: 4px;
   --rx-space-2: 8px;
   --rx-space-3: 12px;

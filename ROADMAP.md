@@ -191,12 +191,13 @@ animate('.card', {
 
 ## Implementation order
 
-### Strengthen integration coverage, then expand the API.
+### Stabilize timeline contracts, benchmark hot paths, then expand the API.
 
-Core mutation and stream-ownership contracts are now addressed in the refactor; remaining work focuses on browser integration, stress behavior, and realistic adapter examples.
+Timeline duration lookup and pre-start resets are now optimized, nested timelines have explicit single-parent ownership, and frame-work timing is collected only while metrics are observed. Remaining work focuses on browser integration, stress coverage, and consumer package smoke tests.
 
 1. **Browser integration coverage:** Test pointer capture and cancellation, style restoration, layout effects, and adapter cleanup in a real browser.
-2. **Stress and property tests:** Exercise irregular streams, rapid retargeting, re-entrant frame scheduling, and subscription cleanup.
-3. **Consumer package smoke tests:** Install the produced tarball in a clean fixture and import every documented public entry point.
-4. **Complete adapter examples:** Add realistic examples for SVG path morphing, Canvas lifecycle, and structural Three.js integration.
+2. **Performance baselines and regression checks:** Track duration lookup, timeline seeking and frame-coordinator overhead with and without metrics observers; compare results across changes.
+3. **Stress and property tests:** Exercise irregular streams, rapid retargeting, re-entrant frame scheduling, and subscription cleanup.
+4. **Consumer package smoke tests:** Install the produced tarball in a clean fixture and import every documented public entry point.
+5. **Complete adapter examples:** Add realistic examples for SVG path morphing, Canvas lifecycle, and structural Three.js integration.
 

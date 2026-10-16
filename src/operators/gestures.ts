@@ -75,8 +75,8 @@ export function pointerGestures$(target: EventTarget, options: PointerGestureOpt
         : new Observable<PointerGestureEvent>();
 
       return new Observable<PointerGestureEvent>((subscriber) => {
-        // Attach terminal/move listeners before publishing `down`, so even re-entrant
-        // consumers cannot synchronously dispatch a move/up into a subscription gap.
+         
+         
         const trackingSubscription = merge(moves$, ups$, cancels$, lostCapture$, lostFocus$, visibilityLost$)
           .pipe(takeWhile((event) => event.type === 'move', true))
           .subscribe({
@@ -206,7 +206,7 @@ export function dragInertia(
         }
 
         if (activePointerId === null || event.pointerId !== activePointerId) return;
-        // Old pointer samples must not rewind coordinates or release/cancel a newer gesture state.
+         
         if (lastPointerTimestamp !== null && event.timestamp < lastPointerTimestamp) return;
 
         if (event.type === 'move') {
@@ -215,8 +215,8 @@ export function dragInertia(
           let bounded: Point2D;
           let bounds: Required<PointBounds>;
           try {
-            // A resized container may have moved the current point outside its new bounds.
-            // Normalize that baseline first so the resize itself is not misread as pointer velocity.
+             
+             
             bounds = config.getBounds();
             const normalizedCurrent = clampPoint({ x, y }, bounds);
             if (normalizedCurrent.x !== x) vx = 0;
@@ -237,7 +237,7 @@ export function dragInertia(
             const elapsedMs = event.timestamp - previousTime;
             if (elapsedMs > 0 && elapsedMs <= config.maxVelocitySampleMs) {
               const elapsedSeconds = elapsedMs / 1000;
-              // Estimate from the actual, bounded displacement rather than the requested point.
+               
               const rawVx = config.axis === 'y' ? 0 : (bounded.x - x) / elapsedSeconds;
               const rawVy = config.axis === 'x' ? 0 : (bounded.y - y) / elapsedSeconds;
               const filteredVx = clampVelocity(vx * config.velocitySmoothing + rawVx * (1 - config.velocitySmoothing), config.maxVelocity);
@@ -249,7 +249,7 @@ export function dragInertia(
               vx = config.axis === 'y' || bounded.x !== candidate.x || pushesPastXBound ? 0 : filteredVx;
               vy = config.axis === 'x' || bounded.y !== candidate.y || pushesPastYBound ? 0 : filteredVy;
             } else {
-              // Equal timestamps or long gaps do not provide a reliable velocity estimate.
+               
               vx = 0;
               vy = 0;
             }
@@ -427,7 +427,7 @@ function tryCapturePointer(target: EventTarget, pointerId: number): boolean {
     candidate.setPointerCapture(pointerId);
     return true;
   } catch {
-    // Synthetic events, detached targets, and unsupported browsers may reject capture.
+     
     return false;
   }
 }
@@ -443,7 +443,7 @@ function tryReleasePointer(target: EventTarget, pointerId: number): void {
       candidate.releasePointerCapture(pointerId);
     }
   } catch {
-    // The browser may already have released capture after pointerup/pointercancel.
+    
   }
 }
 
@@ -478,7 +478,7 @@ function normalizeDragOptions(options: DragInertiaOptions): NormalizedDragOption
     return normalizedBounds;
   };
 
-  // Validate static or dynamic bounds immediately, then resolve them afresh during motion.
+   
   getBounds();
 
   const axis = options.axis ?? 'both';

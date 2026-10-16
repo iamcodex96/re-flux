@@ -3,7 +3,7 @@
 ## Release contract
 
 - The package version lives in the root `package.json`.
-- Every release tag must exactly match that version, prefixed with `v` (for example, package version `0.1.1` uses tag `v0.1.1`).
+- Every release tag must exactly match that version, prefixed with `v` (for example, package version `0.2.0` uses tag `v0.2.0`).
 - `package-lock.json` is committed. CI uses `npm ci`; it must never generate or rewrite the lockfile.
 - CI, roadmap generation, workflow-copy synchronization, type checks, tests, tree-shaking, and package allowlist checks must pass before publication.
 
@@ -25,13 +25,13 @@ The workflow requests `id-token: write` and publishes with provenance. Do not ad
 3. Push the matching tag:
 
    ```bash
-   git tag v0.1.1
-   git push origin v0.1.1
+   git tag v0.2.0
+   git push origin v0.2.0
    ```
 
 4. Confirm the `Publish to npm` workflow succeeds and verify the published version with `npm view @re-code/flux version`.
 
-Use the actual next version, not necessarily `0.1.1`.
+Use the actual package version from `package.json` when creating the tag.
 
 ## Workflow locations
 

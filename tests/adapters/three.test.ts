@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { Subject } from 'rxjs';
 import { bindThreeObject, type ThreeObjectLike, type ThreeTransformSnapshot } from '../../src/adapters/three.js';
 

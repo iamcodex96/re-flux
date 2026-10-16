@@ -139,7 +139,7 @@ describe('dragInertia', () => {
     gestures.next(gesture('up', 100, 0, 1, 21));
     expect(samples.at(-1)?.phase).toBe('inertia');
 
-    raf.advance(0); // Establish a local frame timestamp.
+    raf.advance(0);  
     raf.advance(16);
     expect(samples.at(-1)?.phase).toBe('inertia');
     expect(samples.at(-1)?.x).toBeGreaterThan(100);
@@ -175,10 +175,10 @@ describe('dragInertia', () => {
     gestures.next(gesture('move', 10, 0, 1, 30));
     expect(samples.at(-1)).toMatchObject({ x: 10, vx: 500, phase: 'dragging' });
 
-    gestures.next(gesture('move', 500, 0, 1, 15)); // Out-of-order: ignore it entirely.
+    gestures.next(gesture('move', 500, 0, 1, 15));  
     expect(samples.at(-1)).toMatchObject({ x: 10, vx: 500, phase: 'dragging' });
 
-    gestures.next(gesture('move', 20, 0, 1, 30)); // Duplicate timestamp: accept position, reset velocity.
+    gestures.next(gesture('move', 20, 0, 1, 30));  
     expect(samples.at(-1)).toMatchObject({ x: 20, vx: 0, phase: 'dragging' });
     gestures.next(gesture('up', 20, 0, 1, 31));
     expect(samples.at(-1)?.phase).toBe('rest');
@@ -224,14 +224,14 @@ describe('dragInertia', () => {
     gestures.next(gesture('move', 80, 50, 1, 10));
     expect(samples.at(-1)).toMatchObject({ x: 80, y: 50, phase: 'dragging' });
 
-    // Simulate a container shrinking without recreating the operator subscription.
+     
     maxX = 40;
     gestures.next(gesture('move', 70, 50, 1, 20));
     expect(samples.at(-1)).toMatchObject({ x: 40, y: 50, phase: 'dragging' });
     gestures.next(gesture('move', 30, 50, 1, 30));
     gestures.next(gesture('up', 30, 50, 1, 31));
 
-    // A second resize during inertia must clamp to the new boundary and stop outward velocity.
+     
     minX = 35;
     raf.advance(0);
     raf.advance(16);
@@ -360,7 +360,7 @@ describe('slideFollow', () => {
     expect(retargeted?.x).toBe(before?.x);
     expect(retargeted?.vx).toBe(before?.vx);
 
-    // Momentum is preserved, so the follower may continue right briefly before the spring reverses it.
+     
     let timestamp = 48;
     while (timestamp <= 1600 && (samples.at(-1)?.vx ?? 0) >= 0) {
       raf.advance(timestamp);

@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, Subscription, type Subscriber } from 'rxjs';
+import { Observable, Subject, Subscription, type Subscriber } from 'rxjs';
 import type { AnimationFrameTick } from '../types/frames.js';
 import { animationFrame$ } from '../utils/animationFrame.js';
 
@@ -41,22 +41,26 @@ export class FrameCoordinator {
   private frameNumber = 0;
   private lastClockError: unknown = null;
   private totalFrames = 0;
+  private measuredFrameCount = 0;
   private totalFrameWorkMs = 0;
   private lastFrameWorkMs = 0;
   private maxFrameWorkMs = 0;
-  private readonly metricsSubject = new BehaviorSubject<FrameCoordinatorMetrics>(Object.freeze({
-    totalFrames: 0,
-    lastFrameWorkMs: 0,
-    averageFrameWorkMs: 0,
-    maxFrameWorkMs: 0,
-    activeFrameSubscribers: 0,
-    pendingReadTasks: 0,
-    pendingWriteTasks: 0,
-    clockActive: false,
-  }));
+  private readonly metricsSubject = new Subject<FrameCoordinatorMetrics>();
+  private metricsObserverCount = 0;
 
-  /** Emits shared-scheduler work metrics; observing it does not start the RAF clock. */
-  readonly metrics$ = this.metricsSubject.asObservable();
+  /**
+   * Emits shared-scheduler metrics while observed; timing measurements are skipped without subscribers.
+   * Subscribing does not start the RAF clock.
+   */
+  readonly metrics$ = new Observable<FrameCoordinatorMetrics>((subscriber) => {
+    this.metricsObserverCount += 1;
+    const subscription = this.metricsSubject.subscribe(subscriber);
+    subscriber.next(this.makeMetrics());
+    return () => {
+      subscription.unsubscribe();
+      this.metricsObserverCount = Math.max(0, this.metricsObserverCount - 1);
+    };
+  });
 
   /** Immutable current metrics snapshot, including queued work. */
   get metrics(): FrameCoordinatorMetrics {
@@ -158,7 +162,7 @@ export class FrameCoordinator {
       },
     });
 
-    // requestAnimationFrame can fail synchronously in SSR or unsupported runtimes.
+     
     if (subscription.closed) {
       this.clockSubscription = null;
       return this.lastClockError instanceof Error
@@ -171,30 +175,34 @@ export class FrameCoordinator {
   }
 
   private handleFrame(timestamp: number): void {
-    const workStartedAt = monotonicNow();
+    const measureWork = this.metricsObserverCount > 0;
+    const workStartedAt = measureWork ? monotonicNow() : 0;
     const delta = this.lastTimestamp === null ? 0 : Math.max(0, timestamp - this.lastTimestamp);
     this.lastTimestamp = timestamp;
     this.frameNumber += 1;
     const frame: AnimationFrameTick = Object.freeze({ timestamp, delta, frame: this.frameNumber });
 
-    // Read tasks queued by another read task are deferred to the next frame.
-    this.runTasks(this.readQueue.splice(0), frame);
+     
+    if (this.readQueue.length > 0) this.runTasks(this.readQueue.splice(0), frame);
 
     for (const subscriber of [...this.frameSubscribers]) {
       if (!subscriber.closed) subscriber.next(frame);
     }
 
-    // Writes queued during the read phase or frame notifications can run this frame.
-    // Writes scheduled by a write task wait until the next write phase.
-    this.runTasks(this.writeQueue.splice(0), frame);
+     
+     
+    if (this.writeQueue.length > 0) this.runTasks(this.writeQueue.splice(0), frame);
     this.stopIfIdle();
 
-    const workMs = Math.max(0, monotonicNow() - workStartedAt);
     this.totalFrames += 1;
-    this.totalFrameWorkMs += workMs;
-    this.lastFrameWorkMs = workMs;
-    this.maxFrameWorkMs = Math.max(this.maxFrameWorkMs, workMs);
-    this.metricsSubject.next(this.makeMetrics());
+    if (measureWork && this.metricsObserverCount > 0) {
+      const workMs = Math.max(0, monotonicNow() - workStartedAt);
+      this.measuredFrameCount += 1;
+      this.totalFrameWorkMs += workMs;
+      this.lastFrameWorkMs = workMs;
+      this.maxFrameWorkMs = Math.max(this.maxFrameWorkMs, workMs);
+      this.metricsSubject.next(this.makeMetrics());
+    }
   }
 
   private runTasks(tasks: ScheduledFrameTask[], frame: AnimationFrameTick): void {
@@ -204,10 +212,10 @@ export class FrameCoordinator {
       try {
         task.callback(frame);
       } catch (error: unknown) {
-        // Keep remaining phases consistent while surfacing user callback errors.
+         
         queueMicrotask(() => { throw error; });
       } finally {
-        // Do not stop the clock mid-phase; handleFrame idles it after all phases run.
+         
         task.subscription.unsubscribe();
         task.running = false;
       }
@@ -218,7 +226,7 @@ export class FrameCoordinator {
     return Object.freeze({
       totalFrames: this.totalFrames,
       lastFrameWorkMs: this.lastFrameWorkMs,
-      averageFrameWorkMs: this.totalFrames > 0 ? this.totalFrameWorkMs / this.totalFrames : 0,
+      averageFrameWorkMs: this.measuredFrameCount > 0 ? this.totalFrameWorkMs / this.measuredFrameCount : 0,
       maxFrameWorkMs: this.maxFrameWorkMs,
       activeFrameSubscribers: this.frameSubscribers.size,
       pendingReadTasks: this.readQueue.length,

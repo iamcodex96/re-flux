@@ -6,6 +6,67 @@
   <component name="ChangeListManager">
     <list default="true" id="ef8a0aa0-fd7a-4c58-83df-09fbfe397d89" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.github/workflows/ci.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/ci.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/publish-npm.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/publish-npm.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APPLYING_PATCH.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PUBLISHING.md" beforeDir="false" afterPath="$PROJECT_DIR$/PUBLISHING.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ROADMAP.md" beforeDir="false" afterPath="$PROJECT_DIR$/ROADMAP.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/ACCESSIBILITY.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/DESIGN_SYSTEM.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/GRAPHING.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/VISUAL_LAB.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/components/EasingCurve.vue" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/components/EasingCurve.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/components/LandingCapabilitiesShowcase.vue" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/components/LandingCapabilitiesShowcase.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/components/Playground/MotionPanels/TweenPanel.vue" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/components/Playground/MotionPanels/TweenPanel.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/components/VisualLab/VisualSvgPanel.vue" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/components/VisualLab/VisualSvgPanel.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/data/roadmap.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/data/roadmap.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/demos/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/router/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/router/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/styles/tokens.css" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/styles/tokens.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/styles/visual-lab.css" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/styles/visual-lab.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/styles/visualizations.css" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/styles/visualizations.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/views/ApiPlayground.vue" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/views/ApiPlayground.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/docs/src/views/TimelinePlayground.vue" beforeDir="false" afterPath="$PROJECT_DIR$/apps/docs/src/views/TimelinePlayground.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/frame-coordinator.bench.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/frame-coordinator.bench.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/check-package-files.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/check-package-files.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/check-tree-shaking.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/check-tree-shaking.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/adapters/dom/animation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/adapters/dom/animation.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/adapters/dom/draggable.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/adapters/dom/draggable.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/adapters/dom/scope.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/adapters/dom/scope.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/adapters/dom/scrollTrigger.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/adapters/dom/scrollTrigger.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/adapters/dom/text.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/adapters/dom/text.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/adapters/svg/pathMorph.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/adapters/svg/pathMorph.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/Animation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/Animation.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/Completion.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/Completion.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/FrameCoordinator.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/FrameCoordinator.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/MotionLifecycleController.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/MotionLifecycleController.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/MotionPreferences.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/MotionPreferences.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/Timeline.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/Timeline.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/effects/canvas.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/effects/canvas.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/operators/adaptiveTween.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/operators/adaptiveTween.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/operators/gestures.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/operators/gestures.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/operators/smoothStream.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/operators/smoothStream.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/physics/RetargetableMotion.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/physics/RetargetableMotion.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/stagger.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/stagger.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/values/Keyframes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/values/Keyframes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/values/interpolate.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/values/interpolate.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/adapters/dom-scroll-trigger.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/adapters/dom-scroll-trigger.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/adapters/dom.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/adapters/dom.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/adapters/three.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/adapters/three.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/core/FrameCoordinator.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/core/FrameCoordinator.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/core/Timeline.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/core/Timeline.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/operators/adaptiveTween.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/operators/adaptiveTween.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/operators/gestures.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/operators/gestures.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/operators/retargetMotion.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/operators/retargetMotion.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/operators/smoothStream.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/operators/smoothStream.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/physics/RetargetableMotion.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/physics/RetargetableMotion.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/values/Tween.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/values/Tween.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,21 +97,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "/Users/iamcodex/Documents/WebProjects/re-flux/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/.github/workflows" />
@@ -89,7 +151,7 @@
       <workItem from="1791905779936" duration="19000" />
       <workItem from="1791969615374" duration="2329000" />
       <workItem from="1791993469940" duration="3000" />
-      <workItem from="1792073044566" duration="2583000" />
+      <workItem from="1792073044566" duration="7854000" />
     </task>
     <servers />
   </component>

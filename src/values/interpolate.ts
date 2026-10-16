@@ -87,7 +87,7 @@ function parseNumericTemplate(value: string): NumericTemplate | null {
     values.push(number);
     return '\u0000';
   });
-  // Purely discrete strings ("open" -> "closed") are deliberately not interpolated.
+   
   if (values.length === 0) return null;
   return { template, values };
 }

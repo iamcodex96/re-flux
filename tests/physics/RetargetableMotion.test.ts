@@ -14,7 +14,7 @@ describe('RetargetableMotion', () => {
   it('retargets from the currently sampled value and velocity without snapping', () => {
     const motion = new RetargetableMotion({ initialValue: 0, stiffness: 90, damping: 8 });
     motion.to(100);
-    raf.advance(0); // subscription boundary; intentionally not integrated
+    raf.advance(0);  
     raf.advance(16);
     raf.advance(32);
 
@@ -52,7 +52,7 @@ describe('RetargetableMotion', () => {
     expect(motion.state$.value).toBe('paused');
 
     motion.resume();
-    raf.advance(48); // resume boundary, ignored to prevent paused-time delta
+    raf.advance(48);  
     raf.advance(64);
     expect(motion.currentSample.value).toBeGreaterThan(paused.value);
     motion.dispose();

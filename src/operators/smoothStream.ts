@@ -44,7 +44,7 @@ export function smoothStream<T>(
     };
 
     const insertSample = (sample: TimestampedValue<T>): void => {
-      // Samples behind the rendered cursor can no longer affect output and must not rewind history.
+       
       if (sample.timestamp < lastDisplayedTime) return;
 
       let low = 0;
@@ -62,7 +62,7 @@ export function smoothStream<T>(
         return;
       }
 
-      // Do not let late packets outside the retained window displace useful interpolation history.
+       
       if (buffer.length >= config.maxBufferSize && low === 0) return;
       buffer.splice(low, 0, Object.freeze({ ...sample }));
       while (buffer.length > config.maxBufferSize) buffer.shift();
@@ -128,7 +128,7 @@ export function smoothStream<T>(
             }
 
             const latest = buffer[buffer.length - 1];
-            // Drain a finite source after the display cursor reaches its final input timestamp.
+             
             if (sourceCompleted && (!latest || (sample !== null && sample.sampleTime >= latest.timestamp))) {
               complete();
               return;

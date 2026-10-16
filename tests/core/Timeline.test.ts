@@ -217,7 +217,7 @@ describe('Timeline labels and transport controls', () => {
     expect(tween.value$.value).toBe(20);
     raf.advance(55);
     const completion = timeline.toPromise();
-    // At 55 ms the reverse playhead has reached 0 (the final timeScale step is capped at the boundary).
+     
     await expect(completion).resolves.toBeUndefined();
     expect(tween.value$.value).toBe(0);
     expect(timeline.progress).toBe(0);
@@ -246,14 +246,46 @@ describe('Timeline labels and transport controls', () => {
     expect(() => timeline.addLabel('after-stop')).not.toThrow();
   });
 
-  it('locks nested timeline edits while a parent controls its playhead', () => {
+  it('locks nested timeline structure and direct controls for the lifetime of parent ownership', () => {
     const nested = new Timeline().add(new Animation({ duration: 100 }));
     const parent = new Timeline().add(nested);
 
+    expect(parent.duration).toBe(100);
+    expect(() => nested.add(new Animation({ duration: 10 }))).toThrow('after adding it to a parent');
+    expect(() => nested.seek(20)).toThrow('controlled by its parent');
+    expect(() => nested.play()).toThrow('controlled by its parent');
+    expect(() => new Timeline().add(nested)).toThrow('one parent Timeline');
+    expect(() => parent.add(nested)).toThrow('only be added once');
+
     parent.play();
-    expect(() => nested.add(new Animation({ duration: 10 }))).toThrow('stop() before editing');
+    raf.advance(0);
+    raf.advance(50);
+    expect(nested.currentTime).toBe(50);
     parent.stop();
-    expect(() => nested.add(new Animation({ duration: 10 }))).not.toThrow();
+    expect(() => nested.add(new Animation({ duration: 10 }))).toThrow('after adding it to a parent');
+  });
+
+  it('resets a segment only when crossing back before its start', () => {
+    const reset = jest.fn();
+    const seek = jest.fn();
+    const item = {
+      duration: 50,
+      seekLocal: seek,
+      resetInternal: reset,
+    };
+    const timeline = new Timeline().add(new Animation({ duration: 100 })).add(item, 100);
+
+    timeline.seek(10);
+    timeline.seek(20);
+    expect(reset).toHaveBeenCalledTimes(1);
+
+    timeline.seek(110);
+    timeline.seek(120);
+    expect(seek).toHaveBeenCalledTimes(2);
+
+    timeline.seek(40);
+    timeline.seek(50);
+    expect(reset).toHaveBeenCalledTimes(2);
   });
 
   it('rejects direct and indirect nested Timeline cycles', () => {

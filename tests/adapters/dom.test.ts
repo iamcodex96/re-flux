@@ -566,7 +566,7 @@ describe('responsive animation scopes', () => {
   it('supports explicit from/to frames and per-target frame factories', () => {
     const first = createElement({ opacity: '0.2' });
     const second = createElement({ opacity: '0.3' });
-    const factory = jest.fn((target: Element, index: number, total: number) => [
+    const factory = jest.fn((_target: Element, index: number, total: number) => [
       `${index}`,
       `${total - index}`,
     ] as const);

@@ -54,7 +54,7 @@ export function drawFrequencyBars(
   context.save();
   try {
     for (let index = 0; index < barCount; index += 1) {
-      // Average a small band instead of selecting one bin, reducing flicker on noisy input.
+       
       const start = Math.floor(index * values.length / barCount);
       const end = Math.max(start + 1, Math.floor((index + 1) * values.length / barCount));
       let total = 0;

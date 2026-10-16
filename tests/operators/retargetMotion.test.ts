@@ -103,7 +103,7 @@ describe('retargetMotion', () => {
     subscription.unsubscribe();
     expect(raf.pendingCount).toBe(0);
 
-    targets.next(20); // No consumer remains, so this must not restart motion work.
+    targets.next(20);  
     expect(raf.pendingCount).toBe(0);
   });
 

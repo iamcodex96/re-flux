@@ -59,8 +59,8 @@ describe('smoothStream', () => {
       .subscribe((sample) => samples.push(sample));
 
     source.next({ timestamp: 0, value: 0 });
-    raf.advance(0); // Display cursor has reached timestamp 0.
-    source.next({ timestamp: -10, value: -100 }); // Too late to affect a frame already rendered.
+    raf.advance(0);  
+    source.next({ timestamp: -10, value: -100 });  
     source.next({ timestamp: 20, value: 20 });
     raf.advance(10);
 
@@ -82,7 +82,7 @@ describe('smoothStream', () => {
     source.next({ timestamp: 0, value: 0 });
     raf.advance(0);
     source.next({ timestamp: 33, value: 33 });
-    source.next({ timestamp: 16, value: 16 }); // Delayed packet, still ahead of the display cursor.
+    source.next({ timestamp: 16, value: 16 });  
     source.next({ timestamp: 49, value: 49 });
     raf.advance(16);
     source.next({ timestamp: 75, value: 75 });

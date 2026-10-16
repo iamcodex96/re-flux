@@ -110,7 +110,6 @@ onBeforeUnmount(() => {
 
 <template>
   <v-row class="visual-demo-grid">
-    <!-- SVG paths, filters, and morphing are isolated from the other demo lifecycles. -->
     <v-col cols="12">
         <v-card class="visual-card visual-card--svg" variant="outlined">
           <v-card-text class="pa-5 pa-md-6">

@@ -46,7 +46,7 @@ export class MotionPreferences implements MotionPreferencesSource {
     }));
     this.state$ = this.subject.asObservable();
     this.mediaQuery?.addEventListener?.('change', this.handleMediaChange);
-    // Old Safari versions exposed addListener before EventTarget methods existed.
+     
     if (this.mediaQuery && !this.mediaQuery.addEventListener) this.mediaQuery.addListener?.(this.handleMediaChange);
     this.documentRef?.addEventListener('visibilitychange', this.handleVisibilityChange);
   }

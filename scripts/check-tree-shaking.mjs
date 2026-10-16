@@ -67,9 +67,9 @@ for (const testCase of cases) {
     logLevel: 'silent',
   });
 
-  // Facade files frequently contain only re-exports. Tree-shaking correctly resolves these
-  // entry modules while emitting zero bytes from them, so validate resolution separately from
-  // the files that actually contribute code to the bundle.
+   
+   
+   
   const resolvedInputs = Object.keys(result.metafile.inputs)
     .map((input) => input.replaceAll('\\', '/'));
   assert(

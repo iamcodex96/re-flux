@@ -25,7 +25,7 @@ body { margin: 0; min-width: 320px; }
   font-family: var(--rx-font-body), sans-serif;
 }
 
-/* The original soft violet/mint glow, derived entirely from the active Vuetify theme. */
+ 
 .v-application__wrap {
   background-color: rgb(var(--v-theme-background));
   background-image:
@@ -42,7 +42,7 @@ body { margin: 0; min-width: 320px; }
 .v-btn { text-transform: none; letter-spacing: 0; }
 
 
-/* Consistent, compact card typography with predictable text wrapping. */
+ 
 .v-card,
 .v-card-title,
 .v-card-subtitle,
@@ -89,7 +89,7 @@ body { margin: 0; min-width: 320px; }
 .page-heading__description { min-width: 0; max-width: 100%; }
 .page-heading__description { display: block; width: min(100%, 680px); white-space: normal; overflow-wrap: anywhere; }
 
-/* Keep a clearly visible focus indicator for links, buttons and custom keyboard controls. */
+ 
 :where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
   outline: 3px solid rgb(var(--v-theme-primary));
   outline-offset: 3px;
@@ -129,7 +129,7 @@ body { margin: 0; min-width: 320px; }
 }
 
 
-/* Keep supplementary captions available to assistive technology without visual clutter. */
+ 
 .visually-hidden {
   position: absolute !important;
   width: 1px !important;
@@ -144,7 +144,7 @@ body { margin: 0; min-width: 320px; }
 
 .docs-anchor { scroll-margin-top: 16px; }
 
-/* Code cards intentionally use the theme's high-emphasis surface foreground in both themes. */
+ 
 .docs-code-card {
   color: rgb(var(--v-theme-on-surface));
   background: rgb(var(--v-theme-surface));
@@ -158,8 +158,8 @@ body { margin: 0; min-width: 320px; }
 .docs-code-card pre code { color: inherit; }
 .docs-code-card .border-b { border-color: rgba(var(--v-border-color), var(--v-border-opacity)) !important; }
 
-/* Vuetify's v-main reserves the app-bar layout inset. Keep the outer main at viewport height
-   and size its content to the remaining area so the section index never creates a second scroll. */
+
+
 .v-main.docs-main {
   height: 100dvh;
   max-height: 100dvh;
@@ -340,7 +340,7 @@ body { margin: 0; min-width: 320px; }
   .docs-code-card pre { padding: 14px; font-size: 11px; }
 }
 
-/* Avoid smooth scrolling and non-essential CSS motion for users who request less motion. */
+ 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
@@ -351,7 +351,7 @@ body { margin: 0; min-width: 320px; }
   }
 }
 
-/* Preserve focus and boundaries when a user enables Windows High Contrast / forced colors. */
+ 
 @media (forced-colors: active) {
   :where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
     outline: 3px solid Highlight;
@@ -360,12 +360,12 @@ body { margin: 0; min-width: 320px; }
   .skip-link { background: CanvasText; color: Canvas; border: 2px solid CanvasText; }
 }
 
-/* Sliders use a stacked label/value header with the track beneath it. */
+ 
 .labeled-slider { width: 100%; min-width: 0; }
 .labeled-slider__heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
 .labeled-slider__label { color: rgb(var(--v-theme-on-surface)); font-size: 0.82rem; line-height: 1.35; white-space: normal; }
 .labeled-slider .v-slider { margin-inline: -4px; }
-/* Documentation headings are stacked so badges never steal width from titles. */
+ 
 .docs-section-heading {
   display: flex;
   align-items: flex-start;

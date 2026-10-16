@@ -99,7 +99,7 @@ function pauseTimeline(): void { timeline.value.pause(); }
 function stopTimeline(): void { timeline.value.stop(); }
 function restartTimeline(): void { timeline.value.restart(); }
 onBeforeUnmount(() => {
-  // Do not return a PromiseLike Timeline from a Vue lifecycle hook.
+   
   timeline.value.stop();
 });
 </script>

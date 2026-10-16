@@ -78,8 +78,8 @@ export function draggable(target: HTMLElement, options: DraggableOptions = {}): 
     ...(options.bounds === undefined ? {} : { bounds: options.bounds }),
     ...(options.getBounds === undefined ? {} : { getBounds: options.getBounds }),
   };
-  // dragInertia validates axis, velocity settings and the first dynamic-bounds snapshot here,
-  // before any DOM styles/listeners are mutated. This keeps failed construction side-effect free.
+   
+   
   const dragOperator = dragInertia(dragOptions);
   const initialBounds = normalizeDraggableBounds(options.getBounds?.() ?? options.bounds ?? {});
   const initial: Point2D = Object.freeze({
@@ -282,7 +282,7 @@ function readInitialTranslate(target: HTMLElement): Point2D {
     const computed = target.ownerDocument?.defaultView?.getComputedStyle?.(target).getPropertyValue('translate');
     if (computed && computed !== 'none') value = computed;
   } catch {
-    // Detached documents and test doubles may not expose computed styles; inline values remain a valid fallback.
+    
   }
   if (!value.trim() || value.trim() === 'none') return { x: 0, y: 0 };
   const match = value.trim().match(/^(-?(?:\d+\.?\d*|\.\d+))(?:px)?(?:\s+(-?(?:\d+\.?\d*|\.\d+))(?:px)?)?(?:\s+0(?:px)?)?$/i);

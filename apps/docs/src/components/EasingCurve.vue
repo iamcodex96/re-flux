@@ -32,7 +32,7 @@ const outputExtent = computed(() => {
   return { min: Math.min(0, 1, ...values), max: Math.max(0, 1, ...values) };
 });
 
-// Scale the Y axis to include elastic overshoot and bounce dips, with a little breathing room.
+ 
 const bounds = computed(() => {
   const { min: rawMin, max: rawMax } = outputExtent.value;
   const range = Math.max(rawMax - rawMin, 1);

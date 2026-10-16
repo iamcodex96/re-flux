@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 export const router = createRouter({
-  // Hash history avoids requiring rewrite rules on GitHub Pages.
+   
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: () => import('../views/Home.vue') },
@@ -70,7 +70,7 @@ export const router = createRouter({
         },
       ],
     },
-    // Preserve the previous links while the playground hub becomes the canonical URL.
+     
     { path: '/animation', redirect: { name: 'playground-animation' } },
     { path: '/timeline', redirect: { name: 'playground-timeline' } },
     { path: '/easings', redirect: { name: 'playground-easings' } },
@@ -152,8 +152,8 @@ export const router = createRouter({
       ],
     },
   ],
-  // Route changes replace page content; smooth-scrolling here can expose the page shell
-  // during the transition and looks like a brief black flicker. Keep route navigation instant.
-  // Deliberate in-page interactions (e.g. docs TOC) opt into smooth scrolling separately.
+   
+   
+   
   scrollBehavior: () => ({ top: 0, left: 0, behavior: 'auto' }),
 });

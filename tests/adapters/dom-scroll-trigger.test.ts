@@ -108,7 +108,7 @@ describe('createScrollTrigger()', () => {
       end: 'bottom top-=20px',
       autoRefresh: false,
     });
-    // start distance = 40 - 80 = -40; end distance = 100 - (-20) = 120.
+     
     expect(trigger.progress).toBeCloseTo(0.25);
     trigger.destroy();
   });
@@ -168,7 +168,7 @@ describe('createScrollTrigger()', () => {
     expect(trigger.isActive).toBe(true);
     expect(onEnter).not.toHaveBeenCalled();
     expect(onLeave).not.toHaveBeenCalled();
-    expect(onRefresh).toHaveBeenCalledTimes(2); // initial measurement and explicit refresh
+    expect(onRefresh).toHaveBeenCalledTimes(2);  
     trigger.unsubscribe();
     trigger.destroy();
   });
@@ -183,7 +183,7 @@ describe('createScrollTrigger()', () => {
     const target = makeTarget(120, 60);
     const onRefresh = jest.fn();
     const trigger = createScrollTrigger(target, { onRefresh });
-    expect(onRefresh).toHaveBeenCalledTimes(1); // initial measurement
+    expect(onRefresh).toHaveBeenCalledTimes(1);  
 
     fakeWindow.dispatchEvent(new Event('resize'));
     fakeWindow.dispatchEvent(new Event('resize'));

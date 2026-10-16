@@ -167,7 +167,7 @@ class ScrollTriggerInstance implements ScrollTriggerController {
     this.cancelPending();
     const measurement = this.measure();
     this.ensureValidRange(measurement);
-    // Refresh rebases the geometry after layout changes without generating false scroll events.
+     
     this.previous = measurement;
     this.activeValue = measurement.active;
     this.subject.next(measurement.progress);

@@ -20,8 +20,8 @@ describe('Tween<T>', () => {
     tween.seek(25);
     expect(tween.value$.value).toBe(15);
     expect(tween.progress$.value).toBe(0.25);
-    // Manual seeking updates values without starting a frame clock, so it
-    // must not report a running state.
+     
+     
     expect(tween.state$.value).toBe('idle');
     expect(raf.pendingCount).toBe(0);
     expect(onUpdate).toHaveBeenLastCalledWith(15, 0.25, 0.25);

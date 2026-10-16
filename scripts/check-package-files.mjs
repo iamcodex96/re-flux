@@ -12,7 +12,6 @@ const required = [
   'package.json',
   'README.md',
   'LICENSE',
-  'PUBLISHING.md',
   'dist/index.js',
   'dist/index.d.ts',
   'dist/core.js',
@@ -39,7 +38,7 @@ const required = [
 for (const file of required) {
   assert(files.includes(file), `Package is missing required file ${file}`);
 }
-const allowedRootFiles = new Set(['package.json', 'README.md', 'LICENSE', 'PUBLISHING.md']);
+const allowedRootFiles = new Set(['package.json', 'README.md', 'LICENSE']);
 for (const file of files) {
   assert(allowedRootFiles.has(file) || file.startsWith('dist/'), `Unexpected non-package file included: ${file}`);
 }

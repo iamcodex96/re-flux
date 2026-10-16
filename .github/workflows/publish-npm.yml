@@ -42,10 +42,5 @@ jobs:
           npm run typecheck:tests
       - name: Run tests
         run: npm test -- --runInBand
-      - name: Build and verify package
-        run: |
-          npm run build:lib
-          node scripts/check-tree-shaking.mjs
-          node scripts/check-package-files.mjs
       - name: Publish with npm Trusted Publishing (OIDC)
         run: npm publish --provenance --access public

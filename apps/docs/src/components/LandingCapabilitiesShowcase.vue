@@ -70,8 +70,8 @@ function stopSpring(): void {
 function startStream(): void {
   if (streamSubscription && !streamSubscription.closed) return;
   let sampleIndex = 0;
-  // The source deliberately emits irregular-looking values at a steady cadence; smoothStream renders
-  // the values on the library's shared frame clock with a small display latency.
+   
+   
   streamSubscription = interval(260).pipe(
     map(() => {
       sampleIndex += 1;

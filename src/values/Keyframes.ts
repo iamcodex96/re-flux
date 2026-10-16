@@ -31,8 +31,8 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
 
   constructor(options: KeyframesOptions<T>) {
     this.frames = normalizeKeyframes(options.keyframes);
-    // Resolve each adjacent segment independently. Checking only first/last values
-    // can hide an incompatible intermediate object or array shape.
+     
+     
     this.interpolators = this.frames.slice(0, -1).map((frame, index) =>
       resolveInterpolator(frame.value, this.frames[index + 1]!.value, options.interpolate, 'Keyframes'),
     );
@@ -44,7 +44,7 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
     const { keyframes: _keyframes, interpolate: _interpolate, onUpdate, easing: _easing, ...animationOptions } = options;
     this.animation = new Animation({
       ...animationOptions,
-      // Keyframe easing is applied per segment, not to the overall playhead.
+       
       easing: 'linear',
       onUpdate: (progress) => this.updateValue(progress),
     });

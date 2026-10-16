@@ -1,6 +1,6 @@
 {
   "name": "@re-code/flux",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A headless, reactive animation engine built on TypeScript and RxJS.",
   "license": "MIT",
   "type": "module",
@@ -69,8 +69,7 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE",
-    "PUBLISHING.md"
+    "LICENSE"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -78,12 +77,12 @@
     "dev": "npm run dev --workspace=re-flux-docs",
     "build": "npm run build:lib && npm run build --workspace=re-flux-docs",
     "preview": "npm run preview --workspace=re-flux-docs",
-    "prepack": "npm run check:roadmap && npm run check:workflow-sync && npm run typecheck && npm run typecheck:tests && npm test -- --runInBand && npm run build:lib && node scripts/check-tree-shaking.mjs && node scripts/check-package-files.mjs",
+    "prepack": "npm run build:lib && node scripts/check-tree-shaking.mjs && node scripts/check-package-files.mjs",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
     "test:coverage": "npm test -- --coverage",
     "typecheck:tests": "tsc -p tsconfig.test.json",
-    "bench": "npm run build:lib && node benchmarks/frame-coordinator.bench.mjs",
+    "bench": "npm run build:lib && node benchmarks/frame-coordinator.bench.mjs && node benchmarks/timeline.bench.mjs",
     "check:tree-shaking": "npm run build:lib && node scripts/check-tree-shaking.mjs",
     "check:package": "npm run build:lib && node scripts/check-package-files.mjs",
     "check:visual-lab": "node scripts/check-visual-lab.mjs",
@@ -124,7 +123,7 @@
     "utilities"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "publishConfig": {
     "access": "public"

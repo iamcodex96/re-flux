@@ -46,7 +46,7 @@ export class Completion {
       this.resolveCurrent = resolve;
       this.rejectCurrent = reject;
     });
-    // Rejections remain visible to await/catch but never become unobserved.
+     
     void this.currentPromise.catch(() => undefined);
   }
 }

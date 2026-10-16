@@ -95,7 +95,7 @@ export function adaptiveTween<T>(
             updateCurrentValue(frame.timestamp);
             const output = sampleOutput(frame.timestamp);
             subscriber.next(output);
-            // Use the emitted snapshot: downstream may synchronously retarget the source from its next handler.
+             
             lastEmittedSourceTimestamp = output.sourceEndTimestamp;
             if (sourceCompleted && progress >= 1 && lastEmittedSourceTimestamp === lastSourceTimestamp) complete();
           } catch (error: unknown) {
@@ -112,14 +112,14 @@ export function adaptiveTween<T>(
           fail(new RangeError('adaptiveTween source timestamps must be finite numbers.'));
           return;
         }
-        // A duplicate or out-of-order source timestamp must not retarget the current motion backwards.
+         
         if (lastSourceTimestamp !== null && sample.timestamp <= lastSourceTimestamp) return;
 
         try {
           const priorTimestamp = lastSourceTimestamp;
           if (priorTimestamp !== null) {
             const interval = sample.timestamp - priorTimestamp;
-            // Treat initialCadence as the EMA prior and smooth the first measurement too.
+             
             estimatedCadence += config.cadenceSmoothing * (interval - estimatedCadence);
           }
           previousSourceTimestamp = priorTimestamp;
@@ -130,7 +130,7 @@ export function adaptiveTween<T>(
           sourceEndTimestamp = sample.timestamp;
 
           if (!hasTarget) {
-            // First value establishes a baseline; it does not animate from an arbitrary implicit zero.
+             
             hasTarget = true;
             currentValue = sample.value;
             segmentFrom = sample.value;
@@ -163,7 +163,7 @@ export function adaptiveTween<T>(
           complete();
           return;
         }
-        // A finite source may complete before the first RAF. Emit the baseline once before completing.
+         
         if (progress >= 1 && lastFrameTimestamp !== null && lastEmittedSourceTimestamp === lastSourceTimestamp) {
           complete();
           return;

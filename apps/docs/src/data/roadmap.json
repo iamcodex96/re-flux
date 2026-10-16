@@ -4,7 +4,7 @@
   "features": [
     {
       "number": "01",
-      "status": "Implemented \u00b7 hardening ongoing",
+      "status": "Implemented · hardening ongoing",
       "icon": "mdi-gesture-tap",
       "title": "First-class gesture physics",
       "summary": "Turn pointer input into typed motion streams, with drag inertia and following motion as composable RxJS operators.",
@@ -34,7 +34,7 @@
     },
     {
       "number": "03",
-      "status": "Implemented \u00b7 test hardening ongoing",
+      "status": "Implemented · test hardening ongoing",
       "icon": "mdi-swap-horizontal",
       "title": "Seamless interruption and retargeting",
       "summary": "Switch animation targets without snapping back to the original start value or discarding momentum.",
@@ -49,7 +49,7 @@
     },
     {
       "number": "04",
-      "status": "Implemented \u00b7 integration tests ongoing",
+      "status": "Implemented · integration tests ongoing",
       "icon": "mdi-sync",
       "title": "Frame coordinator",
       "summary": "Coalesce library work into one frame-aligned coordinator with explicit read and write phases.",
@@ -79,7 +79,7 @@
     },
     {
       "number": "06",
-      "status": "Implemented \u00b7 API integration hardening ongoing",
+      "status": "Implemented · API integration hardening ongoing",
       "icon": "mdi-code-braces",
       "title": "Typed keyframes and DOM targeting",
       "summary": "Define explicit start/end values, keyframes, per-property timing, and per-target frames while keeping the DOM adapter optional.",
@@ -98,7 +98,7 @@
   "principles": [
     {
       "title": "Observable-first",
-      "text": "Motion, time, and velocity are values in streams\u2014not hidden mutable globals."
+      "text": "Motion, time, and velocity are values in streams—not hidden mutable globals."
     },
     {
       "title": "Headless by default",
@@ -113,13 +113,18 @@
       "text": "Frame alignment reduces redundant work, but cannot guarantee 60 or 120 FPS under browser throttling."
     }
   ],
-  "implementationHeading": "Strengthen integration coverage, then expand the API.",
-  "implementationSummary": "Core mutation and stream-ownership contracts are now addressed in the refactor; remaining work focuses on browser integration, stress behavior, and realistic adapter examples.",
+  "implementationHeading": "Stabilize timeline contracts, benchmark hot paths, then expand the API.",
+  "implementationSummary": "Timeline duration lookup and pre-start resets are now optimized, nested timelines have explicit single-parent ownership, and frame-work timing is collected only while metrics are observed. Remaining work focuses on browser integration, stress coverage, and consumer package smoke tests.",
   "implementationOrder": [
     {
       "id": "browser-coverage",
       "title": "Browser integration coverage",
       "detail": "Test pointer capture and cancellation, style restoration, layout effects, and adapter cleanup in a real browser."
+    },
+    {
+      "id": "performance-baseline",
+      "title": "Performance baselines and regression checks",
+      "detail": "Track duration lookup, timeline seeking and frame-coordinator overhead with and without metrics observers; compare results across changes."
     },
     {
       "id": "stress-testing",
@@ -137,5 +142,5 @@
       "detail": "Add realistic examples for SVG path morphing, Canvas lifecycle, and structural Three.js integration."
     }
   ],
-  "statusBadge": "Gesture physics available \u00b7 Integration hardening ongoing"
+  "statusBadge": "Gesture physics available · Integration hardening ongoing"
 }

@@ -116,6 +116,31 @@ describe('FrameCoordinator', () => {
     expect(coordinator.metrics.totalFrames).toBe(frameCount);
   });
 
+
+  it('reports a fresh snapshot to late metrics subscribers and avoids timing samples when unobserved', () => {
+    const coordinator = new FrameCoordinator();
+    const frameSubscription = coordinator.frames$.subscribe();
+    raf.advance(10);
+    raf.advance(20);
+
+    expect(coordinator.metrics.totalFrames).toBe(2);
+    expect(coordinator.metrics.lastFrameWorkMs).toBe(0);
+
+    const samples: Array<{ totalFrames: number; lastFrameWorkMs: number }> = [];
+    const metricsSubscription = coordinator.metrics$.subscribe((sample) => {
+      samples.push({ totalFrames: sample.totalFrames, lastFrameWorkMs: sample.lastFrameWorkMs });
+    });
+    expect(samples[0]?.totalFrames).toBe(2);
+
+    raf.advance(30);
+    expect(samples.at(-1)?.totalFrames).toBe(3);
+    expect(coordinator.metrics.lastFrameWorkMs).toBeGreaterThanOrEqual(0);
+    expect(coordinator.metrics.averageFrameWorkMs).toBe(coordinator.metrics.lastFrameWorkMs);
+
+    metricsSubscription.unsubscribe();
+    frameSubscription.unsubscribe();
+  });
+
   it('defers reads scheduled from the write phase until the next frame', () => {
     const coordinator = new FrameCoordinator();
     const events: string[] = [];

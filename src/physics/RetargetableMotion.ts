@@ -121,7 +121,7 @@ export class RetargetableMotion {
     let skipFirstFrame = true;
     const subscription = frameCoordinator.frames$.subscribe({
       next: (frame) => {
-        // Avoid integrating an old delta when subscribing while the shared clock is already active.
+         
         if (skipFirstFrame) {
           skipFirstFrame = false;
           return;

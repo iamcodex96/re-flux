@@ -124,7 +124,7 @@ function splitCubic(segment: CubicSegment): readonly [CubicSegment, CubicSegment
 function approximateLength(segment: CubicSegment): number {
   let length = 0;
   let previous = segment.p0;
-  // Fixed subdivisions make the choice deterministic and inexpensive.
+   
   for (let index = 1; index <= 16; index += 1) {
     const current = cubicPoint(segment, index / 16);
     length += distance(previous, current);
@@ -269,7 +269,7 @@ function parsePath(path: string): ParsedPath {
       index += 1;
       return Number(token);
     }
-    // SVG permits adjacent one-character arc flags and coordinates without separators (for example `... 0 01100 50`).
+     
     if (token.startsWith('0') || token.startsWith('1')) {
       const flag = token[0];
       const remaining = token.slice(1);
@@ -595,7 +595,7 @@ export function createSvgPathInterpolator(
   const fromTemplate = normalized.from.replace(/[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g, '#');
   const toTemplate = normalized.to.replace(/[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g, '#');
   if (fromNumbers.length !== toNumbers.length || fromTemplate !== toTemplate) {
-    // The normalizer is responsible for this invariant; this protects the public interpolator from malformed future changes.
+     
     throw new TypeError('SVG path normalization did not produce compatible command structures.');
   }
 

@@ -74,7 +74,7 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
     let firstFrame = true;
     const subscription = frameCoordinator.frames$.subscribe({
       next: (frame) => {
-        // Every play/resume begins from a fresh frame boundary, not the previous frame's delta.
+         
         if (firstFrame) {
           firstFrame = false;
           this.seekLocal(this.currentTime);
@@ -89,7 +89,7 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
         this.completion.reject(error);
       },
     });
-    // The source may fail synchronously when RAF is unavailable (e.g. during SSR).
+     
     this.clockSubscription = subscription.closed ? null : subscription;
   }
 
@@ -168,7 +168,7 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
 
     if (completeNow && this.hasCompleted) return;
     if (!completeNow) this.hasCompleted = false;
-    // A manual scrub updates values and callbacks but does not claim a clock is running.
+     
     if (!preservePlaybackState) {
       this.setState('running');
       if (previousState === 'paused') this.options.onResume?.();
@@ -196,7 +196,7 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
       this.options.onComplete?.();
       this.completion.resolve();
     } else if (target < this.delay && !completeNow) {
-      // Moving back before the delay enables onStart on the next entry into the active range.
+       
       this.hasStarted = false;
     }
   }

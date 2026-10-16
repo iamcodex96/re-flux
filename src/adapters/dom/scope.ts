@@ -81,7 +81,7 @@ export function createScope(root: ParentNode, setup?: (scope: AnimationScope) =>
   try { setup?.(scope); }
   catch (error) {
     try { scope.revert(); }
-    catch { /* Preserve the original setup error. */ }
+    catch {}
     throw error;
   }
   return scope;

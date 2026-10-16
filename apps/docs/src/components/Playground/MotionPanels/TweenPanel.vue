@@ -45,7 +45,7 @@ tween.value$.subscribe((value) => render(value));
 tween.play();
 await tween;`;
 onBeforeUnmount(() => {
-  // Animation/Tween are PromiseLike; return void so Vue does not treat cancellation as a lifecycle failure.
+   
   tween.value.stop();
 });
 </script>

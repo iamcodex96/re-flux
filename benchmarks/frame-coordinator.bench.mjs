@@ -30,9 +30,10 @@ function restore() {
   else Reflect.deleteProperty(globalThis, 'cancelAnimationFrame');
 }
 
-function runShared() {
+function runShared({ observeMetrics = false } = {}) {
   const coordinator = new FrameCoordinator();
   const subscriptions = [];
+  const metricsSubscription = observeMetrics ? coordinator.metrics$.subscribe(() => undefined) : null;
   let callbackCount = 0;
   for (let index = 0; index < consumerCount; index += 1) {
     subscriptions.push(coordinator.frames$.subscribe(() => { callbackCount += 1; }));
@@ -47,7 +48,8 @@ function runShared() {
   for (const subscription of subscriptions) subscription.unsubscribe();
   const diagnostics = coordinator.getDiagnostics();
   coordinator.assertIdle();
-  return { mode: 'one shared FrameCoordinator', elapsedMs, callbackCount, peakRafCallbacks, diagnostics };
+  metricsSubscription?.unsubscribe();
+  return { mode: observeMetrics ? 'shared coordinator with metrics observer' : 'shared coordinator without metrics observer', elapsedMs, callbackCount, peakRafCallbacks, diagnostics };
 }
 
 function runIndependent() {
@@ -69,8 +71,9 @@ function runIndependent() {
 
 try {
   const shared = runShared();
+  const sharedWithMetrics = runShared({ observeMetrics: true });
   const independent = runIndependent();
-  console.log(JSON.stringify({ consumerCount, frameCount, shared, independent }, null, 2));
+  console.log(JSON.stringify({ consumerCount, frameCount, shared, sharedWithMetrics, independent }, null, 2));
 } finally {
   restore();
 }

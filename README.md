@@ -43,7 +43,7 @@ entrance.play();
 
 ## Development
 
-The published package declares Node.js `>=18`; repository CI validates on Node.js 22 and 24. Development uses npm workspaces and a committed `package-lock.json` for reproducible installs.
+The package supports Node.js `>=22`; repository CI validates on Node.js 22 and 24. Development uses npm workspaces and a committed `package-lock.json` for reproducible installs.
 
 ```bash
 npm ci
@@ -52,7 +52,7 @@ npm test -- --runInBand
 npm run build
 ```
 
-See [SETUP.md](./SETUP.md) and [PUBLISHING.md](./PUBLISHING.md) for repository automation and releases.
+See the [contribution guidelines](https://github.com/iamcodex96/re-flux/blob/main/guidelines/CONTRIBUTING.md) if you want to contribute.
 
 ## License
 

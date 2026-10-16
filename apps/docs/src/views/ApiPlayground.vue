@@ -67,7 +67,7 @@ const sequenceState = ref<AnimationState>(sequence.state$.value);
 const sequenceSubscription = sequence.value$.subscribe((value) => { sequenceValue.value = value; });
 const progressSubscription = sequence.progress$.subscribe((value) => { sequenceProgress.value = value; });
 const stateSubscription = sequence.state$.subscribe((state) => { sequenceState.value = state; });
-// Keep the full handle inside the stage instead of centering it on the edges.
+ 
 const sequenceLeft = computed(() => `${8 + (Math.max(0, Math.min(200, sequenceValue.value)) / 200) * 84}%`);
 
 const domAnimation = shallowRef<DOMAnimation | null>(null);

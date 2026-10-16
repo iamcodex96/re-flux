@@ -30,7 +30,7 @@ describe('adaptiveTween', () => {
     expect(samples.at(-1)).toMatchObject({ estimatedCadence: 20, targetDuration: 40 });
 
     expect(samples.at(-1)?.value).toBeCloseTo(10, 5);
-    source.next({ timestamp: 120, value: 120 }); // Cadence EMA moves to 60 ms, duration is capped.
+    source.next({ timestamp: 120, value: 120 });  
     raf.advance(60);
     expect(samples.at(-1)?.estimatedCadence).toBeCloseTo(60, 6);
     expect(samples.at(-1)?.targetDuration).toBe(100);

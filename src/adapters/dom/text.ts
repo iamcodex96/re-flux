@@ -123,7 +123,7 @@ function splitGraphemes(value: string): string[] {
   type SegmenterConstructor = new (locale?: string, options?: { granularity: 'grapheme' }) => SegmenterLike;
   const Constructor = (Intl as unknown as { Segmenter?: SegmenterConstructor }).Segmenter;
   if (Constructor) return Array.from(new Constructor(undefined, { granularity: 'grapheme' }).segment(value), (part) => part.segment);
-  // Array.from avoids splitting UTF-16 surrogate pairs on runtimes without Intl.Segmenter.
+   
   return Array.from(value);
 }
 

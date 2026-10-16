@@ -2,8 +2,8 @@ import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Timeline } from '../../core/Timeline.js';
 import { Keyframes } from '../../values/Keyframes.js';
-import type { EasingOption, TimelineOptions } from '../../types.js';
-import type { CssAnimatableValue, DOMAnimateOptions, DOMAnimationTarget } from './animationTypes.js';
+import type { TimelineOptions } from '../../types.js';
+import type { DOMAnimateOptions, DOMAnimationTarget } from './animationTypes.js';
 import { bindStyle } from './styleBinding.js';
 import { interpolateCssValue } from './cssInterpolation.js';
 import { resolveTargets } from './targets.js';
@@ -110,7 +110,7 @@ export function animate(targets: DOMAnimationTarget, options: DOMAnimateOptions)
 
   try {
     elements.forEach((element, elementIndex) => {
-      // A numeric stagger is the delay step between targets, not a fixed delay for every target.
+       
       const staggerDelay = typeof stagger === 'function' ? stagger(elementIndex, element, elements.length) : elementIndex * stagger;
       if (!Number.isFinite(staggerDelay)) {
         throw new RangeError(`stagger must return a finite number of milliseconds for target ${elementIndex}.`);

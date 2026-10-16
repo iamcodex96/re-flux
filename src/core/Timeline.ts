@@ -13,6 +13,7 @@ interface InternalSegment {
   startTime: number;
   endTime: number;
   duration: number;
+  beforeStart: boolean;
 }
 
 /** Coordinates entries without calling play(): the global playhead drives each child through seekLocal(). */
@@ -24,6 +25,8 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
   private readonly options: Readonly<TimelineOptions>;
   private readonly entries: InternalSegment[] = [];
+  private durationValue = 0;
+  private parentOwner: Timeline | null = null;
   private readonly labels = new Map<string, number>();
   private readonly completion = new Completion();
   private clockSubscription: Subscription | null = null;
@@ -42,7 +45,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   }
 
   get duration(): number {
-    return this.entries.reduce((maximum, segment) => Math.max(maximum, segment.endTime), 0);
+    return this.durationValue;
   }
 
   /** Current playhead in milliseconds. */
@@ -70,14 +73,24 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   }
 
   add(item: AnimatableItem, offset?: TimelineOffset): this {
-    this.assertStructureMutable();
     if (!item || typeof item.seekLocal !== 'function' || typeof item.resetInternal !== 'function') {
       throw new TypeError('Timeline item must implement seekLocal() and resetInternal().');
     }
     if (item === this) throw new TypeError('A Timeline cannot contain itself.');
-    if (item instanceof Timeline && item.containsTimeline(this)) {
-      throw new TypeError('Adding this Timeline would create a nested Timeline cycle.');
+    if (item instanceof Timeline) {
+      if (item.containsTimeline(this)) {
+        throw new TypeError('Adding this Timeline would create a nested Timeline cycle.');
+      }
+      if (item.parentOwner) {
+        throw new TypeError(item.parentOwner === this
+          ? 'A nested Timeline can only be added once to a parent Timeline.'
+          : 'A Timeline can only belong to one parent Timeline.');
+      }
+      if (item.hasActiveClock()) {
+        throw new Error('Cannot add a running Timeline as a child. Stop it before adding it to a parent Timeline.');
+      }
     }
+    this.assertStructureMutable();
     const startTime = this.resolveOffset(offset);
     const duration = item.duration;
     if (typeof duration !== 'number' || Number.isNaN(duration) || duration < 0 || (!Number.isFinite(duration) && duration !== Infinity)) {
@@ -87,11 +100,13 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     if (duration !== Infinity && !Number.isFinite(endTime)) {
       throw new RangeError('Timeline segment end time must be finite; reduce the offset or child duration.');
     }
-    const segment: InternalSegment = { item, startTime, endTime, duration };
+    const segment: InternalSegment = { item, startTime, endTime, duration, beforeStart: false };
+    if (item instanceof Timeline) item.parentOwner = this;
     this.entries.push(segment);
+    this.durationValue = Math.max(this.durationValue, endTime);
     this.lastAddedStart = startTime;
     this.lastAddedEnd = segment.endTime;
-    // Adding an item only computes the composition; callbacks must wait for play/seek.
+     
     return this;
   }
 
@@ -126,7 +141,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     const previousStart = this.lastAddedStart;
     const previousEnd = this.lastAddedEnd;
     this.add(action, offset);
-    // Callback insertion must not change where the next implicit segment is appended.
+     
     this.lastAddedStart = previousStart;
     this.lastAddedEnd = previousEnd;
     return this;
@@ -150,6 +165,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
   /** Play backward from the current position; when at the start, begin at the timeline end. */
   reverse(): this {
+    this.assertNotParentOwned('reverse');
     this.playbackDirection = -1;
     if (this.currentTimeValue <= 0) this.currentTimeValue = this.duration;
     if (this.state$.value === 'completed' || this.completion.isSettled) this.completion.ensurePending();
@@ -161,6 +177,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   }
 
   play(): this {
+    this.assertNotParentOwned('play');
     if (this.state$.value === 'completed') { this.resetInternal(); this.playbackDirection = 1; }
     this.completion.ensurePending();
     if (this.clockSubscription) return this;
@@ -178,12 +195,12 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     let firstFrame = true;
     const subscription = frameCoordinator.frames$.subscribe({
       next: (frame) => {
-        // Every play/resume begins from a fresh frame boundary, not the previous frame's delta.
+         
         if (firstFrame) {
           firstFrame = false;
-          // Empty timelines have no elapsed time to wait for. Complete them on
-          // their first frame instead of leaving their completion promise pending
-          // forever because the initial frame intentionally carries no delta.
+           
+           
+           
           this.updateAt(this.currentTimeValue, this.duration === 0 ? 'forward' : 'none');
           return;
         }
@@ -198,7 +215,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
         this.completion.reject(error);
       },
     });
-    // The source may fail synchronously when RAF is unavailable (e.g. during SSR).
+     
     this.clockSubscription = subscription.closed ? null : subscription;
   }
 
@@ -212,6 +229,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   }
 
   pause(): this {
+    this.assertNotParentOwned('pause');
     if (!this.clockSubscription) {
       this.motionLifecycle?.cancelAutomaticResume();
       return this;
@@ -225,6 +243,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   }
 
   stop(): this {
+    this.assertNotParentOwned('stop');
     const wasPending = !this.completion.isSettled;
     this.clockSubscription?.unsubscribe();
     this.clockSubscription = null;
@@ -234,7 +253,10 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     this.hasStarted = false;
     this.hasCompleted = false;
     this.structureLocked = false;
-    for (const segment of this.entries) segment.item.resetInternal();
+    for (const segment of this.entries) {
+      segment.item.resetInternal();
+      segment.beforeStart = true;
+    }
     this.progressSubject.next(0);
     this.setState('idle');
     if (wasPending) this.completion.reject(new Error(STOPPED_ERROR));
@@ -242,6 +264,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   }
 
   restart(): this {
+    this.assertNotParentOwned('restart');
     this.playbackDirection = 1;
     this.clearMotionLifecycle();
     this.clockSubscription?.unsubscribe();
@@ -251,7 +274,10 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     this.hasStarted = false;
     this.hasCompleted = false;
     this.structureLocked = false;
-    for (const segment of this.entries) segment.item.resetInternal();
+    for (const segment of this.entries) {
+      segment.item.resetInternal();
+      segment.beforeStart = true;
+    }
     this.progressSubject.next(0);
     this.setState('idle');
     return this.play();
@@ -259,6 +285,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
   /** Scrubs the playhead without starting a frame clock. */
   seek(ms: number): this {
+    this.assertNotParentOwned('seek');
     const target = Number.isFinite(ms) ? Math.max(0, ms) : 0;
     if (target > 0) this.lockStructure();
     this.seekLocal(target, !this.hasActiveClock());
@@ -289,7 +316,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     if (completeNow && this.hasCompleted) return;
     if (!completeNow) this.hasCompleted = false;
     this.currentTimeValue = bounded;
-    // Manual scrubbing changes values without implying there is an active frame clock.
+     
     const previousState = this.state$.value;
     if (!preservePlaybackState) {
       this.setState('running');
@@ -300,11 +327,15 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
       this.options.onStart?.();
     }
 
-    // Out of range, reset the child silently to avoid premature callbacks.
+     
     for (const segment of this.entries) {
       if (bounded < segment.startTime) {
-        segment.item.resetInternal();
+        if (!segment.beforeStart) {
+          segment.item.resetInternal();
+          segment.beforeStart = true;
+        }
       } else {
+        segment.beforeStart = false;
         segment.item.seekLocal(bounded - segment.startTime, preservePlaybackState);
       }
     }
@@ -333,7 +364,10 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     this.hasStarted = false;
     this.hasCompleted = false;
     this.structureLocked = false;
-    for (const segment of this.entries) segment.item.resetInternal();
+    for (const segment of this.entries) {
+      segment.item.resetInternal();
+      segment.beforeStart = true;
+    }
     this.progressSubject.next(0);
     this.setState('idle');
     this.completion.ensurePending();
@@ -415,7 +449,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
         return resolved;
       }
     }
-    // An unknown label is rejected rather than silently creating an incorrectly timed animation.
+     
     throw new RangeError(`Unknown timeline offset or label: "${trimmed}".`);
   }
 
@@ -442,8 +476,18 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   }
 
   private assertStructureMutable(): void {
+    if (this.parentOwner) {
+      throw new Error('Cannot modify a nested Timeline after adding it to a parent Timeline. Modify the child before adding it to its parent.');
+    }
     if (this.structureLocked) {
       throw new Error('Cannot modify a Timeline after playback or non-zero seeking begins. Call stop() before editing its structure.');
+    }
+  }
+
+
+  private assertNotParentOwned(operation: string): void {
+    if (this.parentOwner) {
+      throw new Error(`Cannot call ${operation}() on a nested Timeline controlled by its parent Timeline.`);
     }
   }
 

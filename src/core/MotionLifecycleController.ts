@@ -80,7 +80,7 @@ export class MotionLifecycleController {
           this.stop();
           return false;
         }
-        // Infinite/repeating playback has no final state; suspend it until motion is allowed again.
+         
         this.reducedMotionWasRunning = this.driver.isRunning() || this.pausedForVisibility || this.pausedForReducedMotion;
         this.pausedForReducedMotion = true;
         this.waitingForVisible = false;
