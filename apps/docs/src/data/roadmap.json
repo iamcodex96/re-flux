@@ -82,10 +82,10 @@
       "status": "Implemented · API integration hardening ongoing",
       "icon": "mdi-code-braces",
       "title": "Typed keyframes and DOM targeting",
-      "summary": "Define explicit start/end values, keyframes, per-property timing, and per-target frames while keeping the DOM adapter optional.",
-      "problem": "Low-level progress controls are flexible but verbose for common UI tasks, while selector helpers should not force DOM dependencies into the core.",
-      "approach": "Use one property configuration that accepts from/to, values, keyframes, or a target-aware factory. The factory receives the resolved element, index, and total once at animation creation.",
-      "api": "import { animate } from '@re-code/flux/dom';\n\nanimate('.card', {\n  duration: 400,\n  properties: {\n    opacity: { from: 0, to: 1 },\n    transform: {\n      from: 'translateY(16px)',\n      to: 'translateY(0px)',\n      easing: 'easeOutCubic',\n    },\n    zIndex: (target, index, total) => [index, total - index],\n  },\n  stagger: (index) => index * 50,\n}).play();",
+      "summary": "Define explicit start/end values, arrays, keyframes, per-property timing, and target-aware frames through the DOM adapter.",
+      "problem": "The helper signature can look like a generic animate(element, options) call, but CSS declarations have a specific shape and must live inside options.properties.",
+      "approach": "Use animate(targets, options), where targets is a selector, Element, or iterable and options.properties maps CSS properties to values, from/to pairs, keyframes, or target-aware factories.",
+      "api": "import { animate } from '@re-code/flux/dom';\n\nanimate('.card', {\n  duration: 400,\n  easing: 'easeOutCubic',\n  properties: {\n    opacity: { from: 0, to: 1 },\n    transform: (target, index, total) => {\n      const depth = Number(target.getAttribute('data-depth') ?? index);\n      return [`translateY(${16 + depth * (total > 1 ? 4 : 0)}px)`, 'translateY(0px)'];\n    },\n    borderRadius: { values: ['12px', '20px'], duration: 360 },\n    filter: { keyframes: [{ value: 'blur(8px)', offset: 0 }, { value: 'blur(0px)', offset: 1 }], duration: 500 },\n  },\n  stagger: (index) => index * 50,\n}).play();",
       "criteria": [
         "Supports selector strings, individual elements, and iterable targets.",
         "Supports shorthand frames, explicit from/to, normalized keyframes, and target-aware value factories.",
@@ -113,18 +113,13 @@
       "text": "Frame alignment reduces redundant work, but cannot guarantee 60 or 120 FPS under browser throttling."
     }
   ],
-  "implementationHeading": "Stabilize timeline contracts, benchmark hot paths, then expand the API.",
-  "implementationSummary": "Timeline duration lookup and pre-start resets are now optimized, nested timelines have explicit single-parent ownership, and frame-work timing is collected only while metrics are observed. Remaining work focuses on browser integration, stress coverage, and consumer package smoke tests.",
+  "implementationHeading": "Strengthen integration coverage, then expand the API.",
+  "implementationSummary": "Core mutation and stream-ownership contracts are now addressed in the refactor; remaining work focuses on browser integration, stress behavior, and realistic adapter examples.",
   "implementationOrder": [
     {
       "id": "browser-coverage",
       "title": "Browser integration coverage",
       "detail": "Test pointer capture and cancellation, style restoration, layout effects, and adapter cleanup in a real browser."
-    },
-    {
-      "id": "performance-baseline",
-      "title": "Performance baselines and regression checks",
-      "detail": "Track duration lookup, timeline seeking and frame-coordinator overhead with and without metrics observers; compare results across changes."
     },
     {
       "id": "stress-testing",

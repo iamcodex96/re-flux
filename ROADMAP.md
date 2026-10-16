@@ -155,11 +155,11 @@ import { bindThreeObject } from '@re-code/flux/three';
 
 **Status:** Implemented · API integration hardening ongoing
 
-Define explicit start/end values, keyframes, per-property timing, and per-target frames while keeping the DOM adapter optional.
+Define explicit start/end values, arrays, keyframes, per-property timing, and target-aware frames through the DOM adapter.
 
-**Problem:** Low-level progress controls are flexible but verbose for common UI tasks, while selector helpers should not force DOM dependencies into the core.
+**Problem:** The helper signature can look like a generic animate(element, options) call, but CSS declarations have a specific shape and must live inside options.properties.
 
-**Direction:** Use one property configuration that accepts from/to, values, keyframes, or a target-aware factory. The factory receives the resolved element, index, and total once at animation creation.
+**Direction:** Use animate(targets, options), where targets is a selector, Element, or iterable and options.properties maps CSS properties to values, from/to pairs, keyframes, or target-aware factories.
 
 **API example**
 
@@ -168,14 +168,15 @@ import { animate } from '@re-code/flux/dom';
 
 animate('.card', {
   duration: 400,
+  easing: 'easeOutCubic',
   properties: {
     opacity: { from: 0, to: 1 },
-    transform: {
-      from: 'translateY(16px)',
-      to: 'translateY(0px)',
-      easing: 'easeOutCubic',
+    transform: (target, index, total) => {
+      const depth = Number(target.getAttribute('data-depth') ?? index);
+      return [`translateY(${16 + depth * (total > 1 ? 4 : 0)}px)`, 'translateY(0px)'];
     },
-    zIndex: (target, index, total) => [index, total - index],
+    borderRadius: { values: ['12px', '20px'], duration: 360 },
+    filter: { keyframes: [{ value: 'blur(8px)', offset: 0 }, { value: 'blur(0px)', offset: 1 }], duration: 500 },
   },
   stagger: (index) => index * 50,
 }).play();
@@ -191,13 +192,12 @@ animate('.card', {
 
 ## Implementation order
 
-### Stabilize timeline contracts, benchmark hot paths, then expand the API.
+### Strengthen integration coverage, then expand the API.
 
-Timeline duration lookup and pre-start resets are now optimized, nested timelines have explicit single-parent ownership, and frame-work timing is collected only while metrics are observed. Remaining work focuses on browser integration, stress coverage, and consumer package smoke tests.
+Core mutation and stream-ownership contracts are now addressed in the refactor; remaining work focuses on browser integration, stress behavior, and realistic adapter examples.
 
 1. **Browser integration coverage:** Test pointer capture and cancellation, style restoration, layout effects, and adapter cleanup in a real browser.
-2. **Performance baselines and regression checks:** Track duration lookup, timeline seeking and frame-coordinator overhead with and without metrics observers; compare results across changes.
-3. **Stress and property tests:** Exercise irregular streams, rapid retargeting, re-entrant frame scheduling, and subscription cleanup.
-4. **Consumer package smoke tests:** Install the produced tarball in a clean fixture and import every documented public entry point.
-5. **Complete adapter examples:** Add realistic examples for SVG path morphing, Canvas lifecycle, and structural Three.js integration.
+2. **Stress and property tests:** Exercise irregular streams, rapid retargeting, re-entrant frame scheduling, and subscription cleanup.
+3. **Consumer package smoke tests:** Install the produced tarball in a clean fixture and import every documented public entry point.
+4. **Complete adapter examples:** Add realistic examples for SVG path morphing, Canvas lifecycle, and structural Three.js integration.
 
