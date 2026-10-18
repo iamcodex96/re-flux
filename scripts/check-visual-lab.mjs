@@ -77,12 +77,12 @@ for (const { file, cards } of checks) {
 
 
 const showcase = await readFile(resolve(root, 'apps/docs/src/views/VisualShowcase.vue'), 'utf8');
-const styles = await readFile(resolve(root, 'apps/docs/src/styles/visual-lab.css'), 'utf8');
+const styles = await readFile(resolve(root, 'apps/docs/src/styles/visual-lab.scss'), 'utf8');
 assert(!/<v-row\s+align="start"\s+class="visual-lab__layout"/.test(showcase), 'VisualShowcase.vue: remove align="start" because it prevents the sidebar column from stretching alongside the scenes.');
-assert(/\.visual-lab__layout\s*\{[^}]*align-items:\s*stretch/s.test(styles), 'visual-lab.css: the layout row must stretch the sidebar column to the content height.');
-assert(/\.visual-lab-nav\s*\{[^}]*position:\s*sticky/s.test(styles), 'visual-lab.css: the desktop category panel must be sticky.');
-assert(/\.visual-lab-nav\s*\{[^}]*max-height:\s*calc\(100vh - 96px\)/s.test(styles), 'visual-lab.css: sticky sidebar must be constrained to the viewport height.');
-assert(/\.visual-lab-nav\s*\{[^}]*overflow-y:\s*auto/s.test(styles), 'visual-lab.css: long navigation must scroll inside the sticky panel.');
+assert(/\.visual-lab__layout\s*\{[^}]*align-items:\s*stretch/s.test(styles), 'visual-lab.scss: the layout row must stretch the sidebar column to the content height.');
+assert(/\.visual-lab-nav\s*\{[^}]*position:\s*sticky/s.test(styles), 'visual-lab.scss: the desktop category panel must be sticky.');
+assert(/\.visual-lab-nav\s*\{[^}]*max-height:\s*calc\(100vh - 96px\)/s.test(styles), 'visual-lab.scss: sticky sidebar must be constrained to the viewport height.');
+assert(/\.visual-lab-nav\s*\{[^}]*overflow-y:\s*auto/s.test(styles), 'visual-lab.scss: long navigation must scroll inside the sticky panel.');
 console.log('✓ VisualShowcase sidebar: sticky, viewport-bounded, independently scrollable, and parent column stretches to content height');
 
 console.log('Visual Lab markup checks passed.');

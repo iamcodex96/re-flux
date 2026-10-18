@@ -19,7 +19,6 @@
 ### Developer experience and maintenance
 
 - Enable `noUnusedLocals` and `noUnusedParameters` in TypeScript configuration and remove unused declarations.
-- Keep the documentation roadmap synchronized from its canonical JSON data.
 - Verify copies of GitHub Actions workflows under `ci/workflows/` stay in sync with `.github/workflows/`.
 - Add a benchmark command covering shared frame scheduling and timeline operations.
 
@@ -30,5 +29,5 @@
 
 ### Validation notes
 
-- TypeScript library and test checks, library build, roadmap/workflow checks, package allowlist validation, release-tag validation, and public-subpath consumer smoke tests passed in the release preparation environment.
+- TypeScript library and test checks, library build, package allowlist validation, release-tag validation, and public-subpath consumer smoke tests passed in the release preparation environment.
 - The full Jest suite and platform-native tree-shaking/docs builds were not verified in this environment because dependency installation could not complete reliably. Run the GitHub Actions workflows on a clean Linux runner before publishing.

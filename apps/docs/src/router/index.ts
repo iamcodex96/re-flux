@@ -123,7 +123,7 @@ export const router = createRouter({
         },
       ],
     },
-    { path: '/roadmap', name: 'roadmap', component: () => import('../views/Roadmap.vue') },
+    { path: '/roadmap', redirect: '/docs' },
     {
       path: '/visuals',
       component: () => import('../views/VisualShowcase.vue'),

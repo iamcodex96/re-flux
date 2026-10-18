@@ -4,7 +4,7 @@ Thanks for helping improve re;Flux. Keep changes focused, typed, tested, and com
 
 ## Before you start
 
-- Check `ROADMAP.md` and existing issues before starting a large feature.
+- Check existing issues and discuss the intended API contract before starting a large feature.
 - For API changes, consider the headless core, adapter boundaries, tree-shaking, lifecycle cleanup, and TypeScript inference.
 - Keep runtime dependencies minimal. RxJS is the core peer dependency; browser and rendering concerns belong in optional adapters.
 
@@ -33,7 +33,6 @@ Useful commands are listed in [`SETUP.md`](./SETUP.md). For core timing, gesture
 
 - The documentation website is the source of truth for user-facing API guides and examples.
 - Keep `README.md` short; it is the package introduction, not a second documentation site.
-- Edit `apps/docs/src/data/roadmap.json` and run `npm run sync:roadmap` to update `ROADMAP.md`. Do not maintain roadmap statuses by hand in both places.
 - Keep demos deterministic where practical. A demo renderer should draw one frame from the current values and dimensions rather than starting its own animation loop. The owning view manages playback, visibility, reduced motion, resizing, and disposal.
 - Add shared frontend components only when a pattern is reused. Keep one-off visualizations local to their view or visualization styles.
 

@@ -29,7 +29,7 @@ function navigateToPage(path: string): void {
       <aside class="docs-sidebar" :aria-label="ui.docsNavigationAriaLabel">
         <div class="docs-sidebar__inner">
           <div class="docs-sidebar__heading">
-            <div class="docs-sidebar__eyebrow">re;Flux</div>
+            <div class="docs-sidebar__eyebrow">Flux</div>
             <div class="docs-sidebar__title">{{ ui.documentationBreadcrumb }}</div>
           </div>
 

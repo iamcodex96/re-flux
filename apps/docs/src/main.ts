@@ -5,8 +5,7 @@ import 'vuetify/styles';
 import App from './App.vue';
 import { router } from './router';
 import { vuetify } from './plugins/vuetify';
-import './styles/tokens.css';
-import './style.css';
-import './styles/visualizations.css';
+import './style.scss';
+import './styles/visualizations.scss';
 
 createApp(App).use(createPinia()).use(vuetify).use(router).mount('#app');

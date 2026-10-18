@@ -861,7 +861,6 @@
         "skipToMainContent": "Skip to main content",
         "mainNavigationAriaLabel": "Main navigation",
         "documentation": "Documentation",
-        "roadmap": "Roadmap",
         "switchToLightTheme": "Switch to light theme",
         "switchToDarkTheme": "Switch to dark theme",
         "footerTagline": "Deterministic motion, powered by RxJS.",

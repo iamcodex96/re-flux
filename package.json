@@ -88,8 +88,6 @@
     "check:visual-lab": "node scripts/check-visual-lab.mjs",
     "check:playground-lifecycle": "node scripts/check-playground-lifecycle.mjs",
     "check:release": "node scripts/check-release-tag.mjs",
-    "sync:roadmap": "node scripts/sync-roadmap.mjs --write",
-    "check:roadmap": "node scripts/sync-roadmap.mjs --check",
     "check:workflow-sync": "node scripts/check-workflow-sync.mjs"
   },
   "peerDependencies": {

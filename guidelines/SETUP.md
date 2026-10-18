@@ -22,7 +22,6 @@ The docs app lives in `apps/docs` and is managed as the `re-flux-docs` npm works
 npm run typecheck
 npm run typecheck:tests
 npm test -- --runInBand
-npm run check:roadmap
 npm run check:workflow-sync
 npm run check:tree-shaking
 npm run check:package
@@ -30,13 +29,6 @@ npm run check:visual-lab
 npm run check:playground-lifecycle
 npm run build:lib
 npm run build --workspace=re-flux-docs
-```
-
-To intentionally regenerate the Markdown roadmap from its canonical JSON data:
-
-```bash
-npm run sync:roadmap
-npm run check:roadmap
 ```
 
 ## GitHub Pages
@@ -54,4 +46,4 @@ GitHub executes workflows from `.github/workflows/`. Matching copies are kept un
 
 ## Publishing
 
-See [`../PUBLISHING.md`](../PUBLISHING.md) for npm Trusted Publishing, release tags, and package-version requirements.
+See [`PUBLISHING.md`](./PUBLISHING.md) for npm Trusted Publishing, release tags, and package-version requirements.

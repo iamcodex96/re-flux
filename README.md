@@ -45,7 +45,7 @@ entrance.play();
 
 ## Development
 
-The published package declares Node.js `>=18`; repository CI validates on Node.js 22 and 24. Development uses npm workspaces and a committed `package-lock.json` for reproducible installs.
+The package requires Node.js `>=22`; repository CI validates on Node.js 22 and 24. Development uses npm workspaces and a committed `package-lock.json` for reproducible installs.
 
 ```bash
 npm ci
@@ -54,7 +54,7 @@ npm test -- --runInBand
 npm run build
 ```
 
-See [contribution guidelines](./guidelines/CONTRIBUTING.md), [repository setup](./guidelines/SETUP.md), [frontend design system](./guidelines/DESIGN_SYSTEM.md), and [publishing](./PUBLISHING.md) for development and maintenance details.
+See the [contribution guidelines](./guidelines/CONTRIBUTING.md), [repository setup](./guidelines/SETUP.md), [frontend design system](./guidelines/DESIGN_SYSTEM.md), and [release guide](./guidelines/PUBLISHING.md) for maintainer details.
 
 ## License
 

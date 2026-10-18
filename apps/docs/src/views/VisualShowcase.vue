@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import PageHeader from '../components/PageHeader.vue';
-import '../styles/visual-lab.css';
+import '../styles/visual-lab.scss';
 
 const route = useRoute();
 const panels = [

@@ -1,50 +1,39 @@
 # Documentation design system
 
-The docs app uses Vuetify 4 for application UI. Custom CSS is reserved for re;Flux's motion visualizations, SVG geometry, Canvas scenes, and other content that explains animation behavior.
+The docs frontend is migrating from a component-framework-led layout to a small, product-specific design system built on Vue 3, TypeScript, SCSS, and CSS custom properties. Vuetify remains temporarily in place while existing views are migrated; new page-level layouts should not add more dependency on Vuetify's grid or spacing utilities.
 
-## UI conventions
+## Layout principles
 
-- Prefer Vuetify components and utility classes for layout, cards, buttons, inputs, navigation, lists, tables, alerts, and status indicators.
-- Use `v-container`, `v-row`, and `v-col` for responsive layout. Keep flex/grid children shrinkable with `min-width: 0` where needed.
-- Use supported Vuetify variants and semantic colors. Primary actions use `color="primary"` and `variant="flat"`; secondary actions use a semantic color with `variant="outlined"`.
-- Use 8px radius for cards and control containers, and 4px for compact surfaces. Avoid one-off styling for common components.
-- Reuse `PageHeader.vue`, `MetricTile.vue`, and `EventLog.vue` when the same content pattern appears in multiple views.
+- Use full-bleed layouts for visual scenes, hero sections, interactive canvases, and immersive storytelling.
+- Use content rails for reading-heavy content. Choose a readable width instead of stretching articles and code samples across the whole viewport.
+- Use wide rails for dashboards and playgrounds, where extra horizontal space helps the live preview and controls coexist.
+- Prefer responsive CSS Grid and Flexbox primitives to nested framework grids. All flex/grid children that contain dynamic content should have `min-width: 0`.
+- Start from mobile constraints. Avoid horizontal page overflow at 320 CSS pixels, respect safe viewport units, and only introduce sticky or horizontal-scroll experiences when they remain navigable on touch devices.
 
-## Theme and styling ownership
+## Styling ownership
 
-- The `rxDark` and `rxLight` themes in `src/plugins/vuetify.ts` own the semantic palette and foreground colors.
-- CSS should consume Vuetify-generated `--v-theme-*` variables through `src/styles/tokens.css`; do not introduce duplicate theme hex values.
-- `src/style.css` owns global defaults and accessibility polish. `src/styles/visualizations.css` owns bespoke visual content such as motion stages, SVG curves, Gantt rows, and timeline trees.
-- Use `--rx-font-mono` for code, timestamps, numeric values, and timeline labels. Source code should use a readable foreground on a `surface-sunken` code area.
+- `src/styles/_tokens.scss` owns the product's color, typography, spacing, radius, content-width, and focus-ring tokens. These tokens are independent of Vuetify so the app can finish migrating without rewriting every visual value.
+- `src/styles/_layout.scss` owns small layout primitives such as content rails, full-bleed sections, stacks, and responsive grids.
+- `src/style.scss` owns global resets, focus behavior, shared accessibility styles, and legacy selectors that will be removed as views migrate.
+- `src/styles/visualizations.scss` owns bespoke visualization and motion-demo styling.
+- `src/styles/visual-lab.scss` owns the Visual Lab-specific presentation.
+- Component-scoped styles should own styles used by only one Vue component. Promote a pattern into shared styling only when multiple views genuinely need it.
 
-## Accessibility
+## Theme
 
-- Provide semantic headings, labels, names, landmarks, and accessible names for interactive controls.
-- Preserve visible keyboard focus. Keep navigation state exposed with appropriate ARIA attributes, and use polite live regions for meaningful state changes only; do not announce per-frame updates.
-- Respect `prefers-reduced-motion` for CSS transitions and scrolling. Demos should not unexpectedly auto-start JavaScript-driven motion; users should be able to control playback.
-- Ensure layouts remain usable at 200% zoom and 320 CSS-pixel viewport width. Check contrast and theme changes across cards, code, graphs, focus rings, and status colors.
-- Automated accessibility tools are useful but do not prove full conformance. Before release, test keyboard navigation and use a screen reader on important flows.
+The app exposes `rx-theme--dark` and `rx-theme--light` classes to apply the re;Flux token palettes. Legacy Vuetify theme classes are also accepted while migration is in progress. Existing components can continue reading Vuetify's `--v-theme-*` values until each component is converted; new components should prefer `--rx-color-*` tokens.
 
-## Graphs and visualizations
+## Accessibility and motion
 
-- Keep the current easing curves and timeline graphs in native SVG/CSS unless a demonstrated use case needs a specialized chart library. Avoid dependencies for small purpose-built graphs.
-- Graph wrappers should constrain overflow and include `min-width: 0`, `max-width: 100%`, and `box-sizing: border-box` where needed.
-- SVG charts should define a `viewBox` and responsive width. Account for easing overshoot, clip geometry deliberately, and keep labels accessible in the DOM where practical.
-- Clamp timeline segments and playhead geometry to their tracks so labels and objects do not spill into adjacent regions.
-- For a future dense, continuously updating time-series graph, evaluate an optional frontend-only library such as uPlot. Never add charting dependencies to the published animation runtime solely for documentation visuals.
+- Keep semantic headings, landmarks, labels, and accessible names on controls.
+- Preserve visible keyboard focus and keyboard-operable navigation.
+- Respect `prefers-reduced-motion` for CSS transitions and scrolling. JavaScript-driven demos should have explicit playback controls when continuous movement is not essential.
+- Check both themes, keyboard navigation, 200% zoom, and a 320px viewport during every layout migration.
+- Do not trap the user's native scroll position or require horizontal scrolling to access ordinary documentation content.
 
-## Visual Lab and demos
+## Visualizations
 
-- Keep each scene focused on one rendering technique or interaction.
-- Prefer deterministic render functions driven by supplied values and dimensions. The owning Vue view handles playback, reduced-motion behavior, tab visibility, resize observation, user input, and cleanup.
-- Use public re;Flux primitives for scheduling, interpolation, and disposal rather than creating an unrelated requestAnimationFrame loop for each demo.
-- Restore original inline styles, SVG attributes, DOM nodes, and listeners when a scene or interaction is disposed.
-- Only promote demo helpers into the library when they are broadly reusable and have a stable contract.
-
-## Manual review checklist
-
-- Navigate key flows using only the keyboard and verify visible focus.
-- Test light and dark themes, mobile navigation, form labels, event logs, and status announcements.
-- Test 200% zoom and a 320px-wide viewport without page-level horizontal overflow.
-- Enable reduced motion and verify transitions, scrolling, and demo playback follow the documented policy.
-- Review production build findings from tools such as axe or Lighthouse, then manually check any remaining issues.
+- Keep easing curves and timeline graphs in native SVG/CSS unless a specialized chart library has a demonstrated benefit.
+- Let the owning Vue view handle playback, tab visibility, resize observation, input, and resource cleanup.
+- Prefer public re;Flux primitives for scheduling and interpolation rather than creating unrelated animation loops for every demo.
+- Restore modified styles, SVG attributes, DOM nodes, observers, and listeners when a scene is disposed.

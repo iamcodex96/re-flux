@@ -11,7 +11,6 @@ const copy = computed(() => appStore.app.view.navigation);
 const isDark = computed(() => theme.global.current.value.dark);
 const navigation = computed(() => [
   { label: copy.value.documentation, icon: 'mdi-book-open-page-variant', to: '/docs' },
-  { label: copy.value.roadmap, icon: 'mdi-map-outline', to: '/roadmap' },
 ]);
 const isDocsRoute = computed(() => route.path.startsWith('/docs'));
 
@@ -40,6 +39,10 @@ function skipToMainContent(): void {
 
 watch(() => theme.global.current.value.colors.background, (background) => {
   if (typeof document === 'undefined' || typeof background !== 'string') return;
+  const themeName = isDark.value ? 'dark' : 'light';
+  document.documentElement.dataset.rxTheme = themeName;
+  document.documentElement.style.colorScheme = themeName;
+
   let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (!meta) {
     meta = document.createElement('meta');
@@ -71,14 +74,14 @@ watch(() => route.fullPath, async () => {
 </script>
 
 <template>
-  <v-app>
+  <v-app :class="isDark ? 'rx-theme--dark' : 'rx-theme--light'">
     <a class="skip-link" href="#main-content" @click.prevent="skipToMainContent">{{ copy.skipToMainContent }}</a>
 
     <v-app-bar flat height="68" color="background" class="site-app-bar">
       <div class="site-app-bar__inner">
         <RouterLink to="/" class="site-brand" :aria-label="copy.homeAriaLabel">
           <span class="site-brand__mark" aria-hidden="true">re;</span>
-          <span class="site-brand__word">re;Flux<span class="site-brand__period">.</span></span>
+          <span class="site-brand__word">Flux<span class="site-brand__period">.</span></span>
         </RouterLink>
 
         <div class="site-app-bar__actions">
@@ -127,7 +130,7 @@ watch(() => route.fullPath, async () => {
       </main>
       <v-footer v-if="!isDocsRoute" border="t" color="background" class="py-4 px-4 px-md-8">
         <v-container class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-3 px-0" max-width="1240">
-          <span class="text-body-2 text-medium-emphasis"><strong class="text-high-emphasis">re;Flux</strong> · {{ copy.footerTagline }}</span>
+          <span class="text-body-2 text-medium-emphasis"><strong class="text-high-emphasis">Flux</strong> · {{ copy.footerTagline }}</span>
           <div class="d-flex flex-wrap align-center ga-2 text-caption text-medium-emphasis">
             <span>{{ copy.strictTypeScript }}</span><v-icon aria-hidden="true" size="5" color="secondary">mdi-circle</v-icon>
             <span>{{ copy.vue }}</span><v-icon aria-hidden="true" size="5" color="secondary">mdi-circle</v-icon>
