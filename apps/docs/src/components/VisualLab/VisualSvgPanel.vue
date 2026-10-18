@@ -109,11 +109,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-row class="visual-demo-grid">
-    <v-col cols="12">
-        <v-card class="visual-card visual-card--svg" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="primary">01 / SVG</v-chip><span class="text-caption text-medium-emphasis">Stroke reveal</span></div>
+  <UiRow class="visual-demo-grid">
+    <UiCol cols="12">
+        <UiCard class="visual-card visual-card--svg" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="primary">01 / SVG</UiChip><span class="text-caption text-medium-emphasis">Stroke reveal</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Draw the line, not the element.</h3>
             <p class="text-body-2 text-medium-emphasis">The path stays in place while its dash offset reveals each segment. Great for logos, illustrations and diagrams.</p>
             <div class="visual-stage visual-stage--path">
@@ -124,15 +124,15 @@ onBeforeUnmount(() => {
               </svg>
               <div class="visual-stage__grid" aria-hidden="true"></div>
             </div>
-            <div class="d-flex justify-space-between align-center mt-4 ga-3"><span class="text-caption text-medium-emphasis">bindSvgPathDrawing(path, progress$)</span><div class="d-flex align-center ga-2"><v-btn color="primary" variant="tonal" size="small" aria-label="Replay SVG stroke reveal" @click="replayPathDrawing"><v-icon start>mdi-replay</v-icon>Replay</v-btn><v-icon color="primary">mdi-vector-curve</v-icon></div></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex justify-space-between align-center mt-4 ga-3"><span class="text-caption text-medium-emphasis">bindSvgPathDrawing(path, progress$)</span><div class="d-flex align-center ga-2"><UiButton color="primary" variant="tonal" size="small" aria-label="Replay SVG stroke reveal" @click="replayPathDrawing"><UiIcon start>mdi-replay</UiIcon>Replay</UiButton><UiIcon color="primary">mdi-vector-curve</UiIcon></div></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card visual-card--morph" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="secondary">02 / SVG</v-chip><span class="text-caption text-medium-emphasis">Normalized path morph</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card visual-card--morph" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="secondary">02 / SVG</UiChip><span class="text-caption text-medium-emphasis">Normalized path morph</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Change the geometry itself.</h3>
             <p class="text-body-2 text-medium-emphasis">Morph shapes even when their SVG commands differ. Paths are converted to cubic curves and subdivided into matching segments before interpolation.</p>
             <div class="visual-stage visual-stage--morph">
@@ -144,15 +144,15 @@ onBeforeUnmount(() => {
               <span class="visual-stage__orb visual-stage__orb--one" aria-hidden="true"></span>
               <span class="visual-stage__orb visual-stage__orb--two" aria-hidden="true"></span>
             </div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">normalizeSvgPathPair(from, to) + bindSvgPathMorph()</span><v-icon color="secondary">mdi-vector-square</v-icon></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">normalizeSvgPathPair(from, to) + bindSvgPathMorph()</span><UiIcon color="secondary">mdi-vector-square</UiIcon></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card visual-card--liquid" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="secondary">03 / SVG filter</v-chip><span class="text-caption text-medium-emphasis">Turbulence + displacement</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card visual-card--liquid" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="secondary">03 / SVG filter</UiChip><span class="text-caption text-medium-emphasis">Turbulence + displacement</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Distort the pixels, not just the path.</h3>
             <p class="text-body-2 text-medium-emphasis">An animated SVG filter deforms a gradient surface with procedural turbulence. This creates a liquid lens effect without changing the underlying path geometry.</p>
             <div class="visual-stage visual-stage--liquid">
@@ -172,15 +172,15 @@ onBeforeUnmount(() => {
               </svg>
               <span class="liquid-glow liquid-glow--a" aria-hidden="true"></span><span class="liquid-glow liquid-glow--b" aria-hidden="true"></span>
             </div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">bindSvgAttributes() · feTurbulence</span><v-icon color="secondary">mdi-water-opacity</v-icon></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">bindSvgAttributes() · feTurbulence</span><UiIcon color="secondary">mdi-water-opacity</UiIcon></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card visual-card--svg" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="primary">04 / SVG</v-chip><span class="text-caption text-medium-emphasis">Motion path</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card visual-card--svg" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="primary">04 / SVG</UiChip><span class="text-caption text-medium-emphasis">Motion path</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Move along a curve, with tangent rotation.</h3>
             <p class="text-body-2 text-medium-emphasis">Path progress becomes a position and angle stream. The same sample could drive an SVG icon, Canvas sprite or Three.js object.</p>
             <div class="visual-stage visual-stage--path">
@@ -191,9 +191,9 @@ onBeforeUnmount(() => {
               </svg>
               <div class="visual-stage__grid" aria-hidden="true"></div>
             </div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">followSvgPath$(path, progress$)</span><v-icon color="primary">mdi-vector-link</v-icon></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-  </v-row>
+            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">followSvgPath$(path, progress$)</span><UiIcon color="primary">mdi-vector-link</UiIcon></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
+  </UiRow>
 </template>

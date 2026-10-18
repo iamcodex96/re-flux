@@ -866,15 +866,14 @@
         "footerTagline": "Deterministic motion, powered by RxJS.",
         "strictTypeScript": "Strict TypeScript",
         "vue": "Vue 3",
-        "rxjs": "RxJS 7.8",
-        "vuetify": "Vuetify 4"
+        "rxjs": "RxJS 7.8"
       },
       "home": {
         "eyebrow": "Reactive animation toolkit",
         "titleLine": "Motion",
-        "titleAccent": "follows the flow.",
-        "description": "A lightweight web animation library with a fluent API, observable state, and timelines you can control like time itself.",
-        "exploreApi": "Explore the API",
+        "titleAccent": "the DOM.",
+        "description": "Built for interfaces, SVG vectors, Canvas pipelines, and interactive visual computing.",
+        "exploreApi": "Read Documentation",
         "tryMotion": "Try motion & gestures",
         "stats": [
           {
@@ -992,7 +991,168 @@
           "springVelocityLabel": "velocity",
           "propertyTag": "transform · opacity · radius",
           "streamTag": "smoothStream()"
-        }
+        },
+        "heroTagline": "Compose high-framerate animations, reactive event streams, and physical springs with one lightweight, tree-shakable TypeScript engine.",
+        "heroBadge": "Reactive motion engine",
+        "heroVisualLab": "Explore Visual Lab",
+        "heroScrollLabel": "Scroll to explore",
+        "marqueeItems": [
+          "RxJS-native",
+          "Shared frame clock",
+          "Composable timelines",
+          "Gesture physics",
+          "DOM · SVG · Canvas"
+        ],
+        "story": {
+          "eyebrow": "02 / ARCHITECTURE MONOGRAPH",
+          "title": "One unified engine.",
+          "description": "A continuous observable pipeline dissolves the divide between interface mechanics, vector physics, and canvas rendering.",
+          "steps": [
+            {
+              "number": "01",
+              "category": "COMPOSE MOTION",
+              "stage": "KINETIC COMPOSITION",
+              "title": "Compose Motion",
+              "description": "Staggered entrances, orchestrated micro-delays, and carefully chosen easing curves let a whole scene move with intention. Build sequences without a maze of nested callbacks.",
+              "detail": "Tween · Timeline · sequence()"
+            },
+            {
+              "number": "02",
+              "category": "THINK REACTIVELY",
+              "stage": "STREAM COMPOSITION",
+              "title": "Think Reactively",
+              "description": "Streams are first-class primitives. Combine changing values and event input, then connect them to DOM or canvas output without burying the animation loop inside rendering code.",
+              "detail": "value$ · pipe() · subscribe()"
+            },
+            {
+              "number": "03",
+              "category": "FEEL THE PHYSICS",
+              "stage": "SPRING DYNAMICS",
+              "title": "Feel the Physics",
+              "description": "Retarget spring motion while it is moving. Position and velocity flow forward, creating physical responses that feel connected to the interaction rather than restarting on every input.",
+              "detail": "stiffness · damping · velocity"
+            },
+            {
+              "number": "04",
+              "category": "BEYOND INTERFACES",
+              "stage": "RENDER ADAPTERS",
+              "title": "Animate beyond interfaces",
+              "description": "Keep the motion model independent from the renderer. Reuse values and timing for DOM styles, SVG paths, Canvas draw callbacks, and compatible Three.js transforms.",
+              "detail": "DOM · SVG · Canvas · Three.js"
+            }
+          ],
+          "stageLabel": "LIVE MOTION GRAPH",
+          "stageStatus": "LIVE KERNEL",
+          "progressLabel": "SCROLL PROGRESS",
+          "samples": [
+            {
+              "lineOne": "const entrance = new Tween({",
+              "lineTwo": "  from: 0, to: 1, duration: 300,",
+              "lineThree": "  easing: 'easeOutCubic',",
+              "lineFour": "}); entrance.play();"
+            },
+            {
+              "lineOne": "const motion = new RetargetableMotion({",
+              "lineTwo": "  initialValue: 0, stiffness: 260,",
+              "lineThree": "  damping: 30,",
+              "lineFour": "}); motion.value$.subscribe(render);"
+            },
+            {
+              "lineOne": "motion.to(nextTarget);",
+              "lineTwo": "// Position and velocity are preserved.",
+              "lineThree": "motion.value$.subscribe(render);",
+              "lineFour": "// Dispose when the owner unmounts."
+            },
+            {
+              "lineOne": "const tween = new Tween({ from: 0, to: 1 });",
+              "lineTwo": "const subscription = tween.value$.subscribe(draw);",
+              "lineThree": "tween.play();",
+              "lineFour": "subscription.unsubscribe();"
+            }
+          ],
+          "titleAccent": "Multiple expressive forms."
+        },
+        "principles": {
+          "eyebrow": "TOOLKITS / MERITS",
+          "title": "Designed for reactive motion. Built to stay composable.",
+          "description": "Focused primitives keep timing, reactive inputs, rendering, and lifecycle concerns understandable as the scene becomes more ambitious.",
+          "items": [
+            {
+              "index": "01",
+              "title": "RxJS Stream Native",
+              "description": "Use observable values as first-class inputs and outputs, then compose them using the operators you already know.",
+              "tag": "REACTIVE CORE"
+            },
+            {
+              "index": "02",
+              "title": "Frame Coordination",
+              "description": "Coordinate animation work around the shared frame scheduler instead of scattering unrelated timing loops.",
+              "tag": "RUNTIME"
+            },
+            {
+              "index": "03",
+              "title": "Rendering Adapters",
+              "description": "Connect motion to DOM styles, SVG paths, Canvas 2D draw callbacks, and compatible Three.js objects.",
+              "tag": "ADAPTER PIPELINE"
+            },
+            {
+              "index": "04",
+              "title": "Lifecycle & Cleanup",
+              "description": "Give animations and subscriptions explicit owners, and clean them up deliberately when an experience ends.",
+              "tag": "LIFECYCLE"
+            }
+          ]
+        },
+        "visualLab": {
+          "eyebrow": "EXHIBITION 03 / RE;FLUX EXPERIMENTS",
+          "title": "Visual Lab Experiments",
+          "description": "Small, live experiments that turn motion primitives into geometry, pixels, and expressive interactions.",
+          "items": [
+            {
+              "to": "/visuals/svg",
+              "index": "01",
+              "title": "SVG & Geometry",
+              "description": "Morph paths, reveal vector strokes, and animate motion along curves.",
+              "tag": "VECTOR MOTION",
+              "art": "svg"
+            },
+            {
+              "to": "/visuals/canvas",
+              "index": "02",
+              "title": "Canvas & Data",
+              "description": "Particles, waves, and procedural scenes driven frame by frame.",
+              "tag": "PIXEL MOTION",
+              "art": "canvas"
+            },
+            {
+              "to": "/visuals/interactions",
+              "index": "03",
+              "title": "Kinetic Interactions",
+              "description": "Pointer physics, reactive typography, and responsive motion.",
+              "tag": "DOM / GESTURES",
+              "art": "interaction"
+            },
+            {
+              "to": "/visuals/scroll",
+              "index": "04",
+              "title": "Scroll motion",
+              "description": "Triggers, normalized progress, and scrubbed timelines.",
+              "tag": "SCROLL-LINKED",
+              "art": "scroll"
+            }
+          ],
+          "link": "Open Visual Lab",
+          "galleryHint": "Explore the experiments"
+        },
+        "closing": {
+          "eyebrow": "START WITH A SINGLE VALUE",
+          "title": "Give your motion a reactive core.",
+          "description": "Explore the API, experiment in the playgrounds, and build motion that stays understandable as your scenes grow.",
+          "primary": "Read the documentation",
+          "secondary": "Try a playground",
+          "codeLabel": "A SMALL API, COMPOSABLE MOTION"
+        },
+        "titleBridge": "beyond"
       }
     }
   }

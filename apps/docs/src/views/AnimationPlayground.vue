@@ -88,72 +88,72 @@ onBeforeUnmount(() => { animation.value.stop(); });
 </script>
 
 <template>
-  <v-container class="py-8 py-md-12" style="max-width: 1200px">
-<v-row align="start">
-      <v-col cols="12" md="4" lg="3">
-        <v-card variant="outlined">
-          <v-card-title class="d-flex align-center justify-space-between ga-3 pa-4">
+  <UiContainer class="py-8 py-md-12" style="max-width: 1200px">
+<UiRow align="start">
+      <UiCol cols="12" md="4" lg="3">
+        <UiCard variant="outlined">
+          <UiCardTitle class="d-flex align-center justify-space-between ga-3 pa-4">
             <div><div class="text-overline text-primary">Configuration</div><h2 class="text-h6 ma-0">Options</h2></div>
-            <v-chip size="small" variant="tonal">Constructor</v-chip>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
+            <UiChip size="small" variant="tonal">Constructor</UiChip>
+          </UiCardTitle>
+          <UiDivider />
+          <UiCardText class="pa-4">
             <div class="mb-5">
-              <div class="d-flex justify-end mb-1"><v-chip size="x-small" color="primary" variant="tonal">{{ duration }} ms</v-chip></div>
+              <div class="d-flex justify-end mb-1"><UiChip size="x-small" color="primary" variant="tonal">{{ duration }} ms</UiChip></div>
               <LabeledSlider label="Duration (milliseconds)" v-model="duration" :min="150" :max="3000" :step="50" />
             </div>
             <div class="mb-5">
-              <div class="d-flex justify-end mb-1"><v-chip size="x-small" color="primary" variant="tonal">{{ delay }} ms</v-chip></div>
+              <div class="d-flex justify-end mb-1"><UiChip size="x-small" color="primary" variant="tonal">{{ delay }} ms</UiChip></div>
               <LabeledSlider label="Delay (milliseconds)" v-model="delay" :min="0" :max="1500" :step="50" />
             </div>
             <div class="mb-5">
-              <div class="d-flex justify-end mb-1"><v-chip size="x-small" color="primary" variant="tonal">{{ infinite ? '∞' : repeatCount }}</v-chip></div>
+              <div class="d-flex justify-end mb-1"><UiChip size="x-small" color="primary" variant="tonal">{{ infinite ? '∞' : repeatCount }}</UiChip></div>
               <LabeledSlider label="Repeat count" v-model="repeatCount" :min="0" :max="5" :step="1" :disabled="infinite" />
             </div>
-            <v-select hide-details v-model="easingName" :items="easingNames" label="Easing" class="mb-2" />
-            <v-switch hide-details v-model="infinite" label="Repeat forever" color="primary" class="mb-2" />
-            <v-switch hide-details v-model="yoyo" label="Yoyo (alternate direction)" color="primary" />
-          </v-card-text>
-          <v-divider />
-          <v-card-actions class="d-flex flex-column align-stretch pa-4 ga-2">
-            <v-btn block @click="applyOptions" color="primary" variant="flat" append-icon="mdi-refresh">Apply options</v-btn>
+            <UiSelect hide-details v-model="easingName" :items="easingNames" label="Easing" class="mb-2" />
+            <UiSwitch hide-details v-model="infinite" label="Repeat forever" color="primary" class="mb-2" />
+            <UiSwitch hide-details v-model="yoyo" label="Yoyo (alternate direction)" color="primary" />
+          </UiCardText>
+          <UiDivider />
+          <UiCardActions class="d-flex flex-column align-stretch pa-4 ga-2">
+            <UiButton block @click="applyOptions" color="primary" variant="flat" append-icon="mdi-refresh">Apply options</UiButton>
             <p class="text-caption text-medium-emphasis mb-0">Constructor options are immutable. Applying stops and replaces the active instance.</p>
-          </v-card-actions>
-        </v-card>
-      </v-col>
+          </UiCardActions>
+        </UiCard>
+      </UiCol>
 
-      <v-col cols="12" md="8" lg="9">
-        <v-card variant="outlined">
-          <v-card-title class="d-flex flex-wrap align-center justify-space-between ga-3 pa-4">
+      <UiCol cols="12" md="8" lg="9">
+        <UiCard variant="outlined">
+          <UiCardTitle class="d-flex flex-wrap align-center justify-space-between ga-3 pa-4">
             <div><div class="text-overline text-primary">Live preview</div><h2 class="text-h6 ma-0">Motion stage</h2></div>
-            <v-chip role="status" aria-live="polite" :color="state === 'running' ? 'success' : state === 'paused' ? 'warning' : state === 'completed' ? 'secondary' : 'default'" size="small" variant="tonal" dot>{{ state }}</v-chip>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4 pa-md-5">
+            <UiChip role="status" aria-live="polite" :color="state === 'running' ? 'success' : state === 'paused' ? 'warning' : state === 'completed' ? 'secondary' : 'default'" size="small" variant="tonal" dot>{{ state }}</UiChip>
+          </UiCardTitle>
+          <UiDivider />
+          <UiCardText class="pa-4 pa-md-5">
             <div class="motion-stage">
               <div class="stage-track"><span class="track-start">0</span><span class="track-end">100%</span></div>
               <div class="motion-box-track"><div class="motion-box" :style="boxStyle"><span>rx</span></div></div>
               <div class="stage-caption">translateX · rotate · opacity</div>
             </div>
-            <v-row dense class="my-4">
-              <v-col cols="4"><MetricTile label="Progress" :value="progressPercent" /></v-col>
-              <v-col cols="4"><MetricTile label="Eased" :value="easedProgress.toFixed(3)" /></v-col>
-              <v-col cols="4"><MetricTile label="State" :value="state" /></v-col>
-            </v-row>
-            <v-progress-linear :model-value="progress * 100" aria-label="Animation progress" :aria-valuetext="progressPercent" color="primary" height="6" rounded class="mb-5" />
+            <UiRow dense class="my-4">
+              <UiCol cols="4"><MetricTile label="Progress" :value="progressPercent" /></UiCol>
+              <UiCol cols="4"><MetricTile label="Eased" :value="easedProgress.toFixed(3)" /></UiCol>
+              <UiCol cols="4"><MetricTile label="State" :value="state" /></UiCol>
+            </UiRow>
+            <UiProgressLinear :model-value="progress * 100" aria-label="Animation progress" :aria-valuetext="progressPercent" color="primary" height="6" rounded class="mb-5" />
             <div class="d-flex flex-wrap ga-2 mb-5">
-              <v-btn @click="playAnimation" color="primary" variant="flat" prepend-icon="mdi-play">Play</v-btn>
-              <v-btn @click="pauseAnimation" variant="tonal" prepend-icon="mdi-pause">Pause</v-btn>
-              <v-btn @click="stopAnimation" variant="tonal" prepend-icon="mdi-stop">Stop</v-btn>
-              <v-btn @click="restartAnimation" variant="tonal" prepend-icon="mdi-restart">Restart</v-btn>
+              <UiButton @click="playAnimation" color="primary" variant="flat" prepend-icon="mdi-play">Play</UiButton>
+              <UiButton @click="pauseAnimation" variant="tonal" prepend-icon="mdi-pause">Pause</UiButton>
+              <UiButton @click="stopAnimation" variant="tonal" prepend-icon="mdi-stop">Stop</UiButton>
+              <UiButton @click="restartAnimation" variant="tonal" prepend-icon="mdi-restart">Restart</UiButton>
             </div>
             <div class="mb-5">
               <div class="d-flex justify-space-between text-body-2 mb-2"><span>Seek</span><span class="font-weight-medium">{{ progressPercent }}</span></div>
               <LabeledSlider label="Seek animation progress" :model-value="progress" :min="0" :max="1" :step="0.01" @update:model-value="seekFromInput" />
             </div>
-            <v-btn @click="playAndWait" color="secondary" variant="outlined" prepend-icon="mdi-code-braces">Play and await with <code class="ml-1">await animation</code></v-btn>
-          </v-card-text>
-        </v-card>
+            <UiButton @click="playAndWait" color="secondary" variant="outlined" prepend-icon="mdi-code-braces">Play and await with <code class="ml-1">await animation</code></UiButton>
+          </UiCardText>
+        </UiCard>
 
         <EventLog
           class="mt-4"
@@ -163,7 +163,7 @@ onBeforeUnmount(() => { animation.value.stop(); });
           empty-message="Callbacks will appear here when you play the animation."
           @clear="logs = []"
         />
-      </v-col>
-    </v-row>
-  </v-container>
+      </UiCol>
+    </UiRow>
+  </UiContainer>
 </template>

@@ -1,0 +1,104 @@
+.docs-anchor {
+  // This value reflects the sticky header and scroll container used by docs.
+  scroll-margin-top: 110px;
+}
+
+.labeled-slider {
+  width: 100%;
+  min-width: 0;
+
+  &__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+
+  &__label {
+    color: rgb(var(--rx-theme-on-surface));
+    font-size: 0.82rem;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  .ui-slider {
+    margin-inline: -4px;
+  }
+}
+
+.docs-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  margin-bottom: 12px;
+
+  > .ui-avatar {
+    flex: 0 0 auto;
+    margin-top: 1px;
+  }
+
+  > div {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.08rem !important;
+    line-height: 1.35 !important;
+    letter-spacing: -0.015em;
+    overflow-wrap: break-word;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: rgba(var(--rx-theme-on-surface), 0.7);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+}
+
+.docs-main-title {
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  line-height: 1.12;
+  letter-spacing: -0.045em;
+}
+
+.docs-lead {
+  max-width: 70ch;
+  font-size: 0.93rem;
+  line-height: 1.7;
+}
+
+.docs-visual-example {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 8px !important;
+
+  .ui-expansion-panel__title {
+    min-height: 42px;
+    padding: 10px 14px;
+    font-size: 0.78rem;
+  }
+
+  .ui-expansion-panel__content {
+    padding: 0 12px 12px;
+  }
+}
+
+.docs-api-table {
+  max-width: 100%;
+
+  th {
+    white-space: normal;
+  }
+}
+
+.docs-prompt-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

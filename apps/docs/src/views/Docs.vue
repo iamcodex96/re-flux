@@ -24,7 +24,7 @@ function navigateToPage(path: string): void {
 </script>
 
 <template>
-  <v-container fluid class="docs-viewport pa-0">
+  <UiContainer fluid class="docs-viewport pa-0">
     <div class="docs-layout">
       <aside class="docs-sidebar" :aria-label="ui.docsNavigationAriaLabel">
         <div class="docs-sidebar__inner">
@@ -50,15 +50,15 @@ function navigateToPage(path: string): void {
           </nav>
 
           <div class="docs-sidebar__footer">
-            <RouterLink to="/api" class="docs-sidebar__utility-link"><v-icon size="16" icon="mdi-tune-variant" /> {{ ui.apiPlaygroundLink }}</RouterLink>
-            <RouterLink to="/visuals" class="docs-sidebar__utility-link"><v-icon size="16" icon="mdi-palette-outline" /> {{ ui.visualShowcaseLink }}</RouterLink>
+            <RouterLink to="/api" class="docs-sidebar__utility-link"><UiIcon size="16" icon="mdi-tune-variant" /> {{ ui.apiPlaygroundLink }}</RouterLink>
+            <RouterLink to="/visuals" class="docs-sidebar__utility-link"><UiIcon size="16" icon="mdi-palette-outline" /> {{ ui.visualShowcaseLink }}</RouterLink>
           </div>
         </div>
       </aside>
 
       <div class="docs-article-column">
         <div class="docs-mobile-nav">
-          <v-select
+          <UiSelect
             :model-value="route.path"
             :items="mobileNavigation"
             item-title="title"
@@ -77,7 +77,7 @@ function navigateToPage(path: string): void {
           <header v-if="!isIntroduction" class="docs-page-heading">
             <div class="docs-breadcrumbs">
               <RouterLink to="/docs/introduction">{{ ui.documentationBreadcrumb }}</RouterLink>
-              <v-icon size="13" icon="mdi-chevron-right" />
+              <UiIcon size="13" icon="mdi-chevron-right" />
               <span>{{ page.label }}</span>
             </div>
             <h1>{{ page.title }}<span class="text-primary">.</span></h1>
@@ -109,5 +109,5 @@ function navigateToPage(path: string): void {
         </div>
       </aside>
     </div>
-  </v-container>
+  </UiContainer>
 </template>

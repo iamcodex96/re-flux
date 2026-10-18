@@ -1,27 +1,33 @@
-@use 'tokens' as tokens;
+@use '../abstracts/tokens' as tokens;
 
-// Layout primitives for full-bleed experiences and readable content rails.
-// These are intentionally independent of Vuetify's v-container and grid system.
-
+// Shared layout primitives. Use these when a section needs to escape the
+// readable content rail without depending on a component framework's grid/container system.
 .rx-page {
   width: 100%;
   min-width: 0;
 }
 
 .rx-content-rail {
-  width: min(calc(100% - var(--rx-page-gutter) - var(--rx-page-gutter)), var(--rx-content-width));
+  width: min(
+    calc(100% - var(--rx-page-gutter) - var(--rx-page-gutter)),
+    var(--rx-content-width)
+  );
   min-width: 0;
   margin-inline: auto;
-}
 
-.rx-content-rail--wide {
-  width: min(calc(100% - var(--rx-page-gutter) - var(--rx-page-gutter)), var(--rx-content-wide));
-  margin-inline: auto;
-}
+  &--wide {
+    width: min(
+      calc(100% - var(--rx-page-gutter) - var(--rx-page-gutter)),
+      var(--rx-content-wide)
+    );
+  }
 
-.rx-content-rail--reading {
-  width: min(calc(100% - var(--rx-page-gutter) - var(--rx-page-gutter)), var(--rx-content-reading));
-  margin-inline: auto;
+  &--reading {
+    width: min(
+      calc(100% - var(--rx-page-gutter) - var(--rx-page-gutter)),
+      var(--rx-content-reading)
+    );
+  }
 }
 
 .rx-full-bleed {
@@ -33,42 +39,44 @@
 
 .rx-section {
   padding-block: var(--rx-section-space);
-}
 
-.rx-section--compact {
-  padding-block: clamp(2.5rem, 5vw, 4rem);
+  &--compact {
+    padding-block: clamp(2.5rem, 5vw, 4rem);
+  }
 }
 
 .rx-screen {
+  display: grid;
   min-height: 100vh;
   min-height: 100svh;
-  display: grid;
   align-content: center;
 }
 
 .rx-stack {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: var(--rx-stack-gap, 1rem);
-  min-width: 0;
 }
 
 .rx-grid {
   display: grid;
+  min-width: 0;
   grid-template-columns: repeat(var(--rx-grid-columns, 1), minmax(0, 1fr));
   gap: var(--rx-grid-gap, 1rem);
-  min-width: 0;
-}
 
-.rx-grid--2,
-.rx-grid--3 {
-  --rx-grid-columns: 1;
+  &--2,
+  &--3 {
+    --rx-grid-columns: 1;
+  }
 }
 
 @media (min-width: tokens.$rx-breakpoint-sm) {
-  .rx-grid--2,
-  .rx-grid--3 {
-    --rx-grid-columns: 2;
+  .rx-grid {
+    &--2,
+    &--3 {
+      --rx-grid-columns: 2;
+    }
   }
 }
 

@@ -26,8 +26,9 @@ for (const file of componentFiles) {
 const router = await readFile(resolve(root, 'apps/docs/src/router/index.ts'), 'utf8');
 assert(/scrollBehavior:\s*\(\)\s*=>\s*\(\{\s*top:\s*0,\s*left:\s*0,\s*behavior:\s*'auto'\s*\}\)/s.test(router), 'Route navigation should reset scroll instantly rather than animate during view replacement.');
 
-const styles = await readFile(resolve(root, 'apps/docs/src/style.scss'), 'utf8');
-assert(/html\s*\{[^}]*scroll-behavior:\s*auto/s.test(styles), 'Global scrolling must remain instant; opt into smooth scrolling at intentional in-page interactions.');
-assert(!/background-attachment:\s*fixed\s*;/i.test(styles), 'Avoid fixed gradient backgrounds that can flash during route scroll/repaint.');
+const resetStyles = await readFile(resolve(root, 'apps/docs/src/styles/base/_reset.scss'), 'utf8');
+const uiStyles = await readFile(resolve(root, 'apps/docs/src/styles/components/_ui-primitives.scss'), 'utf8');
+assert(/html\s*\{[^}]*scroll-behavior:\s*auto/s.test(resetStyles), 'Global scrolling must remain instant; opt into smooth scrolling at intentional in-page interactions.');
+assert(!/background-attachment:\s*fixed\s*;/i.test(uiStyles), 'Avoid fixed gradient backgrounds that can flash during route scroll/repaint.');
 
 console.log('Playground lifecycle and route-transition checks passed.');

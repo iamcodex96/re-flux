@@ -1,0 +1,69 @@
+.home-closing {
+  position: relative;
+  display: flex;
+  min-height: clamp(29rem, 48vw, 40rem);
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-top: 1px solid rgba(130, 137, 160, 0.1);
+  background: #0c0e13;
+  text-align: center;
+
+  &__glow {
+    position: absolute;
+    right: 0;
+    bottom: -20rem;
+    left: 0;
+    height: 33rem;
+    background: radial-gradient(ellipse at 50% 70%, rgba(20, 107, 139, 0.2), transparent 64%);
+    pointer-events: none;
+  }
+
+  &__copy {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    padding-block: clamp(5rem, 9vw, 8rem);
+
+    > .home-eyebrow { justify-content: center; }
+
+    h2 {
+      max-width: 12ch;
+      margin-top: 1.2rem;
+      color: #f1f1f6;
+      font-size: clamp(3rem, 7vw, 6.3rem);
+      font-weight: 790;
+      letter-spacing: -0.09em;
+      line-height: 0.95;
+
+      span {
+        display: block;
+        background: linear-gradient(100deg, #14c8dd 8%, #70a9ff 52%, #a78bfa 94%);
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+      }
+    }
+
+    > p:not(.home-eyebrow) {
+      max-width: 36rem;
+      margin-top: 1.1rem;
+      color: rgba(238, 240, 247, 0.62);
+      font-size: 0.8rem;
+      line-height: 1.85;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .home-install-command { margin-top: 1.45rem; }
+}

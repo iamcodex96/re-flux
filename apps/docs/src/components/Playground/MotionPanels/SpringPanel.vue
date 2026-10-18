@@ -58,14 +58,14 @@ onBeforeUnmount(() => motion.value.dispose());
 </script>
 
 <template>
-  <v-card variant="outlined" class="motion-playground-card">
-    <v-card-title class="pa-4">
+  <UiCard variant="outlined" class="motion-playground-card">
+    <UiCardTitle class="pa-4">
       <div class="text-overline text-secondary">02 / RETARGETING</div>
       <h2 class="text-h6 ma-0">Spring motion</h2>
       <p class="text-body-2 text-medium-emphasis mt-2 mb-0">Change the target while moving. Position and velocity are sampled and preserved, so a new target does not force a visual reset.</p>
-    </v-card-title>
-    <v-divider />
-    <v-card-text class="pa-4 pa-md-5">
+    </UiCardTitle>
+    <UiDivider />
+    <UiCardText class="pa-4 pa-md-5">
       <div class="spring-stage mb-4">
         <div class="spring-stage__rail">
           <div class="spring-stage__target" :class="{ 'spring-stage__target--end': motionTarget > 220 }" :style="{ left: `${Math.min(100, Math.max(0, motionTarget / 300 * 100))}%` }"><span>target</span></div>
@@ -76,44 +76,44 @@ onBeforeUnmount(() => motion.value.dispose());
 
       <div class="text-body-2 font-weight-medium mb-2">Retarget during motion</div>
       <div class="d-flex flex-wrap ga-2 mb-5">
-        <v-btn v-for="target in [30, 90, 170, 250]" :key="target" :variant="motionTarget === target ? 'flat' : 'tonal'" :color="motionTarget === target ? 'primary' : 'default'" @click="retarget(target)">To {{ target }}</v-btn>
+        <UiButton v-for="target in [30, 90, 170, 250]" :key="target" :variant="motionTarget === target ? 'flat' : 'tonal'" :color="motionTarget === target ? 'primary' : 'default'" @click="retarget(target)">To {{ target }}</UiButton>
       </div>
-      <v-card variant="tonal" color="secondary" class="mb-5">
-        <v-card-text class="pa-4">
+      <UiCard variant="tonal" color="secondary" class="mb-5">
+        <UiCardText class="pa-4">
           <div class="text-subtitle-2 font-weight-bold mb-1">Inertia projection</div>
           <p class="text-caption text-medium-emphasis mb-3">Estimate an endpoint from release velocity (units/second), then let the spring settle toward it.</p>
-          <div class="d-flex justify-end text-body-2 mb-1"><v-chip size="x-small" variant="tonal">{{ releaseVelocity }} u/s</v-chip></div>
+          <div class="d-flex justify-end text-body-2 mb-1"><UiChip size="x-small" variant="tonal">{{ releaseVelocity }} u/s</UiChip></div>
           <LabeledSlider label="Release velocity (units per second)" v-model="releaseVelocity" :min="-1200" :max="1200" :step="40" class="mb-3" />
-          <div class="d-flex justify-end text-body-2 mb-1"><v-chip size="x-small" variant="tonal">{{ inertiaFriction }}</v-chip></div>
+          <div class="d-flex justify-end text-body-2 mb-1"><UiChip size="x-small" variant="tonal">{{ inertiaFriction }}</UiChip></div>
           <LabeledSlider label="Inertia friction" v-model="inertiaFriction" :min="2" :max="12" :step="1" class="mb-3" />
           <div class="d-flex flex-wrap align-center ga-3">
-            <v-btn color="secondary" variant="flat" prepend-icon="mdi-arrow-right-bold" @click="projectRelease">Project & retarget</v-btn>
-            <v-chip v-if="projectedTarget !== null" role="status" aria-live="polite" variant="outlined">Projected endpoint: {{ projectedTarget.toFixed(1) }}</v-chip>
+            <UiButton color="secondary" variant="flat" prepend-icon="mdi-arrow-right-bold" @click="projectRelease">Project & retarget</UiButton>
+            <UiChip v-if="projectedTarget !== null" role="status" aria-live="polite" variant="outlined">Projected endpoint: {{ projectedTarget.toFixed(1) }}</UiChip>
           </div>
-        </v-card-text>
-      </v-card>
+        </UiCardText>
+      </UiCard>
       <div class="mb-4">
-        <div class="d-flex justify-end text-body-2 mb-1"><v-chip size="x-small" variant="tonal">{{ stiffness }}</v-chip></div>
+        <div class="d-flex justify-end text-body-2 mb-1"><UiChip size="x-small" variant="tonal">{{ stiffness }}</UiChip></div>
         <LabeledSlider label="Spring stiffness" v-model="stiffness" :min="60" :max="500" :step="10" />
       </div>
       <div class="mb-4">
-        <div class="d-flex justify-end text-body-2 mb-1"><v-chip size="x-small" variant="tonal">{{ damping }}</v-chip></div>
+        <div class="d-flex justify-end text-body-2 mb-1"><UiChip size="x-small" variant="tonal">{{ damping }}</UiChip></div>
         <LabeledSlider label="Spring damping" v-model="damping" :min="5" :max="60" :step="1" />
       </div>
       <div class="d-flex flex-wrap ga-2 mb-5">
-        <v-btn color="secondary" variant="tonal" prepend-icon="mdi-tune" @click="applySpringSettings">Apply physics</v-btn>
-        <v-btn variant="tonal" prepend-icon="mdi-pause" @click="motion.pause()">Pause</v-btn>
-        <v-btn variant="tonal" prepend-icon="mdi-play" @click="motion.resume()">Resume</v-btn>
-        <v-btn variant="tonal" prepend-icon="mdi-stop" @click="motion.stop()">Stop</v-btn>
+        <UiButton color="secondary" variant="tonal" prepend-icon="mdi-tune" @click="applySpringSettings">Apply physics</UiButton>
+        <UiButton variant="tonal" prepend-icon="mdi-pause" @click="motion.pause()">Pause</UiButton>
+        <UiButton variant="tonal" prepend-icon="mdi-play" @click="motion.resume()">Resume</UiButton>
+        <UiButton variant="tonal" prepend-icon="mdi-stop" @click="motion.stop()">Stop</UiButton>
       </div>
-      <v-row dense class="mb-4">
-        <v-col cols="4"><MetricTile label="Position" :value="motionValue.toFixed(2)" /></v-col>
-        <v-col cols="4"><MetricTile label="Velocity" :value="motionVelocity.toFixed(2)" /></v-col>
-        <v-col cols="4"><MetricTile label="State" :value="motionState" /></v-col>
-      </v-row>
+      <UiRow dense class="mb-4">
+        <UiCol cols="4"><MetricTile label="Position" :value="motionValue.toFixed(2)" /></UiCol>
+        <UiCol cols="4"><MetricTile label="Velocity" :value="motionVelocity.toFixed(2)" /></UiCol>
+        <UiCol cols="4"><MetricTile label="State" :value="motionState" /></UiCol>
+      </UiRow>
       <pre class="motion-code"><code>{{ springCode }}</code></pre>
-    </v-card-text>
-  </v-card>
+    </UiCardText>
+  </UiCard>
 <EventLog class="mt-5" eyebrow="Retargeting" title="Motion event log" :entries="motionLogs" empty-message="Retargeting and spring-completion events will appear here." @clear="motionLogs = []" />
 
 </template>

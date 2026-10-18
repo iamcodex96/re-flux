@@ -247,22 +247,22 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-card variant="outlined" class="motion-playground-card">
-    <v-card-title class="pa-4">
+  <UiCard variant="outlined" class="motion-playground-card">
+    <UiCardTitle class="pa-4">
       <div class="text-overline text-secondary">04 / GESTURE PHYSICS</div>
       <h2 class="text-h6 ma-0">Drag inertia &amp; slide follow</h2>
       <p class="text-body-2 text-medium-emphasis mt-2 mb-0">Drag the handle with a mouse, touch, or pen and release to see inertia. The outlined follower uses a spring to track the same point; the handle also supports arrow-key movement.</p>
-    </v-card-title>
-    <v-divider />
-    <v-card-text class="pa-4 pa-md-5">
+    </UiCardTitle>
+    <UiDivider />
+    <UiCardText class="pa-4 pa-md-5">
       <div class="d-flex flex-wrap align-center ga-2 mb-3">
         <span class="text-body-2 font-weight-medium">Drag axis</span>
-        <v-btn-toggle v-model="gestureAxis" density="compact" color="primary" mandatory variant="outlined" aria-label="Drag axis lock" @update:model-value="resetGesture">
-          <v-btn value="both" size="small">Both</v-btn>
-          <v-btn value="x" size="small">Horizontal</v-btn>
-          <v-btn value="y" size="small">Vertical</v-btn>
-        </v-btn-toggle>
-        <v-chip size="small" variant="tonal" color="secondary">Pointer capture on</v-chip>
+        <UiButtonToggle v-model="gestureAxis" density="compact" color="primary" mandatory variant="outlined" aria-label="Drag axis lock" @update:model-value="resetGesture">
+          <UiButton value="both" size="small">Both</UiButton>
+          <UiButton value="x" size="small">Horizontal</UiButton>
+          <UiButton value="y" size="small">Vertical</UiButton>
+        </UiButtonToggle>
+        <UiChip size="small" variant="tonal" color="secondary">Pointer capture on</UiChip>
       </div>
       <div ref="gestureStage" class="gesture-stage mb-4" role="group" aria-label="Interactive drag and spring-follow stage">
         <div class="gesture-stage__follower" :style="{ left: `${followerX}px`, top: `${followerY}px` }" aria-hidden="true"></div>
@@ -277,23 +277,23 @@ onBeforeUnmount(() => {
         >Drag me</button>
         <div class="gesture-stage__follower-label" aria-hidden="true">SOLID = DRAG + INERTIA · OUTLINE = SPRING FOLLOW</div>
       </div>
-      <v-row dense class="mb-4">
-        <v-col cols="4"><MetricTile label="Gesture phase" :value="dragPhase" /></v-col>
-        <v-col cols="4"><MetricTile label="Speed" :value="`${dragVelocity.toFixed(0)} px/s`" /></v-col>
-        <v-col cols="4"><MetricTile label="Follower" :value="`${Math.round(followerX)}, ${Math.round(followerY)}`" /></v-col>
-      </v-row>
+      <UiRow dense class="mb-4">
+        <UiCol cols="4"><MetricTile label="Gesture phase" :value="dragPhase" /></UiCol>
+        <UiCol cols="4"><MetricTile label="Speed" :value="`${dragVelocity.toFixed(0)} px/s`" /></UiCol>
+        <UiCol cols="4"><MetricTile label="Follower" :value="`${Math.round(followerX)}, ${Math.round(followerY)}`" /></UiCol>
+      </UiRow>
       <div class="d-flex flex-wrap align-center ga-2 mb-4">
-        <v-chip size="small" variant="tonal" color="primary">pointerdown / move / up</v-chip>
-        <v-chip size="small" variant="tonal" color="secondary">Exponential inertia</v-chip>
-        <v-chip size="small" variant="tonal">Spring follower</v-chip>
-        <v-btn size="small" variant="tonal" prepend-icon="mdi-restore" @click="resetGesture">Reset positions</v-btn>
+        <UiChip size="small" variant="tonal" color="primary">pointerdown / move / up</UiChip>
+        <UiChip size="small" variant="tonal" color="secondary">Exponential inertia</UiChip>
+        <UiChip size="small" variant="tonal">Spring follower</UiChip>
+        <UiButton size="small" variant="tonal" prepend-icon="mdi-restore" @click="resetGesture">Reset positions</UiButton>
       </div>
-      <v-expansion-panels variant="accordion">
-        <v-expansion-panel title="View the TypeScript">
-          <v-expansion-panel-text><pre class="motion-code"><code>{{ gestureCode }}</code></pre></v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
-    </v-card-text>
-  </v-card>
+      <UiExpansionPanels variant="accordion">
+        <UiExpansionPanel title="View the TypeScript">
+          <UiExpansionPanelText><pre class="motion-code"><code>{{ gestureCode }}</code></pre></UiExpansionPanelText>
+        </UiExpansionPanel>
+      </UiExpansionPanels>
+    </UiCardText>
+  </UiCard>
 
 </template>

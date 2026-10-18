@@ -1,0 +1,12 @@
+@media (prefers-reduced-motion: reduce) {
+  .docs-demo-orb,
+  .docs-demo-pulse,
+  .docs-demo-item,
+  .docs-demo-easing-dot,
+  .docs-demo-easing-focus-dot,
+  .docs-demo-meter-fill,
+  .docs-demo-retarget-dot,
+  .docs-demo-stream-dot {
+    transition: none !important;
+  }
+}

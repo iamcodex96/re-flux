@@ -1,11 +1,14 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import '@mdi/font/css/materialdesignicons.css';
-import 'vuetify/styles';
 import App from './App.vue';
 import { router } from './router';
-import { vuetify } from './plugins/vuetify';
-import './style.scss';
-import './styles/visualizations.scss';
+import { UiComponents } from './components/ui/UiPrimitives';
+import './styles/main.scss';
 
-createApp(App).use(createPinia()).use(vuetify).use(router).mount('#app');
+const app = createApp(App);
+for (const [name, component] of Object.entries(UiComponents)) {
+  app.component(name, component);
+}
+
+app.use(createPinia()).use(router).mount('#app');

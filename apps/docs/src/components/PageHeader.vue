@@ -19,9 +19,3 @@ withDefaults(defineProps<{
   </header>
 </template>
 
-<style scoped>
-.page-heading__description {
-  max-width: 680px;
-  line-height: 1.65;
-}
-</style>

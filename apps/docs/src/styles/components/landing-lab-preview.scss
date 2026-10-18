@@ -1,0 +1,172 @@
+.landing-lab-preview {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: clamp(10rem, 15vw, 13rem);
+  overflow: hidden;
+  place-items: center;
+  isolation: isolate;
+  border-bottom: 1px solid rgba(130, 137, 160, 0.14);
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(20, 200, 221, 0.09), transparent 66%),
+    #090b0f;
+
+  &__svg {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 24rem);
+    height: auto;
+    overflow: visible;
+  }
+
+  &__orbit {
+    fill: none;
+    stroke: rgba(167, 139, 250, 0.18);
+    stroke-width: 1;
+    stroke-dasharray: 3 7;
+  }
+
+  &__morph {
+    stroke: #a78bfa;
+    stroke-width: 2;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 10px rgba(167, 139, 250, 0.34));
+  }
+
+  &__svg-node {
+    fill: #14c8dd;
+    filter: drop-shadow(0 0 6px rgba(20, 200, 221, 0.65));
+  }
+
+  &__canvas-wrap {
+    position: absolute;
+    inset: 0;
+  }
+
+  &__canvas {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 250ms ease;
+
+    &.is-ready { opacity: 1; }
+  }
+
+  &__canvas-fallback {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: rgba(20, 200, 221, 0.62);
+    stroke-width: 1.2;
+
+    path + path { stroke: rgba(167, 139, 250, 0.5); }
+  }
+
+  &__drag-stage {
+    position: absolute;
+    inset: 0.85rem 1rem 1.1rem;
+    overflow: hidden;
+    background-image:
+      linear-gradient(rgba(235, 239, 249, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(235, 239, 249, 0.035) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  &__drag-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 7rem;
+    height: 5rem;
+    border: 1px solid rgba(167, 139, 250, 0.62);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) rotate(-28deg);
+    pointer-events: none;
+
+    &--two {
+      width: 10rem;
+      height: 7rem;
+      border-color: rgba(20, 200, 221, 0.45);
+      transform: translate(-50%, -50%) rotate(34deg);
+    }
+  }
+
+  &__drag-trace {
+    position: absolute;
+    top: 50%;
+    left: 12%;
+    width: 76%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(20, 200, 221, 0.6), rgba(167, 139, 250, 0.6), transparent);
+    pointer-events: none;
+  }
+
+  &__drag-node {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    display: grid;
+    width: 3.7rem;
+    height: 3.7rem;
+    place-items: center;
+    border: 1px solid rgba(167, 139, 250, 0.95);
+    border-radius: 0.8rem;
+    background: linear-gradient(145deg, rgba(167, 139, 250, 0.32), rgba(20, 200, 221, 0.14));
+    box-shadow: 0 0 1.8rem rgba(20, 200, 221, 0.16), inset 0 0 1rem rgba(167, 139, 250, 0.12);
+    color: #f0f0f6;
+    font: 600 0.78rem/1 var(--rx-font-mono), monospace;
+    touch-action: none;
+    user-select: none;
+
+    &::before {
+      position: absolute;
+      inset: -0.35rem;
+      border: 1px solid rgba(20, 200, 221, 0.14);
+      border-radius: 1rem;
+      content: '';
+      pointer-events: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #14c8dd;
+      outline-offset: 4px;
+    }
+  }
+
+  &.is-dragging &__drag-node {
+    border-color: #14c8dd;
+    box-shadow: 0 0 2.4rem rgba(20, 200, 221, 0.3), inset 0 0 1rem rgba(20, 200, 221, 0.13);
+  }
+
+  &__label {
+    position: absolute;
+    z-index: 3;
+    right: 0.75rem;
+    bottom: 0.62rem;
+    color: rgba(238, 240, 247, 0.44);
+    font: 500 0.48rem/1.5 var(--rx-font-mono), monospace;
+    letter-spacing: 0.08em;
+    pointer-events: none;
+  }
+
+  &__interaction-hint {
+    position: absolute;
+    z-index: 3;
+    bottom: 0.62rem;
+    left: 0.75rem;
+    color: rgba(20, 200, 221, 0.73);
+    font: 500 0.48rem/1.5 var(--rx-font-mono), monospace;
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-lab-preview__canvas { transition: none; }
+}

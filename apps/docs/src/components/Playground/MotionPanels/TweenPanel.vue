@@ -51,20 +51,20 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-card variant="outlined" class="motion-playground-card">
-    <v-card-title class="pa-4">
+  <UiCard variant="outlined" class="motion-playground-card">
+    <UiCardTitle class="pa-4">
       <div class="text-overline text-primary">01 / VALUE STREAM</div>
       <h2 class="text-h6 ma-0">Tween&lt;number&gt;</h2>
       <p class="text-body-2 text-medium-emphasis mt-2 mb-0">A typed value animation can feed a DOM style, Canvas draw call, chart, or any other renderer.</p>
-    </v-card-title>
-    <v-divider />
-    <v-card-text class="pa-4 pa-md-5">
-      <v-row dense>
-        <v-col cols="4"><v-text-field v-model.number="tweenFrom" type="number" label="From" density="compact" /></v-col>
-        <v-col cols="4"><v-text-field v-model.number="tweenTo" type="number" label="To" density="compact" /></v-col>
-        <v-col cols="4"><v-text-field v-model.number="tweenDuration" type="number" label="Duration (ms)" density="compact" /></v-col>
-      </v-row>
-      <v-btn class="mt-4 mb-5" color="secondary" variant="tonal" prepend-icon="mdi-check" @click="applyTweenOptions">Apply values</v-btn>
+    </UiCardTitle>
+    <UiDivider />
+    <UiCardText class="pa-4 pa-md-5">
+      <UiRow dense>
+        <UiCol cols="4"><UiTextField v-model.number="tweenFrom" type="number" label="From" density="compact" /></UiCol>
+        <UiCol cols="4"><UiTextField v-model.number="tweenTo" type="number" label="To" density="compact" /></UiCol>
+        <UiCol cols="4"><UiTextField v-model.number="tweenDuration" type="number" label="Duration (ms)" density="compact" /></UiCol>
+      </UiRow>
+      <UiButton class="mt-4 mb-5" color="secondary" variant="tonal" prepend-icon="mdi-check" @click="applyTweenOptions">Apply values</UiButton>
 
       <div class="value-stage mb-5">
         <div class="value-stage__track">
@@ -73,25 +73,25 @@ onBeforeUnmount(() => {
         <div class="value-stage__axis"><span>{{ tweenFrom }}</span><span>{{ tweenTo }}</span></div>
       </div>
 
-      <v-row dense class="mb-4">
-        <v-col cols="4"><MetricTile label="Value" :value="tweenValue.toFixed(2)" /></v-col>
-        <v-col cols="4"><MetricTile label="Progress" :value="`${Math.round(tweenProgress * 100)}%`" /></v-col>
-        <v-col cols="4"><MetricTile label="State" :value="tweenState" /></v-col>
-      </v-row>
-      <v-progress-linear :model-value="tweenProgress * 100" aria-label="Tween progress" :aria-valuetext="`${Math.round(tweenProgress * 100)} percent`" color="primary" rounded height="6" class="mb-4" />
+      <UiRow dense class="mb-4">
+        <UiCol cols="4"><MetricTile label="Value" :value="tweenValue.toFixed(2)" /></UiCol>
+        <UiCol cols="4"><MetricTile label="Progress" :value="`${Math.round(tweenProgress * 100)}%`" /></UiCol>
+        <UiCol cols="4"><MetricTile label="State" :value="tweenState" /></UiCol>
+      </UiRow>
+      <UiProgressLinear :model-value="tweenProgress * 100" aria-label="Tween progress" :aria-valuetext="`${Math.round(tweenProgress * 100)} percent`" color="primary" rounded height="6" class="mb-4" />
       <LabeledSlider :model-value="tweenProgress" label="Seek tween progress" :min="0" :max="1" :step="0.01" class="mb-4" @update:model-value="seekTween" />
       <div class="d-flex flex-wrap ga-2">
-        <v-btn color="primary" prepend-icon="mdi-play" @click="playTween">Play</v-btn>
-        <v-btn variant="tonal" prepend-icon="mdi-pause" @click="pauseTween">Pause</v-btn>
-        <v-btn variant="tonal" prepend-icon="mdi-restart" @click="restartTween">Restart</v-btn>
-        <v-btn variant="tonal" prepend-icon="mdi-stop" @click="stopTween">Stop</v-btn>
+        <UiButton color="primary" prepend-icon="mdi-play" @click="playTween">Play</UiButton>
+        <UiButton variant="tonal" prepend-icon="mdi-pause" @click="pauseTween">Pause</UiButton>
+        <UiButton variant="tonal" prepend-icon="mdi-restart" @click="restartTween">Restart</UiButton>
+        <UiButton variant="tonal" prepend-icon="mdi-stop" @click="stopTween">Stop</UiButton>
       </div>
-      <v-expansion-panels variant="accordion" class="mt-5">
-        <v-expansion-panel title="View the TypeScript">
-          <v-expansion-panel-text><pre class="motion-code"><code>{{ tweenCode }}</code></pre></v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
-    </v-card-text>
-  </v-card>
+      <UiExpansionPanels variant="accordion" class="mt-5">
+        <UiExpansionPanel title="View the TypeScript">
+          <UiExpansionPanelText><pre class="motion-code"><code>{{ tweenCode }}</code></pre></UiExpansionPanelText>
+        </UiExpansionPanel>
+      </UiExpansionPanels>
+    </UiCardText>
+  </UiCard>
 
 </template>

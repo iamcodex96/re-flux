@@ -95,14 +95,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-card variant="outlined" class="motion-playground-card">
-  <v-card-title class="pa-4">
+  <UiCard variant="outlined" class="motion-playground-card">
+  <UiCardTitle class="pa-4">
     <div class="text-overline text-primary">07 / CADENCE-AWARE INTERPOLATION</div>
     <h2 class="text-h6 ma-0">Adaptive tween duration</h2>
     <p class="text-body-2 text-medium-emphasis mt-2 mb-0">Compare fast, slow and irregular timestamped streams. The operator estimates actual sample cadence and adapts each transition duration. Samples are delivered over time, not as a single batch.</p>
-  </v-card-title>
-  <v-divider />
-  <v-card-text class="pa-4 pa-md-5">
+  </UiCardTitle>
+  <UiDivider />
+  <UiCardText class="pa-4 pa-md-5">
     <div class="stream-chart mb-4">
       <svg viewBox="0 0 320 120" preserveAspectRatio="none" role="img" :aria-label="`Adaptive tween history. Current value ${adaptiveValue.toFixed(1)}. Estimated cadence ${adaptiveCadence.toFixed(1)} milliseconds. Tween duration ${adaptiveDuration.toFixed(1)} milliseconds.`">
         <line v-for="y in [12, 36, 60, 84, 108]" :key="y" x1="0" :y1="y" x2="320" :y2="y" class="stream-chart__grid" />
@@ -111,20 +111,20 @@ onBeforeUnmount(() => {
       </svg>
     </div>
     <div class="d-flex flex-wrap ga-2 mb-4">
-      <v-btn color="primary" variant="tonal" @click="sendAdaptivePattern('fast')">Simulate fast stream</v-btn>
-      <v-btn color="secondary" variant="tonal" @click="sendAdaptivePattern('slow')">Simulate slow stream</v-btn>
-      <v-btn variant="outlined" color="primary" @click="sendAdaptivePattern('jitter')">Simulate jitter</v-btn>
-      <v-chip :color="adaptiveStale ? 'warning' : 'success'" variant="tonal">{{ adaptiveStale ? 'Input stale' : 'Sampling' }}</v-chip>
+      <UiButton color="primary" variant="tonal" @click="sendAdaptivePattern('fast')">Simulate fast stream</UiButton>
+      <UiButton color="secondary" variant="tonal" @click="sendAdaptivePattern('slow')">Simulate slow stream</UiButton>
+      <UiButton variant="outlined" color="primary" @click="sendAdaptivePattern('jitter')">Simulate jitter</UiButton>
+      <UiChip :color="adaptiveStale ? 'warning' : 'success'" variant="tonal">{{ adaptiveStale ? 'Input stale' : 'Sampling' }}</UiChip>
     </div>
-    <v-row dense class="mb-4">
-      <v-col cols="6" md="3"><MetricTile label="Value" :value="adaptiveValue.toFixed(2)" /></v-col>
-      <v-col cols="6" md="3"><MetricTile label="Estimated cadence" :value="`${adaptiveCadence.toFixed(1)} ms`" /></v-col>
-      <v-col cols="6" md="3"><MetricTile label="Tween duration" :value="`${adaptiveDuration.toFixed(1)} ms`" /></v-col>
-      <v-col cols="6" md="3"><MetricTile label="Buffer policy" value="Bounded / no prediction" /></v-col>
-    </v-row>
-    <v-alert density="compact" variant="tonal" type="info" class="mb-4">adaptiveTween adapts the transition duration to the measured cadence. It preserves the rendered value when retargeting, but does not preserve physical velocity; use retargetMotion() for spring momentum.</v-alert>
+    <UiRow dense class="mb-4">
+      <UiCol cols="6" md="3"><MetricTile label="Value" :value="adaptiveValue.toFixed(2)" /></UiCol>
+      <UiCol cols="6" md="3"><MetricTile label="Estimated cadence" :value="`${adaptiveCadence.toFixed(1)} ms`" /></UiCol>
+      <UiCol cols="6" md="3"><MetricTile label="Tween duration" :value="`${adaptiveDuration.toFixed(1)} ms`" /></UiCol>
+      <UiCol cols="6" md="3"><MetricTile label="Buffer policy" value="Bounded / no prediction" /></UiCol>
+    </UiRow>
+    <UiAlert density="compact" variant="tonal" type="info" class="mb-4">adaptiveTween adapts the transition duration to the measured cadence. It preserves the rendered value when retargeting, but does not preserve physical velocity; use retargetMotion() for spring momentum.</UiAlert>
     <pre class="motion-code"><code>{{ adaptiveTweenCode }}</code></pre>
-  </v-card-text>
-</v-card>
+  </UiCardText>
+</UiCard>
 
 </template>

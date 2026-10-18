@@ -51,23 +51,23 @@ onBeforeUnmount(stopCanvasDemo);
 </script>
 
 <template>
-  <v-card variant="outlined" class="motion-playground-card">
-  <v-card-title class="pa-4">
+  <UiCard variant="outlined" class="motion-playground-card">
+  <UiCardTitle class="pa-4">
     <div class="text-overline text-secondary">08 / RENDERING ADAPTER</div>
     <h2 class="text-h6 ma-0">Canvas 2D adapter</h2>
     <p class="text-body-2 text-medium-emphasis mt-2 mb-0">The same headless Tween value stream drives a Canvas draw callback. Multiple values in one frame are coalesced and drawn in the shared coordinator's write phase.</p>
-  </v-card-title>
-  <v-divider />
-  <v-card-text class="pa-4 pa-md-5">
+  </UiCardTitle>
+  <UiDivider />
+  <UiCardText class="pa-4 pa-md-5">
     <canvas ref="canvasElement" class="canvas-adapter-stage mb-4" width="640" height="160" role="img" :aria-label="`Canvas animation preview. Current horizontal position ${canvasPosition.toFixed(1)} pixels.`"></canvas>
     <div class="d-flex flex-wrap align-center ga-2 mb-4">
-      <v-btn color="primary" prepend-icon="mdi-play" :disabled="canvasStatus === 'running'" @click="startCanvasDemo">Start Canvas animation</v-btn>
-      <v-btn variant="outlined" color="primary" prepend-icon="mdi-stop" :disabled="canvasStatus === 'idle'" @click="stopCanvasDemo">Stop and clear</v-btn>
-      <v-chip :color="canvasStatus === 'running' ? 'success' : 'default'" variant="tonal">{{ canvasStatus }}</v-chip>
+      <UiButton color="primary" prepend-icon="mdi-play" :disabled="canvasStatus === 'running'" @click="startCanvasDemo">Start Canvas animation</UiButton>
+      <UiButton variant="outlined" color="primary" prepend-icon="mdi-stop" :disabled="canvasStatus === 'idle'" @click="stopCanvasDemo">Stop and clear</UiButton>
+      <UiChip :color="canvasStatus === 'running' ? 'success' : 'default'" variant="tonal">{{ canvasStatus }}</UiChip>
     </div>
-    <v-alert density="compact" variant="tonal" type="info" class="mb-4">The adapter clears the bitmap before each draw by default. Canvas pixels are not restored on unsubscribe; this demo opts into clearing on teardown.</v-alert>
+    <UiAlert density="compact" variant="tonal" type="info" class="mb-4">The adapter clears the bitmap before each draw by default. Canvas pixels are not restored on unsubscribe; this demo opts into clearing on teardown.</UiAlert>
     <pre class="motion-code"><code>{{ canvasAdapterCode }}</code></pre>
-  </v-card-text>
-</v-card>
+  </UiCardText>
+</UiCard>
 
 </template>

@@ -88,7 +88,9 @@
     "check:visual-lab": "node scripts/check-visual-lab.mjs",
     "check:playground-lifecycle": "node scripts/check-playground-lifecycle.mjs",
     "check:release": "node scripts/check-release-tag.mjs",
-    "check:workflow-sync": "node scripts/check-workflow-sync.mjs"
+    "check:workflow-sync": "node scripts/check-workflow-sync.mjs",
+    "check:ui-framework": "node scripts/check-ui-framework.mjs",
+    "check:home-experience": "node scripts/check-home-experience.mjs"
   },
   "peerDependencies": {
     "rxjs": "^7.8.0"

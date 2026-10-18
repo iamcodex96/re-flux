@@ -1,0 +1,189 @@
+// Visual Lab-specific scenes and the supporting navigation/panel layout.
+.visual-lab {
+  --visual-line: rgba(var(--rx-border-color), 0.68);
+
+  &__intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(230px, 0.9fr);
+    align-items: end;
+    gap: 28px;
+    padding: 24px;
+    border: 1px solid var(--visual-line);
+    border-radius: 16px;
+    background: linear-gradient(120deg, rgba(var(--rx-theme-primary), 0.08), transparent 64%);
+
+    p {
+      max-width: 68ch;
+      line-height: 1.8;
+    }
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+
+    div {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--visual-line);
+    }
+
+    strong {
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
+    }
+
+    span {
+      color: rgba(var(--rx-theme-on-surface), 0.65);
+      font-size: 0.76rem;
+    }
+  }
+
+  &__layout {
+    align-items: stretch;
+
+    > .ui-col:first-child {
+      align-self: stretch;
+    }
+  }
+
+  &__panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+
+    h2 {
+      letter-spacing: -0.03em;
+    }
+
+    p {
+      line-height: 1.55;
+    }
+  }
+}
+
+.visual-card {
+  min-height: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(var(--rx-theme-surface), 0.82);
+
+  &__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  h3 {
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    max-width: 62ch;
+    min-height: 3.4em;
+    line-height: 1.75;
+  }
+}
+
+.visual-stage {
+  position: relative;
+  display: flex;
+  min-height: 220px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 12px;
+  background: #0a1020;
+
+  &--path {
+    min-height: 230px;
+  }
+
+  &--morph {
+    min-height: 230px;
+    background: radial-gradient(ellipse at center, rgba(167, 139, 250, 0.15), transparent 65%), #0a1020;
+  }
+
+  &--liquid {
+    min-height: 250px;
+    background: radial-gradient(ellipse at 50% 50%, rgba(103, 232, 249, 0.12), transparent 65%), #080d1a;
+  }
+
+  &__grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.3;
+    background-image:
+      linear-gradient(rgba(103, 232, 249, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(103, 232, 249, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: radial-gradient(ellipse at center, black, transparent 78%);
+  }
+
+  &__orb {
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    filter: blur(42px);
+    opacity: 0.3;
+
+    &--one {
+      top: 8%;
+      left: 14%;
+      background: #67e8f9;
+    }
+
+    &--two {
+      right: 10%;
+      bottom: 5%;
+      background: #a78bfa;
+    }
+  }
+}
+
+.path-art,
+.liquid-art,
+.morph-art {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  overflow: visible;
+}
+
+.path-art { max-width: 460px; }
+.liquid-art { max-width: 430px; }
+
+.morph-art {
+  max-width: 310px;
+  filter: drop-shadow(0 12px 35px rgba(167, 139, 250, 0.12));
+}
+
+.liquid-glow {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  filter: blur(38px);
+  opacity: 0.28;
+  pointer-events: none;
+
+  &--a {
+    top: 5%;
+    left: 15%;
+    background: #67e8f9;
+  }
+
+  &--b {
+    right: 13%;
+    bottom: 3%;
+    background: #e879f9;
+  }
+}

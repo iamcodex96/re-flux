@@ -1,0 +1,80 @@
+// Responsive overrides for the Visual Lab layout and its scenes.
+@media (max-width: 960px) {
+  .visual-lab__layout {
+    align-items: flex-start;
+
+    > .ui-col:first-child {
+      align-self: auto;
+    }
+  }
+
+  .visual-lab-nav {
+    position: static;
+    top: auto;
+    max-height: none;
+    overflow: visible;
+
+    .ui-list-item {
+      min-width: 0;
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .visual-lab__intro {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .visual-lab__stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+
+    div {
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    span {
+      font-size: 0.68rem;
+    }
+  }
+
+  .scroll-stage__content {
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .scroll-stage__ring {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .counter-board {
+    grid-template-columns: 1fr;
+  }
+
+  .counter-tile {
+    padding: 14px;
+  }
+
+  .visual-lab__panel-heading {
+    align-items: flex-start;
+  }
+
+  .scroll-demo__viewport {
+    height: 390px;
+  }
+
+  .scroll-demo__runway {
+    min-height: 195px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kinetic-stage span {
+    will-change: auto;
+  }
+}

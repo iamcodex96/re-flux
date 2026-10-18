@@ -1,0 +1,26 @@
+.font-monospace {
+  font-family: var(--rx-font-mono), monospace;
+}
+
+.page-heading {
+  min-width: 0;
+  max-width: 100%;
+
+  &__description {
+    display: block;
+    width: min(100%, 680px);
+    max-width: 680px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.65;
+  }
+}
+
+.home-code {
+  margin: 0;
+  overflow-x: auto;
+  border: 1px solid var(--rx-color-border);
+  background: var(--rx-color-surface-sunken);
+  color: var(--rx-color-text);
+  font: 12px/1.85 var(--rx-font-mono), monospace;
+}

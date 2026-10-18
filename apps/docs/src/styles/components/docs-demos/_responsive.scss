@@ -1,0 +1,18 @@
+@media (max-width: 520px) {
+  .docs-gantt-row,
+  .docs-timeline-object-row {
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .docs-gantt-segment b {
+    padding-left: 2px;
+    font-size: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .docs-easing-tile .easing-curve__svg {
+    max-height: 74px;
+  }
+}

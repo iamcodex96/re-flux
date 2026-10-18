@@ -105,48 +105,48 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-container class="py-8 py-md-12" style="max-width: 1200px">
-<v-row align="start">
-      <v-col cols="12" md="4" lg="3">
-        <v-card variant="outlined">
-          <v-card-title class="d-flex align-center justify-space-between pa-4">
+  <UiContainer class="py-8 py-md-12" style="max-width: 1200px">
+<UiRow align="start">
+      <UiCol cols="12" md="4" lg="3">
+        <UiCard variant="outlined">
+          <UiCardTitle class="d-flex align-center justify-space-between pa-4">
             <div><div class="text-overline text-primary">Composition</div><h2 class="text-h6 ma-0">{{ steps.length }} segments</h2></div>
-            <v-chip size="small" variant="tonal">ms</v-chip>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
+            <UiChip size="small" variant="tonal">ms</UiChip>
+          </UiCardTitle>
+          <UiDivider />
+          <UiCardText class="pa-4">
             <div v-for="(step, index) in steps" :key="step.label" class="mb-6">
-              <div class="d-flex align-center ga-2 mb-3"><v-avatar color="primary" variant="tonal" size="28" class="text-caption font-weight-bold">{{ index + 1 }}</v-avatar><span class="text-subtitle-2 font-weight-bold">{{ step.label }}</span></div>
-              <div class="d-flex justify-end mb-1"><v-chip size="x-small" color="primary" variant="tonal">{{ step.duration }} ms</v-chip></div>
+              <div class="d-flex align-center ga-2 mb-3"><UiAvatar color="primary" variant="tonal" size="28" class="text-caption font-weight-bold">{{ index + 1 }}</UiAvatar><span class="text-subtitle-2 font-weight-bold">{{ step.label }}</span></div>
+              <div class="d-flex justify-end mb-1"><UiChip size="x-small" color="primary" variant="tonal">{{ step.duration }} ms</UiChip></div>
               <LabeledSlider label="Segment duration (milliseconds)" v-model="step.duration" :min="150" :max="1600" :step="50" class="mb-3" />
-              <v-select hide-details v-model="step.offset" label="Offset" :items="[{ title: 'Start at 0', value: 'start' }, { title: 'Sequential', value: 'seq' }, { title: '+= delay', value: 'plus' }, { title: '-= overlap', value: 'minus' }, { title: '< parallel', value: 'parallel' }, { title: 'Absolute', value: 'absolute' }]" class="mb-2" />
+              <UiSelect hide-details v-model="step.offset" label="Offset" :items="[{ title: 'Start at 0', value: 'start' }, { title: 'Sequential', value: 'seq' }, { title: '+= delay', value: 'plus' }, { title: '-= overlap', value: 'minus' }, { title: '< parallel', value: 'parallel' }, { title: 'Absolute', value: 'absolute' }]" class="mb-2" />
               <template v-if="step.offset === 'plus' || step.offset === 'minus'">
-                <div class="d-flex justify-end mb-1"><v-chip size="x-small" variant="tonal">{{ step.amount }} ms</v-chip></div>
+                <div class="d-flex justify-end mb-1"><UiChip size="x-small" variant="tonal">{{ step.amount }} ms</UiChip></div>
                 <LabeledSlider :label="step.offset === 'plus' ? 'Offset delay (milliseconds)' : 'Offset overlap (milliseconds)'" v-model="step.amount" :min="0" :max="500" :step="25" />
               </template>
               <template v-if="step.offset === 'absolute'">
-                <div class="d-flex justify-end mb-1"><v-chip size="x-small" variant="tonal">{{ step.absolute }} ms</v-chip></div>
+                <div class="d-flex justify-end mb-1"><UiChip size="x-small" variant="tonal">{{ step.absolute }} ms</UiChip></div>
                 <LabeledSlider label="Absolute start time (milliseconds)" v-model="step.absolute" :min="0" :max="2000" :step="50" />
               </template>
-              <v-divider v-if="index < steps.length - 1" class="mt-5" />
+              <UiDivider v-if="index < steps.length - 1" class="mt-5" />
             </div>
-          </v-card-text>
-          <v-divider />
-          <v-card-actions class="d-flex flex-column align-stretch pa-4 ga-2">
-            <v-btn block @click="applyOptions" color="primary" variant="flat" prepend-icon="mdi-refresh">Apply composition</v-btn>
+          </UiCardText>
+          <UiDivider />
+          <UiCardActions class="d-flex flex-column align-stretch pa-4 ga-2">
+            <UiButton block @click="applyOptions" color="primary" variant="flat" prepend-icon="mdi-refresh">Apply composition</UiButton>
             <p class="text-caption text-medium-emphasis mb-0">Offsets resolve in insertion order. Start times are clamped to zero.</p>
-          </v-card-actions>
-        </v-card>
-      </v-col>
+          </UiCardActions>
+        </UiCard>
+      </UiCol>
 
-      <v-col cols="12" md="8" lg="9">
-        <v-card variant="outlined">
-          <v-card-title class="d-flex flex-wrap align-center justify-space-between ga-3 pa-4">
+      <UiCol cols="12" md="8" lg="9">
+        <UiCard variant="outlined">
+          <UiCardTitle class="d-flex flex-wrap align-center justify-space-between ga-3 pa-4">
             <div><div class="text-overline text-primary">Timeline inspector</div><h2 class="text-h6 ma-0">Gantt view</h2></div>
-            <v-chip role="status" aria-live="polite" :color="state === 'running' ? 'success' : state === 'paused' ? 'warning' : state === 'completed' ? 'secondary' : 'default'" size="small" variant="tonal" dot>{{ state }}</v-chip>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4 pa-md-5">
+            <UiChip role="status" aria-live="polite" :color="state === 'running' ? 'success' : state === 'paused' ? 'warning' : state === 'completed' ? 'secondary' : 'default'" size="small" variant="tonal" dot>{{ state }}</UiChip>
+          </UiCardTitle>
+          <UiDivider />
+          <UiCardText class="pa-4 pa-md-5">
             <div class="gantt-ruler"><span>0 ms</span><span>{{ Math.round(duration / 2) }} ms</span><span>{{ Math.round(duration) }} ms</span></div>
             <div class="gantt-chart">
               <div class="gantt-playhead" :class="{ 'gantt-playhead--end': progress > 0.72 }" :style="{ left: `${Math.min(100, Math.max(0, progress * 100))}%` }"><span>{{ Math.round(progress * duration) }} ms</span></div>
@@ -155,28 +155,28 @@ onBeforeUnmount(() => {
                 <div class="gantt-lane"><div class="gantt-segment" role="img" :aria-label="`${segment.label}: starts at ${Math.round(segment.startTime)} milliseconds and ends at ${Number.isFinite(segment.endTime) ? Math.round(segment.endTime) + ' milliseconds' : 'infinity'}`" :class="`segment-${index}`" :style="{ left: `${segment.leftPercent}%`, width: `${segment.widthPercent}%` }"><span v-if="segment.widthPercent >= 17">{{ Math.round(segment.startTime) }}–{{ Number.isFinite(segment.endTime) ? Math.round(segment.endTime) : '∞' }} ms</span></div></div>
               </div>
             </div>
-            <v-progress-linear :model-value="progress * 100" aria-label="Timeline progress" :aria-valuetext="progressLabel" color="primary" height="6" rounded class="my-5" />
-            <v-row dense class="mb-4">
-              <v-col cols="4"><MetricTile label="Duration" :value="`${Math.round(timeline.duration)} ms`" /></v-col>
-              <v-col cols="4"><MetricTile label="Progress" :value="progressLabel" /></v-col>
-              <v-col cols="4"><MetricTile label="Segments" :value="segments.length" /></v-col>
-            </v-row>
+            <UiProgressLinear :model-value="progress * 100" aria-label="Timeline progress" :aria-valuetext="progressLabel" color="primary" height="6" rounded class="my-5" />
+            <UiRow dense class="mb-4">
+              <UiCol cols="4"><MetricTile label="Duration" :value="`${Math.round(timeline.duration)} ms`" /></UiCol>
+              <UiCol cols="4"><MetricTile label="Progress" :value="progressLabel" /></UiCol>
+              <UiCol cols="4"><MetricTile label="Segments" :value="segments.length" /></UiCol>
+            </UiRow>
             <div class="d-flex flex-wrap ga-2 mb-5">
-              <v-btn @click="playTimeline" color="primary" variant="flat" prepend-icon="mdi-play">Play</v-btn>
-              <v-btn @click="pauseTimeline" variant="tonal" prepend-icon="mdi-pause">Pause</v-btn>
-              <v-btn @click="stopTimeline" variant="tonal" prepend-icon="mdi-stop">Stop</v-btn>
-              <v-btn @click="restartTimeline" variant="tonal" prepend-icon="mdi-restart">Restart</v-btn>
+              <UiButton @click="playTimeline" color="primary" variant="flat" prepend-icon="mdi-play">Play</UiButton>
+              <UiButton @click="pauseTimeline" variant="tonal" prepend-icon="mdi-pause">Pause</UiButton>
+              <UiButton @click="stopTimeline" variant="tonal" prepend-icon="mdi-stop">Stop</UiButton>
+              <UiButton @click="restartTimeline" variant="tonal" prepend-icon="mdi-restart">Restart</UiButton>
             </div>
-            <div class="mb-5"><div class="d-flex justify-end mb-1"><v-chip size="small" variant="tonal">{{ progressLabel }}</v-chip></div><LabeledSlider label="Seek timeline progress" :model-value="progress" :min="0" :max="1" :step="0.01" @update:model-value="seekFromInput" /></div>
-            <v-btn @click="playAndWait" color="secondary" variant="outlined" prepend-icon="mdi-code-braces">Play and await with <code class="ml-1">await timeline</code></v-btn>
-          </v-card-text>
-        </v-card>
+            <div class="mb-5"><div class="d-flex justify-end mb-1"><UiChip size="small" variant="tonal">{{ progressLabel }}</UiChip></div><LabeledSlider label="Seek timeline progress" :model-value="progress" :min="0" :max="1" :step="0.01" @update:model-value="seekFromInput" /></div>
+            <UiButton @click="playAndWait" color="secondary" variant="outlined" prepend-icon="mdi-code-braces">Play and await with <code class="ml-1">await timeline</code></UiButton>
+          </UiCardText>
+        </UiCard>
 
-        <v-card variant="outlined" class="mt-4">
-          <v-card-title class="pa-4"><div><div class="text-overline text-primary">Children controlled by seek</div><h2 class="text-h6 ma-0">Items</h2></div></v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4"><div class="timeline-objects"><div v-for="(step, index) in steps" :key="step.label" class="timeline-object-row"><span>{{ step.label }}</span><div class="object-track"><div class="object-rail"><div class="object-box" :class="`segment-${index}`" :style="{ left: `${Math.min(1, Math.max(0, stepProgress[index] ?? 0)) * 100}%`, transform: `translateX(-50%) scale(${0.8 + (stepProgress[index] ?? 0) * 0.2})`, opacity: String(0.35 + (stepProgress[index] ?? 0) * 0.65) }"><span>{{ index + 1 }}</span></div></div></div><b>{{ Math.round((stepProgress[index] ?? 0) * 100) }}%</b></div></div></v-card-text>
-        </v-card>
+        <UiCard variant="outlined" class="mt-4">
+          <UiCardTitle class="pa-4"><div><div class="text-overline text-primary">Children controlled by seek</div><h2 class="text-h6 ma-0">Items</h2></div></UiCardTitle>
+          <UiDivider />
+          <UiCardText class="pa-4"><div class="timeline-objects"><div v-for="(step, index) in steps" :key="step.label" class="timeline-object-row"><span>{{ step.label }}</span><div class="object-track"><div class="object-rail"><div class="object-box" :class="`segment-${index}`" :style="{ left: `${Math.min(1, Math.max(0, stepProgress[index] ?? 0)) * 100}%`, transform: `translateX(-50%) scale(${0.8 + (stepProgress[index] ?? 0) * 0.2})`, opacity: String(0.35 + (stepProgress[index] ?? 0) * 0.65) }"><span>{{ index + 1 }}</span></div></div></div><b>{{ Math.round((stepProgress[index] ?? 0) * 100) }}%</b></div></div></UiCardText>
+        </UiCard>
 
         <EventLog
           class="mt-4"
@@ -186,7 +186,7 @@ onBeforeUnmount(() => {
           empty-message="Timeline and child events will appear here."
           @clear="logs = []"
         />
-      </v-col>
-    </v-row>
-  </v-container>
+      </UiCol>
+    </UiRow>
+  </UiContainer>
 </template>

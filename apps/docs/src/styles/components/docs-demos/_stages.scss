@@ -1,0 +1,62 @@
+// Small animated stage primitives used by the documentation examples.
+.docs-animation-stage {
+  position: relative;
+  height: 155px;
+  overflow: hidden;
+  border: 1px solid var(--rx-color-border);
+  border-radius: 8px;
+  background: var(--rx-color-surface-sunken);
+}
+
+.docs-stage-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(var(--rx-theme-on-surface), 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--rx-theme-on-surface), 0.045) 1px, transparent 1px);
+  background-size: 25px 25px;
+}
+
+.docs-stage-axis {
+  position: absolute;
+  top: 11px;
+  right: 14px;
+  left: 14px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted2);
+  font: 8px var(--mono);
+}
+
+.docs-demo-object-rail {
+  position: absolute;
+  top: 50%;
+  right: 22px;
+  left: 22px;
+  height: 1px;
+}
+
+.docs-demo-object {
+  position: absolute;
+  top: -21.5px;
+  left: 0;
+  display: grid;
+  width: 43px;
+  height: 43px;
+  place-items: center;
+  margin-top: 0;
+  border: 1px solid var(--rx-color-primary);
+  border-radius: 11px;
+  background: linear-gradient(145deg, var(--rx-color-primary), var(--rx-color-primary-strong));
+  color: var(--rx-color-on-primary);
+  font: 11px var(--mono);
+  box-shadow: 0 8px 25px rgba(var(--rx-theme-primary), 0.19);
+}
+
+.docs-stage-caption {
+  position: absolute;
+  right: 12px;
+  bottom: 9px;
+  color: var(--rx-color-text-subtle);
+  font: 8px var(--mono);
+}

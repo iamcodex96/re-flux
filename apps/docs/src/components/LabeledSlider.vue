@@ -33,12 +33,12 @@ function updateValue(value: number | number[]): void {
 <template>
   <div class="labeled-slider" v-bind="$attrs">
     <div class="labeled-slider__heading">
-      <v-label :id="labelId" class="labeled-slider__label">{{ props.label }}</v-label>
-      <v-chip v-if="props.valueText !== undefined" size="x-small" color="primary" variant="tonal">
+      <UiLabel :id="labelId" class="labeled-slider__label">{{ props.label }}</UiLabel>
+      <UiChip v-if="props.valueText !== undefined" size="x-small" color="primary" variant="tonal">
         {{ props.valueText }}
-      </v-chip>
+      </UiChip>
     </div>
-    <v-slider
+    <UiSlider
       :model-value="props.modelValue"
       :min="props.min"
       :max="props.max"

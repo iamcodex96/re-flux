@@ -93,13 +93,4 @@ const outputRange = computed(() => `${outputExtent.value.min.toFixed(2)} to ${ou
   </div>
 </template>
 
-<style scoped>
-.easing-curve-chart { display: block; min-width: 0; width: 100%; max-width: 100%; }
-.easing-curve__svg { display: block; width: 100%; height: auto; max-height: 220px; overflow: hidden; }
-.easing-curve__grid line { stroke: rgba(var(--v-theme-on-surface), .12); stroke-width: .8; vector-effect: non-scaling-stroke; }
-.easing-curve__reference { fill: none; stroke: rgb(var(--v-theme-on-surface)); stroke-opacity: .38; stroke-width: 1.2; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
-.easing-curve__line { fill: none; stroke: rgb(var(--v-theme-primary)); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.easing-curve__point { fill: rgb(var(--v-theme-secondary)); stroke: rgb(var(--v-theme-surface)); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.easing-curve__legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; padding-top: 5px; color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity)); font: 10px/1.5 var(--rx-font-mono), monospace; }
-.easing-curve-chart--compact .easing-curve__svg { max-height: 94px; }
-</style>
+<style scoped lang="scss" src="../styles/components/easing-curve.scss"></style>

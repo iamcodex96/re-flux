@@ -166,11 +166,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-row class="visual-demo-grid">
-    <v-col cols="12">
-        <v-card class="visual-card visual-card--counters" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="success">05 / Data</v-chip><span class="text-caption text-medium-emphasis">Numeric interpolation</span></div>
+  <UiRow class="visual-demo-grid">
+    <UiCol cols="12">
+        <UiCard class="visual-card visual-card--counters" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="success">05 / Data</UiChip><span class="text-caption text-medium-emphasis">Numeric interpolation</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Values can be the animation.</h3>
             <p class="text-body-2 text-medium-emphasis">Count-ups and metric transitions are driven by the same timeline engine. This scene starts when it enters the viewport, then cleans up its text bindings on teardown.</p>
             <div ref="counterPanel" class="counter-board">
@@ -178,51 +178,51 @@ onBeforeUnmount(() => {
               <div class="counter-tile"><span>Frame latency</span><strong ref="countLatency">980 ms</strong><small>to 16 ms</small></div>
               <div class="counter-tile"><span>Availability</span><strong ref="countUptime">0.00%</strong><small>target reached</small></div>
             </div>
-            <div class="d-flex justify-space-between align-center mt-4 ga-3"><span class="text-caption text-medium-emphasis">animateNumber(element, { from, to, format })</span><div class="d-flex align-center ga-2"><v-btn color="success" variant="tonal" size="small" aria-label="Replay metric counters" @click="replayCounters"><v-icon start>mdi-replay</v-icon>Replay</v-btn><v-icon color="success">mdi-counter</v-icon></div></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex justify-space-between align-center mt-4 ga-3"><span class="text-caption text-medium-emphasis">animateNumber(element, { from, to, format })</span><div class="d-flex align-center ga-2"><UiButton color="success" variant="tonal" size="small" aria-label="Replay metric counters" @click="replayCounters"><UiIcon start>mdi-replay</UiIcon>Replay</UiButton><UiIcon color="success">mdi-counter</UiIcon></div></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card visual-card--drag" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="warning">06 / Interaction</v-chip><span class="text-caption text-medium-emphasis">Pointer physics</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card visual-card--drag" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="warning">06 / Interaction</UiChip><span class="text-caption text-medium-emphasis">Pointer physics</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Drag it. Release it. Let physics finish.</h3>
             <p class="text-body-2 text-medium-emphasis">This interaction combines pointer capture, filtered velocity, dynamic bounds, inertial release, eased snap-to-grid and keyboard arrows. Try dragging quickly, then use the arrow keys.</p>
             <div ref="draggableStage" class="draggable-stage">
               <div class="draggable-stage__grid" aria-hidden="true"></div>
-              <div ref="draggableOrb" class="draggable-orb" role="group" aria-label="Draggable reactive orb. Use arrow keys to move it."><v-icon size="28">mdi-atom-variant</v-icon></div>
+              <div ref="draggableOrb" class="draggable-orb" role="group" aria-label="Draggable reactive orb. Use arrow keys to move it."><UiIcon size="28">mdi-atom-variant</UiIcon></div>
               <span class="draggable-stage__hint">DRAG / ARROW KEYS</span>
             </div>
-            <div class="d-flex align-center justify-space-between mt-4 ga-3"><span class="text-caption text-medium-emphasis">draggable(element, { getBounds, friction })</span><v-btn size="small" variant="tonal" color="primary" @click="resetDraggable">Reset <v-icon end>mdi-restore</v-icon></v-btn></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex align-center justify-space-between mt-4 ga-3"><span class="text-caption text-medium-emphasis">draggable(element, { getBounds, friction })</span><UiButton size="small" variant="tonal" color="primary" @click="resetDraggable">Reset <UiIcon end>mdi-restore</UiIcon></UiButton></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="success">13 / Typography</v-chip><span class="text-caption text-medium-emphasis">Staggered characters</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="success">13 / Typography</UiChip><span class="text-caption text-medium-emphasis">Staggered characters</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Let type become a visual element.</h3>
             <p class="text-body-2 text-medium-emphasis">Character-level timing, rotation and opacity produce a reveal that feels more tactile than a single translation.</p>
             <div ref="kineticTitle" class="kinetic-stage">Reactive motion.</div>
-            <div class="d-flex justify-space-between align-center mt-4 ga-3"><span class="text-caption text-medium-emphasis">animateText(element, { splitBy, stagger, easing })</span><v-btn color="primary" variant="tonal" size="small" aria-label="Replay staggered typography animation" @click="replayKineticText"><v-icon start>mdi-replay</v-icon>Replay</v-btn></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex justify-space-between align-center mt-4 ga-3"><span class="text-caption text-medium-emphasis">animateText(element, { splitBy, stagger, easing })</span><UiButton color="primary" variant="tonal" size="small" aria-label="Replay staggered typography animation" @click="replayKineticText"><UiIcon start>mdi-replay</UiIcon>Replay</UiButton></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="warning">14 / Layout</v-chip><span class="text-caption text-medium-emphasis">FLIP transition</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="warning">14 / Layout</UiChip><span class="text-caption text-medium-emphasis">FLIP transition</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Animate layout changes, not just transforms.</h3>
             <p class="text-body-2 text-medium-emphasis">Reorder these tiles. FLIP measures their old and new geometry, then animates the inverse transform back to identity.</p>
             <div ref="layoutTarget" class="layout-stage">
-              <div v-for="number in [1, 2, 3, 4]" :key="number" class="layout-tile" :data-tile="number"><span>0{{ number }}</span><v-icon size="18">{{ ['mdi-shape-outline', 'mdi-hexagon-outline', 'mdi-circle-outline', 'mdi-triangle-outline'][number - 1] }}</v-icon></div>
+              <div v-for="number in [1, 2, 3, 4]" :key="number" class="layout-tile" :data-tile="number"><span>0{{ number }}</span><UiIcon size="18">{{ ['mdi-shape-outline', 'mdi-hexagon-outline', 'mdi-circle-outline', 'mdi-triangle-outline'][number - 1] }}</UiIcon></div>
             </div>
-            <div class="d-flex align-center justify-space-between mt-4 ga-3"><span class="text-caption text-medium-emphasis">flip(elements, mutate, options)</span><v-btn color="primary" variant="tonal" size="small" @click="toggleLayout">{{ layoutReversed ? 'Restore order' : 'Reorder tiles' }}<v-icon end>mdi-swap-horizontal</v-icon></v-btn></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-  </v-row>
+            <div class="d-flex align-center justify-space-between mt-4 ga-3"><span class="text-caption text-medium-emphasis">flip(elements, mutate, options)</span><UiButton color="primary" variant="tonal" size="small" @click="toggleLayout">{{ layoutReversed ? 'Restore order' : 'Reorder tiles' }}<UiIcon end>mdi-swap-horizontal</UiIcon></UiButton></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
+  </UiRow>
 </template>

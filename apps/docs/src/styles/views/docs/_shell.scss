@@ -1,0 +1,150 @@
+// Documentation shell: full-height workspace on desktop, normal document flow
+// for the mobile layout. The content rail remains readable inside a full-width app.
+
+.ui-main.docs-main {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#main-content.docs-main-content {
+  box-sizing: border-box;
+  height: calc(100dvh - var(--rx-site-header-height, 68px));
+  min-height: 0;
+  overflow: hidden;
+}
+
+.docs-viewport {
+  width: 100%;
+  max-width: none !important;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.docs-layout {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr) 220px;
+  gap: 0;
+  width: 100%;
+  max-width: 1680px;
+  height: 100%;
+  min-height: 0;
+  margin-inline: auto;
+}
+
+.docs-sidebar,
+.docs-article-column,
+.docs-toc-column {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.docs-sidebar {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-right: 1px solid rgba(var(--rx-border-color), var(--rx-border-opacity));
+  padding: 20px 12px 22px;
+  scrollbar-gutter: stable;
+
+  &__inner {
+    display: flex;
+    width: 100%;
+    max-width: 248px;
+    min-height: 100%;
+    flex-direction: column;
+    margin-inline: auto;
+  }
+
+  &__heading {
+    padding: 3px 10px 18px;
+    border-bottom: 1px solid rgba(var(--rx-border-color), var(--rx-border-opacity));
+  }
+
+  &__eyebrow {
+    color: rgb(var(--rx-theme-primary));
+    font: 600 0.65rem/1.4 var(--rx-font-mono), monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  &__title {
+    margin-top: 3px;
+    font-size: 1rem;
+    font-weight: 750;
+    letter-spacing: -0.035em;
+  }
+
+  &__navigation {
+    padding-top: 4px;
+  }
+
+  &__group {
+    margin-top: 19px;
+  }
+
+  &__group-label {
+    margin: 0 10px 7px;
+    color: rgba(var(--rx-theme-on-surface), 0.58);
+    font-size: 0.64rem;
+    font-weight: 750;
+    line-height: 1.4;
+    letter-spacing: 0.075em;
+  }
+
+  &__link {
+    display: block;
+    margin: 2px 0;
+    padding: 7px 10px;
+    border-radius: 6px;
+    color: rgba(var(--rx-theme-on-surface), 0.76);
+    font-size: 0.79rem;
+    font-weight: 500;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+    transition: background-color 140ms ease, color 140ms ease;
+
+    &:hover {
+      background: rgba(var(--rx-theme-on-surface), 0.055);
+      color: rgb(var(--rx-theme-on-surface));
+    }
+
+    &--active {
+      background: rgba(var(--rx-theme-primary), 0.105);
+      color: rgb(var(--rx-theme-primary));
+      font-weight: 700;
+
+      &:hover {
+        background: rgba(var(--rx-theme-primary), 0.14);
+        color: rgb(var(--rx-theme-primary));
+      }
+    }
+  }
+
+  &__footer {
+    display: grid;
+    gap: 4px;
+    margin-top: auto;
+    padding: 24px 8px 0;
+  }
+
+  &__utility-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 9px;
+    border-radius: 6px;
+    color: rgba(var(--rx-theme-on-surface), 0.72);
+    font-size: 0.75rem;
+    text-decoration: none;
+
+    &:hover {
+      background: rgba(var(--rx-theme-on-surface), 0.055);
+      color: rgb(var(--rx-theme-on-surface));
+    }
+  }
+}

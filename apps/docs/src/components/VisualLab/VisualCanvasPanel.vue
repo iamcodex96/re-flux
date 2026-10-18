@@ -104,77 +104,77 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-row class="visual-demo-grid">
-    <v-col cols="12">
-        <v-card class="visual-card visual-card--frequency" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="secondary">07 / Data visualization</v-chip><span class="text-caption text-medium-emphasis">Frequency bins</span></div>
+  <UiRow class="visual-demo-grid">
+    <UiCol cols="12">
+        <UiCard class="visual-card visual-card--frequency" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="secondary">07 / Data visualization</UiChip><span class="text-caption text-medium-emphasis">Frequency bins</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Animate data, not only coordinates.</h3>
             <p class="text-body-2 text-medium-emphasis">The drawing helper consumes normalized samples. This example synthesizes frequency bins; in a real scene, feed values from Web Audio or application telemetry.</p>
             <div class="canvas-stage canvas-stage--frequency"><canvas ref="frequencyCanvas" aria-label="Animated cyan and violet frequency bar visualization" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawFrequencyBars(context, values, size)</span><v-icon color="secondary">mdi-waveform</v-icon></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawFrequencyBars(context, values, size)</span><UiIcon color="secondary">mdi-waveform</UiIcon></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card visual-card--fireworks" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="warning">08 / Canvas</v-chip><span class="text-caption text-medium-emphasis">Procedural particles</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card visual-card--fireworks" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="warning">08 / Canvas</UiChip><span class="text-caption text-medium-emphasis">Procedural particles</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Burst, trail and fade — without a mutable particle engine.</h3>
             <p class="text-body-2 text-medium-emphasis">Firework trails are derived from a single phase. The drawing function is deterministic for a given frame, so it can be paused, scrubbed or driven by any Observable.</p>
             <div class="canvas-stage canvas-stage--fireworks"><canvas ref="fireworksCanvas" aria-label="Procedural coral and gold fireworks with glowing trails" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawFireworks(context, phase, size)</span><v-icon color="warning">mdi-firework</v-icon></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawFireworks(context, phase, size)</span><UiIcon color="warning">mdi-firework</UiIcon></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card visual-card--canvas" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="info">09 / Canvas</v-chip><span class="text-caption text-medium-emphasis">Particle field</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card visual-card--canvas" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="info">09 / Canvas</UiChip><span class="text-caption text-medium-emphasis">Particle field</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Emergent motion from simple rules.</h3>
             <p class="text-body-2 text-medium-emphasis">A time stream drives a field of particles and proximity links. Rendering is batched through the shared frame coordinator.</p>
             <div class="canvas-stage"><canvas ref="particleCanvas" aria-label="Animated constellation of connected cyan and violet particles" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">resizeCanvas() + bindCanvas()</span><v-icon color="info">mdi-creation</v-icon></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">resizeCanvas() + bindCanvas()</span><UiIcon color="info">mdi-creation</UiIcon></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card visual-card--wave" variant="outlined" height="100%">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="purple">10 / Canvas</v-chip><span class="text-caption text-medium-emphasis">Procedural curves</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card visual-card--wave" variant="outlined" height="100%">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="purple">10 / Canvas</UiChip><span class="text-caption text-medium-emphasis">Procedural curves</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Waveforms as live data.</h3>
             <p class="text-body-2 text-medium-emphasis">Several harmonic layers update from one phase value, with no animation loop inside the drawing callback.</p>
             <div class="canvas-stage canvas-stage--wave"><canvas ref="waveCanvas" aria-label="Four layered animated sine wave curves" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">One phase stream · four layers</span><v-icon color="purple">mdi-sine-wave</v-icon></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">One phase stream · four layers</span><UiIcon color="purple">mdi-sine-wave</UiIcon></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card visual-card--wireframe" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="info">11 / Canvas 3D</v-chip><span class="text-caption text-medium-emphasis">Projected wireframe</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card visual-card--wireframe" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="info">11 / Canvas 3D</UiChip><span class="text-caption text-medium-emphasis">Projected wireframe</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Animate geometry in three dimensions.</h3>
             <p class="text-body-2 text-medium-emphasis">Latitude and longitude curves are projected from a rotating 3D sphere into Canvas 2D. Depth changes opacity and line weight, producing a light-weight scientific visualization.</p>
             <div class="canvas-stage canvas-stage--wireframe"><canvas ref="wireframeCanvas" aria-label="A rotating cyan and violet wireframe sphere" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawWireframeSphere(context, phase, size)</span><v-icon color="info">mdi-orbit</v-icon></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawWireframeSphere(context, phase, size)</span><UiIcon color="info">mdi-orbit</UiIcon></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
 
-<v-col cols="12">
-        <v-card class="visual-card visual-card--radial" variant="outlined">
-          <v-card-text class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><v-chip size="small" variant="tonal" color="secondary">12 / Canvas</v-chip><span class="text-caption text-medium-emphasis">Radial spectrum</span></div>
+<UiCol cols="12">
+        <UiCard class="visual-card visual-card--radial" variant="outlined">
+          <UiCardText class="pa-5 pa-md-6">
+            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="secondary">12 / Canvas</UiChip><span class="text-caption text-medium-emphasis">Radial spectrum</span></div>
             <h3 class="text-h6 font-weight-bold mt-4 mb-2">Procedural data becomes an instrument.</h3>
             <p class="text-body-2 text-medium-emphasis">A radial spectrum pattern changes its bars, accent rhythm and rings from a single stream. It can later consume audio amplitudes or application metrics instead of a procedural phase.</p>
             <div class="canvas-stage canvas-stage--radial"><canvas ref="radialCanvas" aria-label="An animated circular spectrum made of cyan and violet radial bars" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawRadialSpectrum(context, phase, size)</span><v-icon color="secondary">mdi-chart-donut</v-icon></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-  </v-row>
+            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawRadialSpectrum(context, phase, size)</span><UiIcon color="secondary">mdi-chart-donut</UiIcon></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
+  </UiRow>
 </template>

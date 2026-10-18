@@ -1,0 +1,6 @@
+// Documentation styles: shell, article layout, navigation and responsive behavior.
+@use './docs/shell';
+@use './docs/article-shell';
+@use './docs/navigation';
+@use './docs/content';
+@use './docs/responsive';

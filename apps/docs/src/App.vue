@@ -1,30 +1,62 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
-import { useTheme } from 'vuetify';
 import { useAppStore } from './stores/app';
 
+type ThemeName = 'dark' | 'light';
 const route = useRoute();
-const theme = useTheme();
 const appStore = useAppStore();
 const copy = computed(() => appStore.app.view.navigation);
-const isDark = computed(() => theme.global.current.value.dark);
-const navigation = computed(() => [
-  { label: copy.value.documentation, icon: 'mdi-book-open-page-variant', to: '/docs' },
-]);
+const themeName = ref<ThemeName>('dark');
+const isDark = computed(() => themeName.value === 'dark');
+const isHomeRoute = computed(() => route.path === '/');
 const isDocsRoute = computed(() => route.path.startsWith('/docs'));
+const isVisualRoute = computed(() => route.path.startsWith('/visuals'));
+const isPlaygroundRoute = computed(() => route.path.startsWith('/playground'));
+const mobileMenuOpen = ref(false);
+const currentYear = new Date().getFullYear();
 
-function persistTheme(name: string): void {
+const navigation = [
+  { label: 'Visual Lab', icon: 'mdi-flask-outline', to: '/visuals' },
+  { label: 'Playground', icon: 'mdi-play-circle-outline', to: '/playground' },
+  { label: 'Docs', icon: 'mdi-book-open-page-variant-outline', to: '/docs' },
+];
+
+function isActive(to: string): boolean {
+  if (to === '/visuals') return isVisualRoute.value;
+  if (to === '/playground') return isPlaygroundRoute.value;
+  if (to === '/docs') return isDocsRoute.value;
+  return route.path === to;
+}
+
+function persistTheme(name: ThemeName): void {
   try {
     window.localStorage.setItem('re-flux-theme', name);
   } catch {
-    // Theme switching still works if storage is disabled by the browser.
+    // Theme switching still works if browser storage is disabled.
   }
 }
 
+function applyTheme(name: ThemeName): void {
+  themeName.value = name;
+  if (typeof document === 'undefined') return;
+  document.documentElement.dataset.rxTheme = name;
+  document.documentElement.style.colorScheme = name;
+
+  const background = getComputedStyle(document.documentElement).getPropertyValue('--rx-theme-background').trim();
+  let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    document.head.append(meta);
+  }
+  meta.content = background ? `rgb(${background})` : (name === 'dark' ? '#0c0e13' : '#f7f8fc');
+}
+
 function toggleTheme(): void {
-  theme.global.name.value = isDark.value ? 'rxLight' : 'rxDark';
-  persistTheme(theme.global.name.value);
+  const next = isDark.value ? 'light' : 'dark';
+  applyTheme(next);
+  persistTheme(next);
 }
 
 function skipToMainContent(): void {
@@ -37,21 +69,6 @@ function skipToMainContent(): void {
   });
 }
 
-watch(() => theme.global.current.value.colors.background, (background) => {
-  if (typeof document === 'undefined' || typeof background !== 'string') return;
-  const themeName = isDark.value ? 'dark' : 'light';
-  document.documentElement.dataset.rxTheme = themeName;
-  document.documentElement.style.colorScheme = themeName;
-
-  let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (!meta) {
-    meta = document.createElement('meta');
-    meta.name = 'theme-color';
-    document.head.append(meta);
-  }
-  meta.content = background;
-}, { immediate: true });
-
 onMounted(() => {
   let savedTheme: string | null = null;
   try {
@@ -60,147 +77,124 @@ onMounted(() => {
     // Fall back to the operating-system preference when storage is unavailable.
   }
 
-  if (savedTheme === 'rxDark' || savedTheme === 'rxLight') {
-    theme.global.name.value = savedTheme;
+  if (savedTheme === 'dark' || savedTheme === 'light') {
+    applyTheme(savedTheme);
+  } else if (savedTheme === 'rxDark' || savedTheme === 'rxLight') {
+    applyTheme(savedTheme === 'rxLight' ? 'light' : 'dark');
   } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-    theme.global.name.value = 'rxLight';
+    applyTheme('light');
+  } else {
+    applyTheme('dark');
   }
 });
 
 watch(() => route.fullPath, async () => {
+  mobileMenuOpen.value = false;
   await nextTick();
   document.getElementById('main-content')?.focus({ preventScroll: true });
 }, { flush: 'post' });
 </script>
 
 <template>
-  <v-app :class="isDark ? 'rx-theme--dark' : 'rx-theme--light'">
+  <div class="site-shell" :class="{ 'site-shell--home': isHomeRoute, 'site-shell--docs': isDocsRoute }">
     <a class="skip-link" href="#main-content" @click.prevent="skipToMainContent">{{ copy.skipToMainContent }}</a>
 
-    <v-app-bar flat height="68" color="background" class="site-app-bar">
-      <div class="site-app-bar__inner">
+    <header class="site-header" :class="{ 'site-header--menu-open': mobileMenuOpen }">
+      <div class="site-header__inner">
         <RouterLink to="/" class="site-brand" :aria-label="copy.homeAriaLabel">
-          <span class="site-brand__mark" aria-hidden="true">re;</span>
-          <span class="site-brand__word">Flux<span class="site-brand__period">.</span></span>
+          <span class="site-brand__mark" aria-hidden="true"><span>re;</span></span>
+          <span class="site-brand__word">re;Flux<span class="site-brand__period">.</span></span>
         </RouterLink>
 
-        <div class="site-app-bar__actions">
-          <nav class="site-navigation" :aria-label="copy.mainNavigationAriaLabel">
-            <v-btn
-              v-for="item in navigation"
-              :key="item.to"
-              :to="item.to"
-              :active="item.to === '/docs' ? isDocsRoute : route.path === item.to"
-              :aria-current="(item.to === '/docs' ? isDocsRoute : route.path === item.to) ? 'page' : undefined"
-              :aria-label="item.label"
-              :title="item.label"
-              variant="text"
-              color="primary"
-              rounded="lg"
-              size="small"
-              class="site-navigation__link"
-            >
-              <v-icon class="site-navigation__icon" size="17" :icon="item.icon" />
-              <span class="site-navigation__label">{{ item.label }}</span>
-            </v-btn>
-          </nav>
+        <nav id="primary-navigation" class="site-navigation" :class="{ 'site-navigation--open': mobileMenuOpen }" :aria-label="copy.mainNavigationAriaLabel">
+          <RouterLink
+            v-for="item in navigation"
+            :key="item.to"
+            :to="item.to"
+            class="site-navigation__link"
+            :class="{ 'site-navigation__link--active': isActive(item.to) }"
+            :aria-current="isActive(item.to) ? 'page' : undefined"
+            @click="mobileMenuOpen = false"
+          >
+            <UiIcon :icon="item.icon" class="site-navigation__icon" />
+            <span>{{ item.label }}</span>
+          </RouterLink>
+        </nav>
 
-          <v-divider vertical class="site-app-bar__divider" />
-
-          <v-btn
-            icon
-            variant="text"
-            rounded="lg"
-            size="small"
+        <div class="site-header__actions">
+          <a class="site-github-link" href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener" aria-label="re;Flux on GitHub" title="GitHub">
+            <UiIcon icon="mdi-github" />
+          </a>
+          <button
+            v-if="!isHomeRoute"
             class="site-theme-toggle"
+            type="button"
             :aria-label="isDark ? copy.switchToLightTheme : copy.switchToDarkTheme"
             :title="isDark ? copy.switchToLightTheme : copy.switchToDarkTheme"
             :aria-pressed="isDark"
             @click="toggleTheme"
           >
-            <v-icon>{{ isDark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
-          </v-btn>
+            <UiIcon :icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'" />
+          </button>
+          <button
+            class="site-menu-toggle"
+            type="button"
+            :aria-expanded="mobileMenuOpen"
+            aria-controls="primary-navigation"
+            :aria-label="mobileMenuOpen ? 'Close navigation' : 'Open navigation'"
+            @click="mobileMenuOpen = !mobileMenuOpen"
+          >
+            <UiIcon :icon="mobileMenuOpen ? 'mdi-close' : 'mdi-menu'" />
+          </button>
         </div>
       </div>
-    </v-app-bar>
+    </header>
 
-    <v-main :class="{ 'docs-main': isDocsRoute }">
-      <main id="main-content" tabindex="-1" :class="{ 'docs-main-content': isDocsRoute }">
-        <RouterView />
-      </main>
-      <v-footer v-if="!isDocsRoute" border="t" color="background" class="py-4 px-4 px-md-8">
-        <v-container class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-3 px-0" max-width="1240">
-          <span class="text-body-2 text-medium-emphasis"><strong class="text-high-emphasis">Flux</strong> · {{ copy.footerTagline }}</span>
-          <div class="d-flex flex-wrap align-center ga-2 text-caption text-medium-emphasis">
-            <span>{{ copy.strictTypeScript }}</span><v-icon aria-hidden="true" size="5" color="secondary">mdi-circle</v-icon>
-            <span>{{ copy.vue }}</span><v-icon aria-hidden="true" size="5" color="secondary">mdi-circle</v-icon>
-            <span>{{ copy.rxjs }}</span><v-icon aria-hidden="true" size="5" color="secondary">mdi-circle</v-icon>
-            <span>{{ copy.vuetify }}</span>
+    <main id="main-content" class="site-main" :class="{ 'docs-main': isDocsRoute }" tabindex="-1">
+      <RouterView />
+    </main>
+
+    <footer v-if="!isDocsRoute" class="site-footer">
+      <div class="site-footer__inner">
+        <div class="site-footer__top">
+          <div class="site-footer__brand-column">
+            <RouterLink to="/" class="site-brand site-footer__brand" :aria-label="copy.homeAriaLabel">
+              <span class="site-brand__mark" aria-hidden="true"><span>re;</span></span>
+              <span class="site-brand__word">re;Flux<span class="site-brand__period">.</span></span>
+            </RouterLink>
+            <p>Reactive motion architecture for interfaces, graphics, and interactive experiences.</p>
+            <div class="site-footer__badges"><span>TypeScript 5.4+</span><span>RxJS 7.8+</span><span>MIT License</span></div>
           </div>
-        </v-container>
-      </v-footer>
-    </v-main>
-  </v-app>
+
+          <div class="site-footer__group">
+            <h2>Engine</h2>
+            <RouterLink to="/visuals">Visual Lab</RouterLink>
+            <RouterLink to="/playground">Playground</RouterLink>
+            <RouterLink to="/docs/rendering">Render adapters</RouterLink>
+          </div>
+
+          <div class="site-footer__group">
+            <h2>Resources</h2>
+            <RouterLink to="/docs/introduction">Documentation</RouterLink>
+            <RouterLink to="/docs/streams">Reactive streams</RouterLink>
+            <RouterLink to="/docs/interactions">Spring dynamics</RouterLink>
+          </div>
+
+          <div class="site-footer__group">
+            <h2>Connect</h2>
+            <a href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener">GitHub source <span aria-hidden="true">↗</span></a>
+            <a href="https://www.npmjs.com/package/@re-code/flux" target="_blank" rel="noreferrer noopener">npm registry <span aria-hidden="true">↗</span></a>
+            <a href="https://github.com/iamcodex96/re-flux/issues" target="_blank" rel="noreferrer noopener">Report an issue <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+
+        <div class="site-footer__bottom">
+          <span>© {{ currentYear }} re;Flux. Released under MIT.</span>
+          <span>Built with TypeScript · RxJS · Vue</span>
+        </div>
+      </div>
+    </footer>
+  </div>
 </template>
 
-<style scoped>
-.site-app-bar {
-  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  background: rgba(var(--v-theme-background), 0.88) !important;
-  backdrop-filter: blur(18px) saturate(1.2);
-}
-.site-app-bar :deep(.v-toolbar__content) {
-  box-sizing: border-box;
-  width: 100%;
-  height: 68px !important;
-  min-height: 68px;
-  padding: 0 !important;
-  display: flex;
-  align-items: center;
-}
-.site-app-bar__inner {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 1280px;
-  height: 100%;
-  flex: 1 1 auto;
-  min-width: 0;
-  margin-inline: auto;
-  padding-inline: clamp(14px, calc((100vw - 1240px) / 2), 40px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-.site-brand { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; text-decoration: none; color: rgb(var(--v-theme-on-background)); white-space: nowrap; }
-.site-brand__mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: rgb(var(--v-theme-primary)); color: rgb(var(--v-theme-on-primary)); font-family: var(--rx-font-mono), monospace; font-size: 13px; font-weight: 700; box-shadow: 0 4px 16px rgba(var(--v-theme-primary), .2); }
-.site-brand__word { font-size: 1rem; font-weight: 800; letter-spacing: -.04em; }
-.site-brand__period { color: rgb(var(--v-theme-secondary)); }
-.site-app-bar__actions { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; min-width: 0; gap: 10px; }
-.site-navigation { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; }
-.site-navigation__link { min-width: 0; padding-inline: 13px !important; font-size: .8125rem; font-weight: 650; white-space: nowrap; }
-.site-navigation__link :deep(.v-btn__overlay) { opacity: 0; }
-.site-navigation__link.v-btn--active { background: rgba(var(--v-theme-primary), .12); color: rgb(var(--v-theme-primary)) !important; }
-.site-navigation__link.v-btn--active::after { content: ''; position: absolute; inset: auto 13px -2px; height: 2px; border-radius: 2px; background: rgb(var(--v-theme-primary)); }
-.site-navigation__icon { display: none; }
-.site-app-bar__divider { height: 24px; opacity: .7; }
-.site-theme-toggle { flex: 0 0 auto; width: 38px; height: 38px; }
-
-@media (max-width: 600px) {
-  .site-app-bar__inner { padding-inline: 14px; gap: 12px; }
-  .site-app-bar__actions { gap: 7px; }
-  .site-navigation { gap: 1px; }
-  .site-navigation__link { padding-inline: 10px !important; }
-}
-@media (max-width: 410px) {
-  .site-app-bar__inner { padding-inline: 10px; gap: 8px; }
-  .site-brand { gap: 7px; }
-  .site-brand__mark { width: 30px; height: 30px; }
-  .site-brand__word { font-size: .9rem; }
-  .site-navigation__link { width: 36px; min-width: 36px !important; padding: 0 !important; }
-  .site-navigation__label { display: none; }
-  .site-navigation__icon { display: inline-flex; }
-  .site-app-bar__actions { gap: 5px; }
-  .site-app-bar__divider { margin-inline: 1px; }
-}
-</style>
+<style scoped lang="scss" src="./styles/components/app.scss"></style>

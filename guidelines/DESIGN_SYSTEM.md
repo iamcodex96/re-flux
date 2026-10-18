@@ -1,6 +1,6 @@
 # Documentation design system
 
-The docs frontend is migrating from a component-framework-led layout to a small, product-specific design system built on Vue 3, TypeScript, SCSS, and CSS custom properties. Vuetify remains temporarily in place while existing views are migrated; new page-level layouts should not add more dependency on Vuetify's grid or spacing utilities.
+The docs frontend uses Vue 3, TypeScript, SCSS, CSS custom properties, and the small product-specific primitives in `components/ui/UiPrimitives.ts`. The UI primitives are intentionally lightweight and implemented with semantic HTML; avoid introducing a component-framework dependency for ordinary presentation.
 
 ## Layout principles
 
@@ -12,16 +12,21 @@ The docs frontend is migrating from a component-framework-led layout to a small,
 
 ## Styling ownership
 
-- `src/styles/_tokens.scss` owns the product's color, typography, spacing, radius, content-width, and focus-ring tokens. These tokens are independent of Vuetify so the app can finish migrating without rewriting every visual value.
-- `src/styles/_layout.scss` owns small layout primitives such as content rails, full-bleed sections, stacks, and responsive grids.
-- `src/style.scss` owns global resets, focus behavior, shared accessibility styles, and legacy selectors that will be removed as views migrate.
-- `src/styles/visualizations.scss` owns bespoke visualization and motion-demo styling.
-- `src/styles/visual-lab.scss` owns the Visual Lab-specific presentation.
-- Component-scoped styles should own styles used by only one Vue component. Promote a pattern into shared styling only when multiple views genuinely need it.
+All shared/global Sass lives under `apps/docs/src/styles/` and is assembled through `main.scss`:
+
+- `abstracts/_tokens.scss` owns product colors, typography, spacing, radii, content widths, and focus-ring tokens.
+- `base/` owns the reset, typography primitives, and accessibility behavior.
+- `layout/_primitives.scss` owns reusable content rails, full-bleed sections, stacks, and responsive grids.
+- `components/` owns shared UI primitives, code presentations, docs demos, and reusable playground components.
+- `views/` owns page-level styling. Long pages are split into purpose-named subfolders: `docs/` separates the application/sidebar shell, article layout, navigation, article content and responsive rules; `home/` separates the hero, story, Visual Lab gallery, principles, closing section and responsive behavior; `visual-lab/` separates layout, scenes, navigation, scroll scenes and responsive rules; `playgrounds/` separates stages by animation primitive and a shared responsive layer. The underscored files at `views/_*.scss` are small entrypoints that assemble these modules in cascade order.
+- `components/docs-demos/` groups reusable documentation scenes by visualization type. `components/docs-visual-example/` groups the scoped `DocsVisualExample` rules by demo family, imported through `components/docs-visual-example.scss`.
+- Non-shared styles for individual Vue components live in named SCSS files under `components/` or `views/` and are attached through `<style scoped lang="scss" src="...">`. Keep these scoped styles scoped; do not import them globally. When a scoped stylesheet grows, split it into partials and `@use` them from its scoped entrypoint.
+
+Use Sass nesting for BEM element/modifier selectors (`&__element`, `&--modifier`), shared component states, true descendants, pseudo-states and media queries belonging to a component. Keep unrelated selectors at the top level even if they happen to be near each other in the markup; nesting should express real ownership, not just reduce line count. `main.scss` is the only global stylesheet entrypoint; add new global rules to the appropriate partial and import the entrypoint once.
 
 ## Theme
 
-The app exposes `rx-theme--dark` and `rx-theme--light` classes to apply the re;Flux token palettes. Legacy Vuetify theme classes are also accepted while migration is in progress. Existing components can continue reading Vuetify's `--v-theme-*` values until each component is converted; new components should prefer `--rx-color-*` tokens.
+The app exposes `rx-theme--dark` and `rx-theme--light` classes to apply the re;Flux token palettes. Theme channel tokens use `--rx-theme-*` RGB triples where alpha compositing is useful; regular colors use `--rx-color-*`. Both are owned by this app and independent of a component framework.
 
 ## Accessibility and motion
 
@@ -34,6 +39,6 @@ The app exposes `rx-theme--dark` and `rx-theme--light` classes to apply the re;F
 ## Visualizations
 
 - Keep easing curves and timeline graphs in native SVG/CSS unless a specialized chart library has a demonstrated benefit.
-- Let the owning Vue view handle playback, tab visibility, resize observation, input, and resource cleanup.
+- Let the owning Vue view handle playback, tab visibility, resize observation, input, and resource cleanup. Home demos should share their focused rendering components and pause when off-screen.
 - Prefer public re;Flux primitives for scheduling and interpolation rather than creating unrelated animation loops for every demo.
 - Restore modified styles, SVG attributes, DOM nodes, observers, and listeners when a scene is disposed.

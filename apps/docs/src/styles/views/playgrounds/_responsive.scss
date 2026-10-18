@@ -1,0 +1,61 @@
+@media (max-width: 900px) {
+  .gantt-ruler {
+    margin-left: 84px;
+  }
+}
+
+@media (max-width: 620px) {
+  .motion-stage {
+    height: 160px;
+  }
+
+  .timeline-object-row {
+    grid-template-columns: 83px minmax(0, 1fr) 34px;
+    gap: 6px;
+  }
+
+  .gantt-row {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .gantt-ruler {
+    margin-left: 79px;
+  }
+
+  .gantt-segment span {
+    padding-left: 3px;
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 600px) {
+  .motion-playground-card > .ui-card-title {
+    padding: 14px;
+  }
+
+  .composition-helper-stage {
+    padding: 18px 12px;
+  }
+
+  .composition-helper-track {
+    grid-template-columns: 14px minmax(0, 1fr);
+    gap: 8px;
+
+    &__percent {
+      grid-column: 2;
+      margin-top: -7px;
+      font-size: 9px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gesture-stage__handle {
+    box-shadow: none;
+  }
+
+  .stream-adapter-preview {
+    will-change: auto;
+  }
+}

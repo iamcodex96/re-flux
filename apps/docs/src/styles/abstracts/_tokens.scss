@@ -1,5 +1,5 @@
 // re;Flux visual tokens.
-// Keep these independent from Vuetify so the app can migrate away from its UI layer incrementally.
+// Keep these independent from the UI primitives so the palette remains app-owned.
 
 $rx-breakpoint-sm: 40rem;
 $rx-breakpoint-md: 64rem;
@@ -7,6 +7,29 @@ $rx-breakpoint-lg: 80rem;
 
 :root {
   color-scheme: dark;
+
+  // Theme colors are RGB channel triples to support alpha-composited colors.
+  --rx-theme-background: 12, 14, 19;
+  --rx-theme-on-background: 238, 240, 247;
+  --rx-theme-surface: 17, 19, 25;
+  --rx-theme-surface-variant: 27, 29, 38;
+  --rx-theme-surface-sunken: 9, 11, 15;
+  --rx-theme-primary: 167, 139, 250;
+  --rx-theme-primary-strong: 148, 116, 255;
+  --rx-theme-secondary: 20, 200, 221;
+  --rx-theme-info: 145, 164, 255;
+  --rx-theme-success: 114, 224, 209;
+  --rx-theme-warning: 255, 186, 129;
+  --rx-theme-error: 255, 158, 171;
+  --rx-theme-on-primary: 23, 22, 38;
+  --rx-theme-on-secondary: 12, 14, 19;
+  --rx-theme-on-surface: 238, 240, 247;
+  --rx-theme-on-warning: 36, 22, 12;
+  --rx-theme-on-error: 37, 17, 22;
+  --rx-border-color: 117, 121, 134;
+  --rx-border-opacity: 1;
+  --rx-medium-emphasis-opacity: 0.82;
+  --rx-high-emphasis-opacity: 0.96;
 
   --rx-site-header-height: 4.25rem;
   --rx-font-body: 'Manrope', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -40,26 +63,26 @@ $rx-breakpoint-lg: 80rem;
   --rx-content-reading: 68rem;
   --rx-section-space: clamp(4rem, 9vw, 8rem);
 
-  --rx-color-background: #10131d;
-  --rx-color-surface: #171b29;
-  --rx-color-surface-raised: #242a3a;
-  --rx-color-surface-sunken: #0d1018;
-  --rx-color-border: rgba(117, 121, 134, 0.48);
-  --rx-color-border-strong: #757986;
-  --rx-color-grid: rgba(238, 240, 247, 0.12);
+  --rx-color-background: #0c0e13;
+  --rx-color-surface: #111319;
+  --rx-color-surface-raised: #1b1e27;
+  --rx-color-surface-sunken: #090b0f;
+  --rx-color-border: rgba(130, 137, 160, 0.38);
+  --rx-color-border-strong: #8289a0;
+  --rx-color-grid: rgba(238, 240, 247, 0.09);
   --rx-color-text: #eef0f7;
   --rx-color-text-muted: rgba(238, 240, 247, 0.82);
   --rx-color-text-subtle: rgba(238, 240, 247, 0.66);
-  --rx-color-primary: #a99bff;
-  --rx-color-primary-strong: #8877ff;
-  --rx-color-secondary: #72e0d1;
+  --rx-color-primary: #a78bfa;
+  --rx-color-primary-strong: #9474ff;
+  --rx-color-secondary: #14c8dd;
   --rx-color-warning: #ffba81;
   --rx-color-error: #ff9eab;
   --rx-color-info: #91a4ff;
   --rx-color-success: #72e0d1;
-  --rx-color-on-primary: #171626;
+  --rx-color-on-primary: #100d1a;
   --rx-color-on-surface: #eef0f7;
-  --rx-shadow-focus: 0 0 0 3px rgba(169, 155, 255, 0.28);
+  --rx-shadow-focus: 0 0 0 3px rgba(167, 139, 250, 0.28);
 
   // Legacy shorthand aliases retained while existing demos are migrated.
   --bg: var(--rx-color-background);
@@ -77,29 +100,49 @@ $rx-breakpoint-lg: 80rem;
 }
 
 :root[data-rx-theme='dark'],
-.rx-theme--dark,
-.v-theme--rxDark {
+.rx-theme--dark {
   color-scheme: dark;
-  --rx-color-background: #10131d;
-  --rx-color-surface: #171b29;
-  --rx-color-surface-raised: #242a3a;
-  --rx-color-surface-sunken: #0d1018;
-  --rx-color-border: rgba(117, 121, 134, 0.48);
-  --rx-color-border-strong: #757986;
-  --rx-color-grid: rgba(238, 240, 247, 0.12);
+  --rx-theme-background: 12, 14, 19;
+  --rx-theme-on-background: 238, 240, 247;
+  --rx-theme-surface: 17, 19, 25;
+  --rx-theme-surface-variant: 27, 29, 38;
+  --rx-theme-surface-sunken: 9, 11, 15;
+  --rx-theme-primary: 167, 139, 250;
+  --rx-theme-primary-strong: 148, 116, 255;
+  --rx-theme-secondary: 20, 200, 221;
+  --rx-theme-info: 145, 164, 255;
+  --rx-theme-success: 114, 224, 209;
+  --rx-theme-warning: 255, 186, 129;
+  --rx-theme-error: 255, 158, 171;
+  --rx-theme-on-primary: 23, 22, 38;
+  --rx-theme-on-secondary: 12, 14, 19;
+  --rx-theme-on-surface: 238, 240, 247;
+  --rx-theme-on-warning: 36, 22, 12;
+  --rx-theme-on-error: 37, 17, 22;
+  --rx-border-color: 117, 121, 134;
+  --rx-border-opacity: 1;
+  --rx-medium-emphasis-opacity: 0.82;
+  --rx-high-emphasis-opacity: 0.96;
+  --rx-color-background: #0c0e13;
+  --rx-color-surface: #111319;
+  --rx-color-surface-raised: #1b1e27;
+  --rx-color-surface-sunken: #090b0f;
+  --rx-color-border: rgba(130, 137, 160, 0.38);
+  --rx-color-border-strong: #8289a0;
+  --rx-color-grid: rgba(238, 240, 247, 0.09);
   --rx-color-text: #eef0f7;
   --rx-color-text-muted: rgba(238, 240, 247, 0.82);
   --rx-color-text-subtle: rgba(238, 240, 247, 0.66);
-  --rx-color-primary: #a99bff;
-  --rx-color-primary-strong: #8877ff;
-  --rx-color-secondary: #72e0d1;
+  --rx-color-primary: #a78bfa;
+  --rx-color-primary-strong: #9474ff;
+  --rx-color-secondary: #14c8dd;
   --rx-color-warning: #ffba81;
   --rx-color-error: #ff9eab;
   --rx-color-info: #91a4ff;
   --rx-color-success: #72e0d1;
-  --rx-color-on-primary: #171626;
+  --rx-color-on-primary: #100d1a;
   --rx-color-on-surface: #eef0f7;
-  --rx-shadow-focus: 0 0 0 3px rgba(169, 155, 255, 0.28);
+  --rx-shadow-focus: 0 0 0 3px rgba(167, 139, 250, 0.28);
 
   // Recompute aliases in the active theme scope so they follow theme changes.
   --bg: var(--rx-color-background);
@@ -117,9 +160,29 @@ $rx-breakpoint-lg: 80rem;
 }
 
 :root[data-rx-theme='light'],
-.rx-theme--light,
-.v-theme--rxLight {
+.rx-theme--light {
   color-scheme: light;
+  --rx-theme-background: 247, 248, 252;
+  --rx-theme-on-background: 23, 27, 41;
+  --rx-theme-surface: 255, 255, 255;
+  --rx-theme-surface-variant: 236, 238, 246;
+  --rx-theme-surface-sunken: 239, 241, 248;
+  --rx-theme-primary: 92, 74, 199;
+  --rx-theme-primary-strong: 64, 50, 163;
+  --rx-theme-secondary: 8, 126, 120;
+  --rx-theme-info: 49, 86, 182;
+  --rx-theme-success: 23, 109, 72;
+  --rx-theme-warning: 138, 67, 0;
+  --rx-theme-error: 180, 35, 50;
+  --rx-theme-on-primary: 255, 255, 255;
+  --rx-theme-on-secondary: 255, 255, 255;
+  --rx-theme-on-surface: 23, 27, 41;
+  --rx-theme-on-warning: 255, 255, 255;
+  --rx-theme-on-error: 255, 255, 255;
+  --rx-border-color: 128, 130, 138;
+  --rx-border-opacity: 1;
+  --rx-medium-emphasis-opacity: 0.82;
+  --rx-high-emphasis-opacity: 0.92;
   --rx-color-background: #f7f8fc;
   --rx-color-surface: #ffffff;
   --rx-color-surface-raised: #ffffff;

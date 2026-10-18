@@ -1,0 +1,8 @@
+// Home is split by section so visual iterations remain local and maintainable.
+@use './home/base';
+@use './home/hero';
+@use './home/story';
+@use './home/lab';
+@use './home/principles';
+@use './home/closing';
+@use './home/responsive';

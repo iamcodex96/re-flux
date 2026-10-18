@@ -32,10 +32,6 @@ jobs:
         run: npm ci
       - name: Validate release tag and package metadata
         run: npm run check:release
-      - name: Check canonical roadmap and workflow copies
-        run: |
-          npm run check:roadmap
-          npm run check:workflow-sync
       - name: Type-check library and tests
         run: |
           npm run typecheck

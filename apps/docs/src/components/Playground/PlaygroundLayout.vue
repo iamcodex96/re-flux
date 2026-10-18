@@ -37,19 +37,19 @@ const pageDescription = computed(() => String(route.meta.playgroundDescription ?
 </script>
 
 <template>
-  <v-container class="playground-layout py-8 py-md-12" max-width="1240">
+  <UiContainer class="playground-layout py-8 py-md-12" max-width="1240">
     <PageHeader eyebrow="Playground" :title="pageTitle" :description="pageDescription" />
 
-    <v-row align="start" class="playground-layout__body">
-      <v-col cols="12" md="3" lg="3">
-        <v-card class="playground-nav" variant="outlined">
-          <v-card-title class="px-4 pt-4 pb-2 text-subtitle-1 font-weight-bold">Playground</v-card-title>
-          <v-card-subtitle class="px-4 pb-3">Choose an experiment</v-card-subtitle>
-          <v-divider />
-          <v-list nav density="comfortable" class="pa-2" aria-label="Playground navigation">
+    <UiRow align="start" class="playground-layout__body">
+      <UiCol cols="12" md="3" lg="3">
+        <UiCard class="playground-nav" variant="outlined">
+          <UiCardTitle class="px-4 pt-4 pb-2 text-subtitle-1 font-weight-bold">Playground</UiCardTitle>
+          <UiCardSubtitle class="px-4 pb-3">Choose an experiment</UiCardSubtitle>
+          <UiDivider />
+          <UiList nav density="comfortable" class="pa-2" aria-label="Playground navigation">
             <template v-for="group in playgroundGroups" :key="group.title">
-              <v-list-subheader class="playground-nav__group-label">{{ group.title }}</v-list-subheader>
-              <v-list-item
+              <UiListSubheader class="playground-nav__group-label">{{ group.title }}</UiListSubheader>
+              <UiListItem
                 v-for="item in group.items"
                 :key="item.name"
                 :to="{ name: item.name }"
@@ -61,33 +61,17 @@ const pageDescription = computed(() => String(route.meta.playgroundDescription ?
                 color="primary"
               />
             </template>
-          </v-list>
-          <v-divider />
+          </UiList>
+          <UiDivider />
           <div class="pa-4 text-caption text-medium-emphasis">Only the selected playground is mounted. Leaving a page releases its active streams, observers and animation subscriptions.</div>
-        </v-card>
-      </v-col>
+        </UiCard>
+      </UiCol>
 
-      <v-col cols="12" md="9" lg="9" class="playground-layout__content">
+      <UiCol cols="12" md="9" lg="9" class="playground-layout__content">
         <RouterView />
-      </v-col>
-    </v-row>
-  </v-container>
+      </UiCol>
+    </UiRow>
+  </UiContainer>
 </template>
 
-<style scoped>
-.playground-nav { position: sticky; top: 86px; max-height: calc(100vh - 108px); overflow: auto; border-radius: 12px; }
-.playground-nav .v-list-item { min-height: 54px; margin-bottom: 3px; }
-.playground-nav :deep(.v-list-item-title) { font-size: .86rem; font-weight: 650; }
-.playground-nav :deep(.v-list-item-subtitle) { font-size: .72rem; line-height: 1.4; opacity: .72; }
-.playground-nav :deep(.playground-nav__group-label) { min-height: 32px; padding-inline: 12px; font-size: .68rem; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
-.playground-layout__content { min-width: 0; }
-@media (max-width: 960px) {
-  .playground-nav { position: static; max-height: none; }
-  .playground-nav .v-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .playground-nav :deep(.playground-nav__group-label) { grid-column: 1 / -1; }
-  .playground-nav .v-list-item { min-width: 0; }
-}
-@media (max-width: 600px) {
-  .playground-nav .v-list { grid-template-columns: 1fr; }
-}
-</style>
+<style scoped lang="scss" src="../../styles/components/playground-layout.scss"></style>

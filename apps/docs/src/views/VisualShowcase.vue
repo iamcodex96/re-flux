@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import PageHeader from '../components/PageHeader.vue';
-import '../styles/visual-lab.scss';
 
 const route = useRoute();
 const panels = [
@@ -17,7 +16,7 @@ const pageDescription = computed(() => String(route.meta.visualDescription ?? ac
 </script>
 
 <template>
-  <v-container class="visual-lab py-8 py-md-12" max-width="1240">
+  <UiContainer class="visual-lab py-8 py-md-12" max-width="1240">
     <PageHeader
       eyebrow="Playground / Visual Lab"
       title="Beyond movement"
@@ -37,14 +36,14 @@ const pageDescription = computed(() => String(route.meta.visualDescription ?? ac
       </div>
     </div>
 
-    <v-row class="visual-lab__layout">
-      <v-col cols="12" md="3" lg="3">
-        <v-card class="visual-lab-nav" variant="outlined">
-          <v-card-title class="px-4 pt-4 pb-2 text-subtitle-1 font-weight-bold">Visual Lab</v-card-title>
-          <v-card-subtitle class="px-4 pb-3">Choose a scene group</v-card-subtitle>
-          <v-divider />
-          <v-list nav density="comfortable" class="pa-2" aria-label="Visual Lab categories">
-            <v-list-item
+    <UiRow class="visual-lab__layout">
+      <UiCol cols="12" md="3" lg="3">
+        <UiCard class="visual-lab-nav" variant="outlined">
+          <UiCardTitle class="px-4 pt-4 pb-2 text-subtitle-1 font-weight-bold">Visual Lab</UiCardTitle>
+          <UiCardSubtitle class="px-4 pb-3">Choose a scene group</UiCardSubtitle>
+          <UiDivider />
+          <UiList nav density="comfortable" class="pa-2" aria-label="Visual Lab categories">
+            <UiListItem
               v-for="panel in panels"
               :key="panel.id"
               :to="{ name: panel.name }"
@@ -55,37 +54,37 @@ const pageDescription = computed(() => String(route.meta.visualDescription ?? ac
               rounded="lg"
               color="primary"
             />
-          </v-list>
-          <v-divider />
+          </UiList>
+          <UiDivider />
           <div class="pa-4 text-caption text-medium-emphasis">
-            <v-icon size="14" class="mr-1" color="success">mdi-circle</v-icon>
+            <UiIcon size="14" class="mr-1" color="success">mdi-circle</UiIcon>
             Showing {{ activePanel.title.toLowerCase() }} only
           </div>
-        </v-card>
-      </v-col>
+        </UiCard>
+      </UiCol>
 
-      <v-col cols="12" md="9" lg="9">
+      <UiCol cols="12" md="9" lg="9">
         <div class="visual-lab__panel-heading mb-4">
           <div>
             <div class="text-overline text-primary">Selected category</div>
             <h2 class="text-h5 font-weight-bold">{{ pageTitle }}</h2>
             <p class="text-body-2 text-medium-emphasis mb-0">{{ pageDescription }}</p>
           </div>
-          <v-chip size="small" variant="tonal" color="primary">{{ panels.findIndex((panel) => panel.name === route.name) + 1 }} / {{ panels.length }}</v-chip>
+          <UiChip size="small" variant="tonal" color="primary">{{ panels.findIndex((panel) => panel.name === route.name) + 1 }} / {{ panels.length }}</UiChip>
         </div>
         <RouterView />
-      </v-col>
-    </v-row>
+      </UiCol>
+    </UiRow>
 
-    <v-card variant="tonal" color="primary" class="visual-footer mt-8">
-      <v-card-text class="pa-5 pa-md-7 d-flex flex-column flex-md-row align-start align-md-center justify-space-between ga-5">
+    <UiCard variant="tonal" color="primary" class="visual-footer mt-8">
+      <UiCardText class="pa-5 pa-md-7 d-flex flex-column flex-md-row align-start align-md-center justify-space-between ga-5">
         <div>
           <div class="text-overline mb-2">The point of re;Flux</div>
           <h2 class="text-h5 font-weight-bold mb-2">One reactive foundation. Many rendering possibilities.</h2>
           <p class="text-body-2 text-medium-emphasis mb-0">Gestures, scroll, timelines and physics can feed the same DOM, SVG, Canvas or Three.js layer.</p>
         </div>
-        <v-btn color="primary" variant="flat" to="/docs" append-icon="mdi-arrow-right">Explore the API</v-btn>
-      </v-card-text>
-    </v-card>
-  </v-container>
+        <UiButton color="primary" variant="flat" to="/docs" append-icon="mdi-arrow-right">Explore the API</UiButton>
+      </UiCardText>
+    </UiCard>
+  </UiContainer>
 </template>

@@ -42,30 +42,30 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-container class="py-8 py-md-12" style="max-width: 1200px">
-<v-row align="start">
-      <v-col cols="12" md="7">
-        <v-card variant="outlined" class="h-100">
-          <v-card-title class="d-flex align-center justify-space-between pa-4"><div><div class="text-overline text-primary">Easing curve</div><h2 class="text-h6 ma-0">{{ selected }}</h2></div><v-chip size="small" variant="tonal">t → easing(t)</v-chip></v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4 pa-md-5">
+  <UiContainer class="py-8 py-md-12" style="max-width: 1200px">
+<UiRow align="start">
+      <UiCol cols="12" md="7">
+        <UiCard variant="outlined" class="h-100">
+          <UiCardTitle class="d-flex align-center justify-space-between pa-4"><div><div class="text-overline text-primary">Easing curve</div><h2 class="text-h6 ma-0">{{ selected }}</h2></div><UiChip size="small" variant="tonal">t → easing(t)</UiChip></UiCardTitle>
+          <UiDivider />
+          <UiCardText class="pa-4 pa-md-5">
             <div class="curve-wrap"><EasingCurve :easing="resolveEasing(selected)" :label="`Easing curve ${selected}`" :progress="progress" /></div>
-            <v-table density="compact" class="mt-5"><thead><tr><th>Time (t)</th><th>Output</th></tr></thead><tbody><tr v-for="sample in sampleValues" :key="sample.t"><td><code>{{ sample.t.toFixed(2) }}</code></td><td><code>{{ sample.value.toFixed(3) }}</code></td></tr></tbody></v-table>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="5">
-        <v-card variant="outlined">
-          <v-card-title class="pa-4"><div><div class="text-overline text-primary">Interpolation</div><h2 class="text-h6 ma-0">Try an easing</h2></div></v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
-            <v-select v-model="selected" :items="names" label="Easing function" hide-details class="mb-6" @update:model-value="applyEasing" />
+            <UiTable density="compact" class="mt-5"><thead><tr><th>Time (t)</th><th>Output</th></tr></thead><tbody><tr v-for="sample in sampleValues" :key="sample.t"><td><code>{{ sample.t.toFixed(2) }}</code></td><td><code>{{ sample.value.toFixed(3) }}</code></td></tr></tbody></UiTable>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
+      <UiCol cols="12" md="5">
+        <UiCard variant="outlined">
+          <UiCardTitle class="pa-4"><div><div class="text-overline text-primary">Interpolation</div><h2 class="text-h6 ma-0">Try an easing</h2></div></UiCardTitle>
+          <UiDivider />
+          <UiCardText class="pa-4">
+            <UiSelect v-model="selected" :items="names" label="Easing function" hide-details class="mb-6" @update:model-value="applyEasing" />
             <div class="easing-stage mb-5"><span class="track-start">0</span><span class="track-end">1</span><div class="easing-track"><div class="easing-runner" :style="runnerStyle"><span>rx</span></div></div></div>
-            <v-row dense class="mb-5"><v-col cols="4"><v-sheet rounded="lg" color="surface-variant" class="pa-3"><div class="text-overline text-medium-emphasis">Time</div><div class="text-h6">{{ progress.toFixed(2) }}</div></v-sheet></v-col><v-col cols="4"><v-sheet rounded="lg" color="surface-variant" class="pa-3"><div class="text-overline text-medium-emphasis">Value</div><div class="text-h6">{{ eased.toFixed(3) }}</div></v-sheet></v-col><v-col cols="4"><v-sheet rounded="lg" color="surface-variant" class="pa-3"><div class="text-overline text-medium-emphasis">State</div><div class="text-body-2 font-weight-bold text-truncate">{{ isRunning ? 'running' : (progress >= 1 ? 'completed' : 'idle') }}</div></v-sheet></v-col></v-row>
-            <div class="d-flex flex-wrap ga-2"><v-btn @click="play" color="primary" variant="flat" prepend-icon="mdi-play">Play</v-btn><v-btn @click="pause" variant="tonal" prepend-icon="mdi-pause">Pause</v-btn><v-btn @click="stop" variant="tonal" prepend-icon="mdi-stop">Stop</v-btn><v-btn @click="restart" variant="tonal" prepend-icon="mdi-restart">Restart</v-btn></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+            <UiRow dense class="mb-5"><UiCol cols="4"><UiSheet rounded="lg" color="surface-variant" class="pa-3"><div class="text-overline text-medium-emphasis">Time</div><div class="text-h6">{{ progress.toFixed(2) }}</div></UiSheet></UiCol><UiCol cols="4"><UiSheet rounded="lg" color="surface-variant" class="pa-3"><div class="text-overline text-medium-emphasis">Value</div><div class="text-h6">{{ eased.toFixed(3) }}</div></UiSheet></UiCol><UiCol cols="4"><UiSheet rounded="lg" color="surface-variant" class="pa-3"><div class="text-overline text-medium-emphasis">State</div><div class="text-body-2 font-weight-bold text-truncate">{{ isRunning ? 'running' : (progress >= 1 ? 'completed' : 'idle') }}</div></UiSheet></UiCol></UiRow>
+            <div class="d-flex flex-wrap ga-2"><UiButton @click="play" color="primary" variant="flat" prepend-icon="mdi-play">Play</UiButton><UiButton @click="pause" variant="tonal" prepend-icon="mdi-pause">Pause</UiButton><UiButton @click="stop" variant="tonal" prepend-icon="mdi-stop">Stop</UiButton><UiButton @click="restart" variant="tonal" prepend-icon="mdi-restart">Restart</UiButton></div>
+          </UiCardText>
+        </UiCard>
+      </UiCol>
+    </UiRow>
+  </UiContainer>
 </template>

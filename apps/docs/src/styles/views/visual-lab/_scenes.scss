@@ -1,0 +1,245 @@
+.counter-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.counter-tile {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 9px;
+  padding: 18px;
+  border: 1px solid rgba(var(--rx-theme-primary), 0.2);
+  border-radius: 10px;
+  background: radial-gradient(ellipse at 10% 0%, rgba(var(--rx-theme-primary), 0.09), transparent 70%), rgba(var(--rx-theme-surface-variant), 0.18);
+
+  > span {
+    color: rgba(var(--rx-theme-on-surface), 0.68);
+    font-size: 0.75rem;
+  }
+
+  > strong {
+    font-size: clamp(1.25rem, 3vw, 2rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.055em;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  > small {
+    color: rgba(var(--rx-theme-on-surface), 0.54);
+    font-size: 0.7rem;
+  }
+}
+
+.canvas-stage {
+  height: 290px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 12px;
+  background: radial-gradient(ellipse at center, #101b36, #080d1a 75%);
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  &--wave { background: radial-gradient(ellipse at center, #161331, #080d1a 78%); }
+  &--wireframe { background: radial-gradient(ellipse at center, #102037, #080d1a 78%); }
+  &--radial { background: radial-gradient(ellipse at center, #171331, #080d1a 72%); }
+  &--frequency { background: radial-gradient(ellipse at center, #10263a, #080d1a 78%); }
+  &--fireworks { background: radial-gradient(ellipse at 50% 65%, #331525, #080b16 78%); }
+}
+
+.draggable-stage {
+  position: relative;
+  height: 260px;
+  overflow: hidden;
+  touch-action: none;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 50% 45%, rgba(103, 232, 249, 0.12), transparent 60%), #080d1a;
+
+  &__grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.48;
+    background-image:
+      linear-gradient(rgba(103, 232, 249, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(103, 232, 249, 0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(ellipse at center, black 25%, transparent 94%);
+  }
+
+  &.is-dragging .draggable-orb {
+    background: linear-gradient(145deg, rgba(103, 232, 249, 0.38), rgba(167, 139, 250, 0.4));
+    box-shadow: 0 0 42px rgba(103, 232, 249, 0.48), inset 0 0 18px rgba(167, 139, 250, 0.35);
+  }
+
+  &__hint {
+    position: absolute;
+    right: 14px;
+    bottom: 12px;
+    color: rgba(226, 232, 240, 0.48);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    pointer-events: none;
+  }
+}
+
+.draggable-orb {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: 66px;
+  height: 66px;
+  place-items: center;
+  border: 1px solid rgba(103, 232, 249, 0.8);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(103, 232, 249, 0.26), rgba(167, 139, 250, 0.24));
+  color: #a5f3fc;
+  box-shadow: 0 0 28px rgba(103, 232, 249, 0.23), inset 0 0 14px rgba(167, 139, 250, 0.2);
+  cursor: grab;
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+  will-change: translate;
+}
+
+.kinetic-stage {
+  display: flex;
+  min-height: 290px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: clamp(18px, 4vw, 36px);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 10% 0%, rgba(103, 232, 249, 0.12), transparent 45%), #0a1020;
+  color: #eef2ff;
+  font-size: clamp(1.9rem, 5vw, 3.1rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.06em;
+
+  span {
+    display: inline-block;
+    will-change: transform, opacity;
+  }
+}
+
+.layout-stage {
+  display: flex;
+  min-height: 180px;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--visual-line);
+  border-radius: 12px;
+  background: rgba(var(--rx-theme-surface-variant), 0.25);
+}
+
+.layout-tile {
+  display: flex;
+  min-height: 70px;
+  flex: 1 1 38%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(var(--rx-theme-primary), 0.25);
+  border-radius: 9px;
+  background: rgba(var(--rx-theme-primary), 0.07);
+  color: rgb(var(--rx-theme-on-surface));
+
+  span {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  .ui-icon {
+    color: rgb(var(--rx-theme-primary));
+  }
+}
+
+.scroll-stage {
+  position: relative;
+  min-height: 190px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 12px;
+  background: #0a1020;
+  color: #e2e8f0;
+
+  &__background {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 15% 20%, rgba(103, 232, 249, 0.2), transparent 36%), linear-gradient(110deg, transparent, rgba(167, 139, 250, 0.1));
+  }
+
+  &__scrub-shape {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 51%;
+    display: grid;
+    width: 64px;
+    height: 64px;
+    place-items: center;
+    margin: -32px 0 0 -32px;
+    border: 1px solid rgba(103, 232, 249, 0.74);
+    border-radius: 50%;
+    background: linear-gradient(145deg, rgba(103, 232, 249, 0.22), rgba(167, 139, 250, 0.18));
+    color: #a5f3fc;
+    box-shadow: 0 0 34px rgba(103, 232, 249, 0.2), inset 0 0 18px rgba(167, 139, 250, 0.14);
+    pointer-events: none;
+  }
+
+  &__content {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr) 76px;
+    align-items: center;
+    gap: 24px;
+    min-height: 190px;
+    padding: 24px;
+  }
+
+  &__value {
+    margin-top: 5px;
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+  }
+
+  &__track {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(226, 232, 240, 0.13);
+  }
+
+  &__fill {
+    width: 100%;
+    height: 100%;
+    transform-origin: left center;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #67e8f9, #a78bfa);
+  }
+
+  &__ring {
+    display: grid;
+    width: 58px;
+    height: 58px;
+    place-items: center;
+    border: 1px solid rgba(103, 232, 249, 0.65);
+    border-radius: 50%;
+    color: #67e8f9;
+  }
+}

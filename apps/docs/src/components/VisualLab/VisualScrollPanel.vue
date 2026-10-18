@@ -66,12 +66,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12">
-      <v-card class="visual-card visual-card--scroll" variant="outlined">
-        <v-card-text class="pa-5 pa-md-6">
+  <UiRow>
+    <UiCol cols="12">
+      <UiCard class="visual-card visual-card--scroll" variant="outlined">
+        <UiCardText class="pa-5 pa-md-6">
           <div class="visual-card__heading">
-            <v-chip size="small" variant="tonal" color="primary">DOM / Scroll</v-chip>
+            <UiChip size="small" variant="tonal" color="primary">DOM / Scroll</UiChip>
             <span class="text-caption text-medium-emphasis">Scroll trigger + scrubbed timeline</span>
           </div>
           <h3 class="text-h6 font-weight-bold mt-4 mb-2">Scroll is another stream.</h3>
@@ -87,11 +87,11 @@ onBeforeUnmount(() => {
             </div>
             <div ref="scrollTarget" class="scroll-stage">
               <div class="scroll-stage__background" aria-hidden="true"></div>
-              <div ref="scrollScrubShape" class="scroll-stage__scrub-shape" aria-hidden="true"><v-icon size="28">mdi-asterisk</v-icon></div>
+              <div ref="scrollScrubShape" class="scroll-stage__scrub-shape" aria-hidden="true"><UiIcon size="28">mdi-asterisk</UiIcon></div>
               <div class="scroll-stage__content">
                 <div><span class="text-overline">scrollProgress$</span><div class="scroll-stage__value">{{ Math.round(scrollProgress * 100) }}%</div></div>
                 <div class="scroll-stage__track"><div class="scroll-stage__fill" :style="{ transform: `scaleX(${scrollProgress})` }"></div></div>
-                <div class="scroll-stage__ring" :style="{ transform: `rotate(${scrollProgress * 360}deg) scale(${0.75 + scrollProgress * 0.25})` }"><v-icon size="28">mdi-arrow-down</v-icon></div>
+                <div class="scroll-stage__ring" :style="{ transform: `rotate(${scrollProgress * 360}deg) scale(${0.75 + scrollProgress * 0.25})` }"><UiIcon size="28">mdi-arrow-down</UiIcon></div>
               </div>
             </div>
             <div class="scroll-demo__runway scroll-demo__runway--bottom">
@@ -103,8 +103,8 @@ onBeforeUnmount(() => {
             <span class="text-caption text-medium-emphasis">bindScrollTimeline() · {{ Math.round(scrollProgress * 100) }}% complete</span>
             <span class="text-caption text-medium-emphasis">The outer page does not need to scroll.</span>
           </div>
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-row>
+        </UiCardText>
+      </UiCard>
+    </UiCol>
+  </UiRow>
 </template>

@@ -1,0 +1,38 @@
+// Navigation panel behavior and its compact grid fallback.
+.visual-lab-nav {
+  position: sticky;
+  top: 76px;
+  align-self: flex-start;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border-radius: 12px;
+
+  .ui-list-item {
+    min-height: 58px;
+    margin-bottom: 4px;
+
+    &__title {
+      font-size: 0.86rem;
+      font-weight: 650;
+    }
+
+    &__subtitle {
+      font-size: 0.72rem;
+      line-height: 1.45;
+      opacity: 0.72;
+    }
+  }
+
+  .ui-list {
+    @media (max-width: 960px) {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}

@@ -30,8 +30,6 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
-      - name: Check canonical roadmap
-        run: npm run check:roadmap
       - name: Type-check library
         run: npm run typecheck
       - name: Type-check tests

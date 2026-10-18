@@ -15,13 +15,13 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <v-card variant="outlined" class="event-log-card">
-    <v-card-title class="d-flex align-center justify-space-between pa-4 ga-3">
+  <UiCard variant="outlined" class="event-log-card">
+    <UiCardTitle class="d-flex align-center justify-space-between pa-4 ga-3">
       <div>
         <div class="text-overline text-primary">{{ eyebrow }}</div>
         <h2 class="text-h6 font-weight-medium ma-0">{{ title }}</h2>
       </div>
-      <v-btn
+      <UiButton
         variant="text"
         color="secondary"
         size="small"
@@ -30,10 +30,10 @@ const emit = defineEmits<{
         @click="emit('clear')"
       >
         Clear
-      </v-btn>
-    </v-card-title>
-    <v-divider />
-    <v-list
+      </UiButton>
+    </UiCardTitle>
+    <UiDivider />
+    <UiList
       v-if="entries.length"
       density="compact"
       class="event-log bg-transparent py-1"
@@ -42,16 +42,16 @@ const emit = defineEmits<{
       aria-relevant="additions text"
       :aria-label="`${title} updates`"
     >
-      <v-list-item
+      <UiListItem
         v-for="(entry, index) in entries"
         :key="`${entry}-${index}`"
         prepend-icon="mdi-console-line"
       >
-        <v-list-item-title class="text-caption font-monospace">{{ entry }}</v-list-item-title>
-      </v-list-item>
-    </v-list>
-    <v-alert v-else type="info" variant="text" density="compact" class="ma-3">
+        <UiListItemTitle class="text-caption font-monospace">{{ entry }}</UiListItemTitle>
+      </UiListItem>
+    </UiList>
+    <UiAlert v-else type="info" variant="text" density="compact" class="ma-3">
       {{ emptyMessage }}
-    </v-alert>
-  </v-card>
+    </UiAlert>
+  </UiCard>
 </template>

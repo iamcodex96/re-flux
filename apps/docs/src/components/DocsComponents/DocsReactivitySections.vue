@@ -12,27 +12,27 @@ const snippets = computed(() => copy.value.snippets);
 <template>
   <section id="reactivity" class="docs-anchor py-7 border-b">
     <div class="docs-section-heading">
-      <v-avatar size="30" color="primary" variant="tonal" class="text-caption font-weight-bold">07</v-avatar>
+      <UiAvatar size="30" color="primary" variant="tonal" class="text-caption font-weight-bold">07</UiAvatar>
       <div><h2 class="text-h5 font-weight-bold mb-1">{{ copy.section.reactivity.title }}</h2><p>{{ copy.section.reactivity.subtitle }}</p></div>
     </div>
     <p class="text-body-2 text-medium-emphasis mb-4">{{ copy.section.reactivity.description }}</p>
     <DocsVisualExample variant="reactivity" :code="snippets.reactivity" :code-title="ui.typescriptRxjsLabel" />
-    <v-alert type="info" variant="tonal" density="comfortable" class="mt-4">{{ ui.stopRejectsPromisePrefix }} <code>stop()</code> {{ ui.stopRejectsPromiseSuffix }} <code>Error('Animation stopped before completion')</code>. {{ ui.stopRejectsPromiseFinal }}</v-alert>
+    <UiAlert type="info" variant="tonal" density="comfortable" class="mt-4">{{ ui.stopRejectsPromisePrefix }} <code>stop()</code> {{ ui.stopRejectsPromiseSuffix }} <code>Error('Animation stopped before completion')</code>. {{ ui.stopRejectsPromiseFinal }}</UiAlert>
   </section>
 
   <section id="await-example" class="docs-anchor py-7 border-b">
     <div class="docs-section-heading">
-      <v-avatar size="30" color="primary" variant="tonal" class="text-caption font-weight-bold">13</v-avatar>
+      <UiAvatar size="30" color="primary" variant="tonal" class="text-caption font-weight-bold">13</UiAvatar>
       <div><h2 class="text-h5 font-weight-bold mb-1">{{ copy.section['await-example'].title }}</h2><p>{{ copy.section['await-example'].subtitle }}</p></div>
     </div>
     <p class="text-body-2 text-medium-emphasis mb-4">{{ copy.section['await-example'].description }}</p>
     <DocsVisualExample variant="await" :code="snippets.await" :code-title="ui.asyncAwaitCodeTitle" />
-    <v-alert type="info" variant="tonal" density="comfortable" class="mt-4">{{ ui.promiseRejectionPrefix }} <code>unhandledrejection</code>, {{ ui.promiseRejectionMiddle }} <code>catch</code>.</v-alert>
+    <UiAlert type="info" variant="tonal" density="comfortable" class="mt-4">{{ ui.promiseRejectionPrefix }} <code>unhandledrejection</code>, {{ ui.promiseRejectionMiddle }} <code>catch</code>.</UiAlert>
   </section>
 
   <section id="easings" class="docs-anchor py-7 border-b">
     <div class="docs-section-heading">
-      <v-avatar size="30" color="primary" variant="tonal" class="text-caption font-weight-bold">08</v-avatar>
+      <UiAvatar size="30" color="primary" variant="tonal" class="text-caption font-weight-bold">08</UiAvatar>
       <div><h2 class="text-h5 font-weight-bold mb-1">{{ copy.section.easings.title }}</h2><p>{{ copy.section.easings.subtitle }}</p></div>
     </div>
     <p class="text-body-2 text-medium-emphasis mb-4">{{ copy.section.easings.description }}</p>
@@ -42,7 +42,7 @@ const snippets = computed(() => copy.value.snippets);
 
   <section id="easing-gallery" class="docs-anchor py-7 border-b">
     <div class="docs-section-heading">
-      <v-avatar size="30" color="primary" variant="tonal" class="text-caption font-weight-bold">14</v-avatar>
+      <UiAvatar size="30" color="primary" variant="tonal" class="text-caption font-weight-bold">14</UiAvatar>
       <div><h2 class="text-h5 font-weight-bold mb-1">{{ copy.section['easing-gallery'].title }}</h2><p>{{ copy.section['easing-gallery'].subtitle }}</p></div>
     </div>
     <p class="text-body-2 text-medium-emphasis mb-4">{{ copy.section['easing-gallery'].description }}</p>
