@@ -1,23 +1,25 @@
+@use '../abstracts/breakpoints' as breakpoints;
+
 .docs-code-card {
   border-color: rgba(var(--rx-border-color), var(--rx-border-opacity));
-  border-radius: 8px !important;
+  border-radius: var(--rx-radius-md) !important;
   background: rgb(var(--rx-theme-surface));
   color: rgb(var(--rx-theme-on-surface));
 
   pre {
     margin: 0;
-    padding: 18px 20px;
+    padding: var(--rx-space-4-5) var(--rx-space-5);
     overflow: auto;
     background: rgb(var(--rx-theme-surface-sunken));
     color: rgb(var(--rx-theme-on-surface));
     white-space: pre;
     tab-size: 2;
-    font-size: 12px;
-    line-height: 1.85;
+    font-size: var(--rx-font-size-caption);
+    line-height: var(--rx-line-height-relaxed);
 
     code {
       color: inherit;
-      font: inherit;
+      font:inherit;
     }
   }
 
@@ -26,9 +28,9 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: breakpoints.$rx-breakpoint-xs-mobile) {
   .docs-code-card pre {
-    padding: 14px;
-    font-size: 11px;
+    padding: var(--rx-space-3-5);
+    font-size: var(--rx-font-size-xs);
   }
 }

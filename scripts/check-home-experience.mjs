@@ -9,6 +9,7 @@ const exists = async (path) => access(resolve(root, path)).then(() => true, () =
 
 const home = await source('apps/docs/src/views/Home.vue');
 const codeMotion = await source('apps/docs/src/components/LandingCodeMotion.vue');
+const docsTimeline = await source('apps/docs/src/components/DocsComponents/DocsTimelineSections.vue');
 const principleVisual = await source('apps/docs/src/components/LandingPrincipleVisual.vue');
 const labPreview = await source('apps/docs/src/components/LandingLabPreview.vue');
 const app = await source('apps/docs/src/App.vue');
@@ -17,7 +18,15 @@ for (const section of ['home-hero', 'home-story-runway', 'home-lab', 'home-princ
   assert.ok(home.includes(section), `Home is missing the ${section} section.`);
 }
 assert.ok(home.includes('<LandingTelemetryStage'), 'Home must render the telemetry hero visual.');
+assert.match(home, /<VisualLabShaderPreview[\s\S]*?kind="shader-fluid"[\s\S]*?:active="heroFluidActive"/, 'The Fluid Noise shader should be mounted as the Home hero background.');
+assert.ok(home.includes('new MotionPreferences()'), 'Home shader background must use shared motion preferences.');
+assert.ok(home.includes('heroVisibilityObserver?.disconnect()'), 'Home shader background must stop observing visibility on unmount.');
+assert.ok(home.includes('heroMotionPreferences.destroy()'), 'Home must release its motion preferences listeners.');
+assert.ok(!home.includes('home-hero__wave-field') && !home.includes('home-wave-flow'), 'The old SVG-wave hero treatment should be removed in favor of the Fluid Noise shader.');
 assert.ok(home.includes('<LandingCodeMotion'), 'Home must render Code in Motion.');
+assert.ok(docsTimeline.includes('<LandingCodeMotion initial-demo="timeline" embedded />'), 'Timeline docs should reuse the Home Code in Motion workbench for a consistent preview/code layout.');
+assert.ok(codeMotion.includes('initialDemo?: DemoMode; embedded?: boolean'), 'Code in Motion must support embedding a selected example in documentation.');
+assert.ok(codeMotion.includes('landing-code-motion--embedded') && codeMotion.includes('!props.embedded'), 'Embedded Code in Motion should hide the Home-only heading and mode selector.');
 assert.ok(home.includes('<LandingPrincipleVisual'), 'Home must render animated principle illustrations.');
 assert.ok(home.includes('springMotion?.dispose()'), 'The story spring must be disposed on unmount.');
 
@@ -43,7 +52,7 @@ assert.ok(labPreview.includes('dragHandle?.destroy()'), 'Drag listeners must be 
 assert.ok(app.includes('site-navigation'), 'The global navigation shell is missing.');
 const responsiveStyles = await source('apps/docs/src/styles/views/home/_responsive.scss');
 assert.ok(responsiveStyles.includes('@media (prefers-reduced-motion: reduce)'), 'Home needs a reduced-motion style path.');
-assert.ok(responsiveStyles.includes('@media (max-width: 36rem)'), 'Home needs a small-screen layout.');
+assert.ok(responsiveStyles.includes("@use '../../abstracts/breakpoints' as breakpoints;") && responsiveStyles.includes("@media (max-width: breakpoints.$rx-breakpoint-small)"), 'Home needs a tokenized small-screen layout.');
 assert.ok(!home.includes('x: 524.23') && !home.includes('v: 188.94'), 'Home must not present invented telemetry values as live metrics.');
 
 for (const obsolete of [

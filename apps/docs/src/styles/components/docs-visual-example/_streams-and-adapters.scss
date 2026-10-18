@@ -49,7 +49,7 @@
     left: 8%;
     width: 26px;
     height: 26px;
-    border: 3px solid rgba(var(--rx-theme-on-primary), 0.45);
+    border: var(--rx-border-width-focus) solid rgba(var(--rx-theme-on-primary), 0.45);
     border-radius: 50%;
     background: rgb(var(--rx-theme-primary));
     box-shadow: 0 0 19px rgba(var(--rx-theme-primary), 0.4);
@@ -61,7 +61,7 @@
     bottom: -15px;
     color: rgb(var(--rx-theme-on-surface));
     opacity: 0.62;
-    font-size: 10px;
+    font-size: var(--rx-font-size-2xs);
   }
 }
 
@@ -71,7 +71,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 10px;
+  gap: var(--rx-space-2-5);
 
   canvas {
     display: block;
@@ -83,14 +83,14 @@
 .docs-demo-adapter-tags {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: var(--rx-space-2);
 
   span {
-    padding: 3px 9px;
-    border-radius: 999px;
+    padding: var(--rx-space-fine) var(--rx-space-icon);
+    border-radius: var(--rx-radius-pill);
     background: rgba(var(--rx-theme-primary), 0.12);
     color: rgb(var(--rx-theme-primary));
-    font-size: 10px;
+    font-size: var(--rx-font-size-2xs);
   }
 }
 
@@ -98,16 +98,16 @@
   max-width: 100%;
   overflow-x: auto;
   margin: 0;
-  padding: 14px;
-  border-radius: 8px;
+  padding: var(--rx-space-3-5);
+  border-radius: var(--rx-radius-md);
   background: rgb(var(--rx-theme-surface-sunken));
   color: rgb(var(--rx-theme-on-surface));
-  font-size: 12px;
-  line-height: 1.65;
+  font-size: var(--rx-font-size-caption);
+  line-height: var(--rx-line-height-reading);
   white-space: pre;
 
   code {
     color: inherit;
-    font: inherit;
+    font:inherit;
   }
 }

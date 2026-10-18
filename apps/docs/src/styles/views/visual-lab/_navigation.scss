@@ -1,3 +1,5 @@
+@use '../../abstracts/breakpoints' as breakpoints;
+
 // Navigation panel behavior and its compact grid fallback.
 .visual-lab-nav {
   position: sticky;
@@ -7,31 +9,31 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  border-radius: 12px;
+  border-radius: var(--rx-radius-lg);
 
   .ui-list-item {
     min-height: 58px;
-    margin-bottom: 4px;
+    margin-bottom: var(--rx-space-1);
 
     &__title {
-      font-size: 0.86rem;
-      font-weight: 650;
+      font-size: var(--rx-font-size-ui-large);
+      font-weight: var(--rx-font-weight-ui);
     }
 
     &__subtitle {
-      font-size: 0.72rem;
-      line-height: 1.45;
-      opacity: 0.72;
+      font-size: var(--rx-font-size-label);
+      line-height: var(--rx-line-height-normal);
+      opacity: var(--rx-opacity-subdued);
     }
   }
 
   .ui-list {
-    @media (max-width: 960px) {
+    @media (max-width: breakpoints.$rx-breakpoint-header-compact) {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: breakpoints.$rx-breakpoint-mobile) {
       grid-template-columns: 1fr;
     }
   }

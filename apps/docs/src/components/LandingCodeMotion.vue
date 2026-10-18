@@ -12,9 +12,11 @@ type PlaybackActions = {
   stop: () => void;
 };
 
+const props = withDefaults(defineProps<{ initialDemo?: DemoMode; embedded?: boolean }>(), { initialDemo: 'spring', embedded: false });
+
 const root = ref<HTMLElement | null>(null);
 const morphPath = ref<SVGPathElement | null>(null);
-const activeDemo = ref<DemoMode>('spring');
+const activeDemo = ref<DemoMode>(props.initialDemo);
 const progress = ref(0);
 const secondaryProgress = ref(0);
 const timelineProgress = ref(0);
@@ -384,8 +386,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="root" class="landing-code-motion" aria-labelledby="landing-code-title">
-    <header class="landing-code-motion__heading">
+  <section
+    ref="root"
+    class="landing-code-motion"
+    :class="{ 'landing-code-motion--embedded': props.embedded }"
+    :aria-labelledby="props.embedded ? undefined : 'landing-code-title'"
+    :aria-label="props.embedded ? 'Timeline animation workbench' : undefined"
+  >
+    <header v-if="!props.embedded" class="landing-code-motion__heading">
       <div>
         <p class="landing-code-motion__eyebrow"><span aria-hidden="true" /> LIVE WORKBENCH</p>
         <h2 id="landing-code-title">Code in Motion</h2>
@@ -393,7 +401,7 @@ onBeforeUnmount(() => {
       <p class="landing-code-motion__caption">A working example, its source, and the motion model that drives it.</p>
     </header>
 
-    <div class="landing-code-motion__modes" aria-label="Choose an animation example">
+    <div v-if="!props.embedded" class="landing-code-motion__modes" aria-label="Choose an animation example">
       <button
         v-for="mode in modeOptions"
         :key="mode.value"

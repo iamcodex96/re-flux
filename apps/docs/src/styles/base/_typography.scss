@@ -12,15 +12,15 @@
     max-width: 680px;
     white-space: normal;
     overflow-wrap: anywhere;
-    line-height: 1.65;
+    line-height: var(--rx-line-height-reading);
   }
 }
 
 .home-code {
   margin: 0;
   overflow-x: auto;
-  border: 1px solid var(--rx-color-border);
+  border: var(--rx-border-width) solid var(--rx-color-border);
   background: var(--rx-color-surface-sunken);
   color: var(--rx-color-text);
-  font: 12px/1.85 var(--rx-font-mono), monospace;
+  font:12px/var(--rx-line-height-relaxed) var(--rx-font-mono), monospace;
 }

@@ -1,5 +1,7 @@
+@use '../abstracts/breakpoints' as breakpoints;
+
 // A small local utility set for the documentation and playground layouts.
-$spacing: (0: 0, 1: 0.25rem, 2: 0.5rem, 3: 0.75rem, 4: 1rem, 5: 1.25rem, 6: 1.5rem, 7: 1.75rem, 8: 2rem, 10: 2.5rem, 12: 3rem, 16: 4rem);
+$spacing: (0: var(--rx-space-0), 1: var(--rx-space-1), 2: var(--rx-space-2), 3: var(--rx-space-3), 4: var(--rx-space-4), 5: var(--rx-space-5), 6: var(--rx-space-6), 7: var(--rx-space-7), 8: var(--rx-space-8), 10: var(--rx-space-10), 12: var(--rx-space-12), 16: var(--rx-space-16));
 $directions: (t: top, b: bottom, s: inline-start, e: inline-end);
 
 @each $key, $value in $spacing {
@@ -46,15 +48,15 @@ $directions: (t: top, b: bottom, s: inline-start, e: inline-end);
 .text-left { text-align: left !important; }
 .text-center { text-align: center !important; }
 .text-right { text-align: right !important; }
-.text-caption { font-size: 0.75rem !important; line-height: 1.45; }
-.text-body-2 { font-size: 0.875rem !important; line-height: 1.55; }
-.text-body-1 { font-size: 1rem !important; line-height: 1.6; }
-.text-subtitle-1 { font-size: 1rem !important; line-height: 1.4; }
-.text-subtitle-2 { font-size: 0.875rem !important; line-height: 1.4; }
-.text-h4 { font-size: clamp(1.5rem, 2.5vw, 2.125rem) !important; line-height: 1.2; }
+.text-caption { font-size: var(--rx-font-size-caption) !important; line-height: var(--rx-line-height-normal); }
+.text-body-2 { font-size: var(--rx-font-size-ui-large) !important; line-height: var(--rx-line-height-normal); }
+.text-body-1 { font-size: var(--rx-font-size-ui-wide) !important; line-height: var(--rx-line-height-reading); }
+.text-subtitle-1 { font-size: var(--rx-font-size-ui-wide) !important; line-height: var(--rx-line-height-label); }
+.text-subtitle-2 { font-size: var(--rx-font-size-ui-large) !important; line-height: var(--rx-line-height-label); }
+.text-h4 { font-size: clamp(var(--rx-font-size-xl), 2.5vw, 2.125rem) !important; line-height: var(--rx-line-height-compact); }
 .text-h5 { font-size: 1.25rem !important; line-height: 1.3; }
-.text-h6 { font-size: 1rem !important; line-height: 1.35; }
-.text-overline { font-size: 0.67rem !important; letter-spacing: 0.1em; line-height: 1.4; text-transform: uppercase; }
+.text-h6 { font-size: var(--rx-font-size-ui-wide) !important; line-height: var(--rx-line-height-ui); }
+.text-overline { font-size: 0.67rem !important; letter-spacing: 0.1em; line-height: var(--rx-line-height-label); text-transform: uppercase; }
 .text-medium-emphasis { color: var(--rx-color-text-muted) !important; }
 .text-high-emphasis { color: var(--rx-color-text) !important; }
 .text-primary { color: var(--rx-color-primary) !important; }
@@ -70,7 +72,7 @@ $directions: (t: top, b: bottom, s: inline-start, e: inline-end);
 .font-monospace { font-family: var(--rx-font-mono), monospace !important; }
 .text-truncate { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
 
-@media (min-width: 600px) {
+@media (min-width: breakpoints.$rx-breakpoint-mobile) {
   .flex-sm-row { flex-direction: row !important; }
   .align-sm-start { align-items: flex-start !important; }
   .align-sm-center { align-items: center !important; }
@@ -84,9 +86,9 @@ $directions: (t: top, b: bottom, s: inline-start, e: inline-end);
   }
 }
 
-@media (min-width: 960px) {
+@media (min-width: breakpoints.$rx-breakpoint-header-compact) {
   .align-md-center { align-items: center !important; }
-  .text-md-h4 { font-size: clamp(1.5rem, 2.5vw, 2.125rem) !important; }
+  .text-md-h4 { font-size: clamp(var(--rx-font-size-xl), 2.5vw, 2.125rem) !important; }
   .flex-md-row { flex-direction: row !important; }
   .d-md-flex { display: flex !important; }
   .d-md-block { display: block !important; }

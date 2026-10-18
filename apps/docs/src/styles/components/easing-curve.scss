@@ -54,8 +54,8 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 6px 16px;
-  padding-top: 5px;
+  gap: var(--rx-space-1-5) var(--rx-space-4);
+  padding-top: var(--rx-space-1);
   color: rgba(var(--rx-theme-on-surface), var(--rx-medium-emphasis-opacity));
-  font: 10px/1.5 var(--rx-font-mono), monospace;
+  font:var(--rx-font-size-2xs)/var(--rx-line-height-normal) var(--rx-font-mono), monospace;
 }

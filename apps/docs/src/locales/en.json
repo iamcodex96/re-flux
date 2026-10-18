@@ -708,13 +708,24 @@
           "repeatYoyoCodeTitle": "Repeat and yoyo",
           "compositionHelpersCodeTitle": "Sequence, parallel & staggered composition",
           "docsNavigationTitle": "On this page",
-          "mobilePageLabel": "Documentation page",
+          "mobilePageLabel": "Choose documentation page",
           "chooseDocsPageAriaLabel": "Choose a documentation page",
           "apiPlaygroundLink": "API Playground",
           "visualShowcaseLink": "Visual showcase",
           "svgMorphTitle": "Morph SVG paths with different commands",
           "svgMorphDescription": "normalizeSvgPathPair() converts supported path commands to absolute cubic curves, subdivides contours to matching segment counts and heuristically aligns closed contours. Subpaths are paired by order, and paired paths must agree on open versus closed geometry. The helper has a bounded segment count to avoid unexpectedly expensive morphs.",
-          "svgMorphCodeTitle": "TypeScript · SVG path normalization"
+          "svgMorphCodeTitle": "TypeScript · SVG path normalization",
+          "documentationLabel": "Documentation",
+          "sidebarDescription": "API reference, concepts and interactive examples.",
+          "quickstartBreadcrumb": "Quickstart & Concepts",
+          "articlePaginationLabel": "Documentation pagination",
+          "previousArticleLabel": "Previous",
+          "nextArticleLabel": "Next",
+          "docsFeedbackPrompt": "Found a typo or want to improve this document?",
+          "editOrImproveDocs": "Open an issue",
+          "packageLabel": "Package",
+          "performanceEyebrow": "Runtime telemetry",
+          "coreArchitectureBreadcrumb": "Core Architecture"
         },
         "snippets": {
           "install": "npm install @re-code/flux rxjs\n\nimport { Animation } from '@re-code/flux';\n\nconst fade = new Animation({\n  duration: 600,\n  easing: 'easeOutCubic',\n});\n\nfade.play();\nawait fade;",
@@ -746,14 +757,14 @@
             "label": "GETTING STARTED",
             "links": [
               {
-                "label": "Introduction",
+                "label": "Quickstart & Concepts",
                 "to": "/docs/introduction",
                 "page": "introduction"
               }
             ]
           },
           {
-            "label": "AUTHORING API",
+            "label": "CORE CONCEPTS",
             "links": [
               {
                 "label": "Animation",
@@ -764,37 +775,22 @@
                 "label": "Timelines",
                 "to": "/docs/timelines",
                 "page": "timelines"
-              }
-            ]
-          },
-          {
-            "label": "REACTIVE MOTION",
-            "links": [
+              },
               {
                 "label": "Reactive state & easing",
                 "to": "/docs/reactivity",
                 "page": "reactivity"
-              },
+              }
+            ]
+          },
+          {
+            "label": "SPRING DYNAMICS",
+            "links": [
               {
-                "label": "Motion streams",
+                "label": "Spring dynamics & streams",
                 "to": "/docs/streams",
                 "page": "streams"
-              }
-            ]
-          },
-          {
-            "label": "RENDERING",
-            "links": [
-              {
-                "label": "Render adapters",
-                "to": "/docs/rendering",
-                "page": "rendering"
-              }
-            ]
-          },
-          {
-            "label": "INTERACTIONS",
-            "links": [
+              },
               {
                 "label": "Gestures & lifecycle",
                 "to": "/docs/interactions",
@@ -803,7 +799,17 @@
             ]
           },
           {
-            "label": "PERFORMANCE",
+            "label": "RENDERING TARGETS",
+            "links": [
+              {
+                "label": "Rendering adapters",
+                "to": "/docs/rendering",
+                "page": "rendering"
+              }
+            ]
+          },
+          {
+            "label": "OBSERVABILITY",
             "links": [
               {
                 "label": "Frame observability",
@@ -811,13 +817,23 @@
                 "page": "performance"
               }
             ]
+          },
+          {
+            "label": "REFERENCE",
+            "links": [
+              {
+                "label": "API reference",
+                "to": "/docs/api-reference",
+                "page": "api-reference"
+              }
+            ]
           }
         ],
         "pages": {
           "introduction": {
             "label": "Introduction",
-            "title": "Introduction",
-            "description": "A practical guide to composing animation with TypeScript and RxJS."
+            "title": "Quickstart & Concepts",
+            "description": "Install re;Flux, understand the reactive motion pipeline, and build your first spring-driven stream."
           },
           "animation": {
             "label": "Animation",
@@ -835,9 +851,9 @@
             "description": "Connect animation progress to application state and choose the right motion curve."
           },
           "streams": {
-            "label": "Motion streams",
-            "title": "Build motion from live data",
-            "description": "Retarget, smooth and adapt animation to values that arrive over time."
+            "label": "Spring Dynamics",
+            "title": "Reactive Motion Streams & Spring Physics",
+            "description": "Treat motion as a continuous observable stream. Explore retargeting, spring response, input smoothing, and frame-aligned rendering."
           },
           "rendering": {
             "label": "Render adapters",
@@ -850,10 +866,151 @@
             "description": "Handle gesture physics, reduced motion and page visibility with explicit lifecycle rules."
           },
           "performance": {
-            "label": "Frame observability",
-            "title": "Measure animation work",
-            "description": "Inspect per-frame work and verify that scheduled tasks and subscriptions are cleaned up."
+            "label": "Observability",
+            "title": "Frame observability & runtime diagnostics",
+            "description": "Inspect work performed by the shared frame coordinator and verify that active subscribers and scheduled tasks are released."
+          },
+          "api-reference": {
+            "label": "API Reference",
+            "title": "Operator Reference & API Signatures",
+            "description": "Browse the public exports, their signatures, return types, and intended role in a reactive motion pipeline."
           }
+        },
+        "installPanel": {
+          "eyebrow": "Start here",
+          "title": "Installation & Setup",
+          "description": "Install the core package alongside RxJS. Rendering adapters are separate entry points, so consumers only import the surfaces they use.",
+          "packageManagerLabel": "Package manager",
+          "peerDependencyNote": "RxJS is a peer dependency. Install it in your application if it is not already present.",
+          "interopTitle": "RxJS 7+ interoperability",
+          "interopDescription": "Use existing RxJS",
+          "interopSuffix": "streams directly when their input type matches the operator—for example, numeric targets for retargetMotion() or timestamped samples for smoothing.",
+          "metaLabel": "PACKAGE MODEL",
+          "metaValue": "Core + optional adapters"
+        },
+        "pipeline": {
+          "eyebrow": "02 / Architecture monograph",
+          "title": "The Reactive Pipeline Architecture",
+          "meta": "Pipeline diagram & implementation",
+          "description": "The same motion data can be retargeted, sampled, and consumed by different render targets. Each adapter remains opt-in and cleans up its own bindings.",
+          "steps": [
+            {
+              "number": "1",
+              "title": "Coordinate ingestion",
+              "description": "Capture numeric targets from pointer, scroll, network data, or application state as an RxJS stream."
+            },
+            {
+              "number": "2",
+              "title": "Physical differential solve",
+              "description": "The retargetMotion operator preserves current position and velocity while the spring integrator advances samples on the shared frame clock."
+            },
+            {
+              "number": "3",
+              "title": "Render & teardown",
+              "description": "Consume MotionSample values in DOM, SVG, Canvas, or another renderer, then unsubscribe and complete the source when the view is disposed."
+            }
+          ],
+          "clockLabel": "Frame coordination",
+          "clockValue": "requestAnimationFrame",
+          "clockNote": "Shared scheduling; no per-spring RAF loop",
+          "codeFooter": "Typed MotionSample stream",
+          "cleanupFooter": "Unsubscribe to dispose the owned motion"
+        },
+        "springSimulator": {
+          "title": "Live Kinetic Observable Simulator",
+          "hint": "Drag the orb to retarget the spring",
+          "staged": "STAGED",
+          "running": "RUNNING",
+          "settled": "SETTLED",
+          "idle": "IDLE",
+          "activeStream": "Active stream",
+          "solver": "Solver",
+          "coordinate": "Coord",
+          "stageAriaLabel": "Interactive spring simulation stage",
+          "orbAriaLabel": "Move the spring object with pointer or arrow keys",
+          "velocity": "Velocity",
+          "displacement": "Displacement",
+          "streams": "Streams",
+          "active": "tracked",
+          "gcLabel": "GC churn",
+          "notMeasured": "Not measured",
+          "controlsAriaLabel": "Spring parameter controls",
+          "tuning": "Vector differential tuning",
+          "regime": "Damping regime",
+          "regimeControlLabel": "Equilibrium damping regime",
+          "regimes": {
+            "under": "Underdamped",
+            "critical": "Critical",
+            "over": "Overdamped"
+          },
+          "stiffness": "Stiffness (k)",
+          "loose": "Loose (50)",
+          "snappy": "High stiffness (600)",
+          "damping": "Damping (d)",
+          "oscillate": "Oscillate (0)",
+          "overdamped": "Heavy damping (120)",
+          "mass": "Mass (m)",
+          "feather": "Light mass (0.2)",
+          "inertial": "Heavy mass (5.0)",
+          "triggerImpulse": "Retarget spring",
+          "resetCenter": "Reset center",
+          "copyConfig": "Copy config",
+          "reducedMotionNote": "Reduced motion is enabled: moving the orb updates its target without spring interpolation."
+        },
+        "apiReference": {
+          "eyebrow": "Core exports / signatures",
+          "title": "Operator reference & API signatures",
+          "description": "A searchable index of public primitives and operators exported by @re-code/flux. Renderer adapters remain available through their explicit subpaths.",
+          "importNotice": "Examples and signatures reflect the current public entry points. DOM, SVG, Canvas, and Three.js helpers are imported from optional subpaths rather than the headless core.",
+          "searchLabel": "Search API entries",
+          "searchPlaceholder": "Search names, signatures or descriptions…",
+          "categoryFilterLabel": "Filter API by category",
+          "allCategories": "All",
+          "operatorColumn": "Export",
+          "signatureColumn": "Signature & purpose",
+          "returnColumn": "Return type",
+          "categoryColumn": "Category",
+          "copyColumn": "Copy import",
+          "copyImportFor": "Copy import for",
+          "importCopied": "Import copied",
+          "noResults": "No API entries match this filter.",
+          "entriesLabel": "public exports shown",
+          "adapterNote": "For target-specific APIs, see",
+          "renderingAdaptersLink": "Rendering adapters"
+        },
+        "runtimeTelemetry": {
+          "eyebrow": "Live scheduler sample",
+          "title": "Measure actual frame-coordinator work",
+          "description": "Run a spring sample to observe the coordinator metrics emitted by the running engine. These values describe measured scheduler work, not total browser rendering time or a cross-library benchmark.",
+          "status": "Sample",
+          "running": "Running",
+          "idle": "Idle",
+          "run": "Run sample",
+          "pause": "Pause",
+          "clearHistory": "Clear chart history",
+          "lastFrame": "Last frame work",
+          "averageFrame": "Average work",
+          "maxFrame": "Max work",
+          "activeSubscribers": "Active subscribers",
+          "chartAriaLabel": "Recent samples of frame coordinator work duration",
+          "chartEmpty": "Run the sample to populate the chart with real measurements.",
+          "note": "Measurement starts while metrics$ is observed and a frame clock is active. The numbers vary by device, browser, CPU load, and other active subscribers.",
+          "paradigmEyebrow": "Architecture / paradigm shift",
+          "paradigmTitle": "Reactive motion as a shared pipeline",
+          "refluxModel": "re;Flux engine",
+          "refluxTag": "Observable-first",
+          "imperativeModel": "Manual animation loops",
+          "comparisonTag": "Alternative pattern",
+          "compositionLabel": "Composition",
+          "compositionDescription": "Compose typed values and operators with RxJS and coordinate multiple items on a shared frame clock.",
+          "renderTargetsLabel": "Render targets",
+          "renderTargetsDescription": "Keep rendering opt-in through DOM, SVG, Canvas and structural Three.js adapters.",
+          "lifecycleLabel": "Lifecycle",
+          "lifecycleDescription": "Dispose subscriptions and adapter bindings explicitly; use diagnostics to detect outstanding scheduler work.",
+          "imperativeCompositionDescription": "Each animation often owns its own update callbacks and timing logic unless a shared orchestration layer is added.",
+          "imperativeTargetsDescription": "Rendering code is commonly tied to a specific element or renderer, which may require separate glue to share values.",
+          "imperativeLifecycleDescription": "Listeners and loops need explicit cleanup; a missed teardown can keep work alive past a view lifecycle.",
+          "paradigmNote": "This is a qualitative architecture comparison, not a performance ranking. Use the live metrics above and the repository benchmarks to measure concrete workloads."
         }
       },
       "navigation": {

@@ -1,14 +1,10 @@
-// re;Flux visual tokens.
-// Keep these independent from the UI primitives so the palette remains app-owned.
-
-$rx-breakpoint-sm: 40rem;
-$rx-breakpoint-md: 64rem;
-$rx-breakpoint-lg: 80rem;
-
+// -----------------------------------------------------------------------------
+// re;Flux design tokens
+// -----------------------------------------------------------------------------
 :root {
   color-scheme: dark;
 
-  // Theme colors are RGB channel triples to support alpha-composited colors.
+  // Theme colors use RGB channel triples where alpha compositing is needed.
   --rx-theme-background: 12, 14, 19;
   --rx-theme-on-background: 238, 240, 247;
   --rx-theme-surface: 17, 19, 25;
@@ -26,65 +22,266 @@ $rx-breakpoint-lg: 80rem;
   --rx-theme-on-surface: 238, 240, 247;
   --rx-theme-on-warning: 36, 22, 12;
   --rx-theme-on-error: 37, 17, 22;
+  --rx-theme-border-strong: 130, 137, 160;
+  --rx-theme-border-muted: 150, 156, 174;
   --rx-border-color: 117, 121, 134;
   --rx-border-opacity: 1;
   --rx-medium-emphasis-opacity: 0.82;
+  --rx-low-emphasis-opacity: 0.66;
   --rx-high-emphasis-opacity: 0.96;
+  --rx-opacity-subdued: 0.72;
 
-  --rx-site-header-height: 4.25rem;
+  // Brand palette used by the immersive Home and its header/footer.
+  --rx-brand-background-rgb: 12, 14, 19;
+  --rx-brand-surface-rgb: 17, 19, 25;
+  --rx-brand-surface-raised-rgb: 27, 30, 39;
+  --rx-brand-surface-sunken-rgb: 9, 11, 15;
+  --rx-brand-text-rgb: 238, 240, 247;
+  --rx-brand-primary-rgb: 167, 139, 250;
+  --rx-brand-primary-strong-rgb: 148, 116, 255;
+  --rx-brand-secondary-rgb: 20, 200, 221;
+  --rx-brand-on-primary-rgb: 16, 13, 26;
+  --rx-brand-border-rgb: 130, 137, 160;
+  --rx-brand-background: rgb(var(--rx-brand-background-rgb));
+  --rx-brand-surface: rgb(var(--rx-brand-surface-rgb));
+  --rx-brand-surface-raised: rgb(var(--rx-brand-surface-raised-rgb));
+  --rx-brand-surface-sunken: rgb(var(--rx-brand-surface-sunken-rgb));
+  --rx-brand-text: rgb(var(--rx-brand-text-rgb));
+  --rx-brand-text-muted: rgba(var(--rx-brand-text-rgb), 0.68);
+  --rx-brand-text-subtle: rgba(var(--rx-brand-text-rgb), 0.46);
+  --rx-brand-primary: rgb(var(--rx-brand-primary-rgb));
+  --rx-brand-primary-strong: rgb(var(--rx-brand-primary-strong-rgb));
+  --rx-brand-secondary: rgb(var(--rx-brand-secondary-rgb));
+  --rx-brand-on-primary: rgb(var(--rx-brand-on-primary-rgb));
+  --rx-brand-border: rgba(var(--rx-brand-border-rgb), 0.38);
+
+  // Accent and visualization palette. These are intentionally stable between themes.
+  --rx-color-black-rgb: 0, 0, 0;
+  --rx-color-white-rgb: 255, 255, 255;
+  --rx-color-black: rgb(var(--rx-color-black-rgb));
+  --rx-color-white: rgb(var(--rx-color-white-rgb));
+  --rx-color-accent-cyan-rgb: 103, 232, 249;
+  --rx-color-accent-amber-rgb: 246, 185, 110;
+  --rx-color-accent-blue-rgb: 108, 170, 255;
+  --rx-color-accent-indigo-rgb: 105, 95, 210;
+  --rx-color-glow-cyan-rgb: 24, 87, 103;
+  --rx-color-glow-cyan-soft-rgb: 35, 87, 111;
+  --rx-color-glow-cyan-strong-rgb: 36, 113, 137;
+  --rx-color-glow-violet-rgb: 87, 61, 147;
+  --rx-color-glow-violet-soft-rgb: 120, 113, 180;
+  --rx-color-glow-teal-rgb: 20, 107, 139;
+  --rx-color-glow-shadow-rgb: 7, 9, 13;
+  --rx-color-panel-overlay-rgb: 13, 17, 24;
+  --rx-color-panel-overlay-strong-rgb: 27, 33, 44;
+  --rx-color-panel-overlay-soft-rgb: 20, 22, 29;
+  --rx-color-panel-overlay-muted-rgb: 28, 30, 39;
+  --rx-color-accent-cyan-bright: rgb(var(--rx-color-accent-cyan-rgb));
+  --rx-color-accent-amber: rgb(var(--rx-color-accent-amber-rgb));
+  --rx-color-accent-blue: rgb(var(--rx-color-accent-blue-rgb));
+  --rx-color-accent-indigo: rgb(var(--rx-color-accent-indigo-rgb));
+  --rx-color-accent-lavender: #b7a2ff;
+  --rx-color-accent-lavender-soft: #c4b5fd;
+  --rx-color-accent-sand: #e8d9a8;
+  --rx-color-accent-magenta: #e879f9;
+  --rx-color-canvas-deep: #0a0c10;
+  --rx-color-canvas-inset: #0b0d11;
+  --rx-color-canvas-night: #080d1a;
+  --rx-color-canvas-night-deep: #080b16;
+  --rx-color-canvas-navy: #101b36;
+  --rx-color-canvas-navy-deep: #0a1020;
+  --rx-color-canvas-indigo: #161331;
+  --rx-color-canvas-indigo-alt: #171331;
+  --rx-color-canvas-blue: #102037;
+  --rx-color-canvas-cyan-deep: #10263a;
+  --rx-color-canvas-ember: #331525;
+  --rx-color-surface-muted: #141720;
+  --rx-color-surface-muted-deep: #12151b;
+  --rx-color-surface-deep: #10131a;
+  --rx-color-surface-control: #16181f;
+  --rx-color-surface-elevated: #191c24;
+  --rx-color-surface-strong: #20232d;
+
+  // Typography.
   --rx-font-body: 'Manrope', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --rx-font-mono: 'DM Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
   --mono: var(--rx-font-mono);
-
+  --rx-font-size-2xs: 0.625rem;
+  --rx-font-size-micro: 0.48rem;
+  --rx-font-size-code-label: 0.55rem;
+  --rx-font-size-small-label: 0.66rem;
+  --rx-font-size-label: 0.7rem;
+  --rx-font-size-ui: 0.8rem;
+  --rx-font-size-ui-compact: 0.82rem;
+  --rx-font-size-ui-large: 0.875rem;
+  --rx-font-size-ui-wide: 1rem;
   --rx-font-size-xs: 0.6875rem;
   --rx-font-size-sm: 0.8125rem;
+  --rx-font-size-caption: 0.75rem;
   --rx-font-size-md: 0.9375rem;
   --rx-font-size-lg: 1.125rem;
   --rx-font-size-xl: 1.5rem;
+  --rx-font-size-2xl: 2rem;
+  --rx-font-size-3xl: 2.5rem;
+  --rx-font-weight-regular: 400;
+  --rx-font-weight-medium: 500;
+  --rx-font-weight-semibold: 600;
+  --rx-font-weight-ui: 650;
+  --rx-font-weight-bold: 700;
+  --rx-font-weight-display: 750;
+  --rx-font-weight-extrabold: 800;
+  --rx-line-height-solid: 1;
+  --rx-line-height-tight: 1.1;
+  --rx-line-height-display: 1.12;
+  --rx-line-height-compact: 1.2;
+  --rx-line-height-ui: 1.35;
+  --rx-line-height-label: 1.4;
+  --rx-line-height-normal: 1.5;
+  --rx-line-height-reading: 1.65;
+  --rx-line-height-readable: 1.7;
+  --rx-line-height-relaxed: 1.75;
+  --rx-tracking-tight: -0.04em;
+  --rx-tracking-tighter: -0.055em;
+  --rx-tracking-display: -0.08em;
+  --rx-tracking-display-condensed: -0.09em;
+  --rx-tracking-meta: 0.07em;
+  --rx-tracking-label: 0.08em;
+  --rx-tracking-wide: 0.12em;
 
+  // Spacing scale; keep layout rhythm consistent across views and components.
+  --rx-space-0: 0;
+  --rx-space-px: 1px;
+  --rx-space-0-5: 0.125rem;
+  --rx-space-fine: 0.2rem;
+  --rx-space-tight: 0.35rem;
+  --rx-space-control-gap: 0.4rem;
+  --rx-space-control-tight: 0.45rem;
+  --rx-space-compact: 0.55rem;
+  --rx-space-control: 0.65rem;
+  --rx-space-control-wide: 0.7rem;
+  --rx-space-card: 0.8rem;
+  --rx-space-card-gap: 0.85rem;
+  --rx-space-content-compact: 0.9rem;
+  --rx-space-content: 1.2rem;
+  --rx-space-layout-gap: 1.4rem;
+  --rx-space-layout-compact: 1.15rem;
+  --rx-space-micro: 7px;
+  --rx-space-icon: 9px;
+  --rx-space-5-5: 22px;
   --rx-space-1: 0.25rem;
+  --rx-space-1-5: 0.375rem;
   --rx-space-2: 0.5rem;
+  --rx-space-2-5: 0.625rem;
   --rx-space-3: 0.75rem;
+  --rx-space-3-5: 0.875rem;
   --rx-space-4: 1rem;
+  --rx-space-4-5: 1.125rem;
   --rx-space-5: 1.25rem;
   --rx-space-6: 1.5rem;
+  --rx-space-7: 1.75rem;
   --rx-space-8: 2rem;
+  --rx-space-9: 2.25rem;
   --rx-space-10: 2.5rem;
   --rx-space-12: 3rem;
+  --rx-space-14: 3.5rem;
+  --rx-space-16: 4rem;
+  --rx-space-18: 4.5rem;
 
+  // Radius and borders.
+  --rx-radius-xs: 0.1875rem;
   --rx-radius-sm: 0.25rem;
   --rx-radius-md: 0.5rem;
+  --rx-radius-compact-sm: 0.5625rem;
+  --rx-radius-compact-wide: 0.6875rem;
+  --rx-radius-control-sm: 0.375rem;
+  --rx-radius-control-tight: 0.2rem;
+  --rx-radius-control-soft: 0.45rem;
+  --rx-radius-control-wide: 0.8rem;
+  --rx-radius-compact: 0.625rem;
   --rx-radius-lg: 0.75rem;
   --rx-radius-xl: 1rem;
+  --rx-radius-2xl: 1.5rem;
+  --rx-radius-pill: 999px;
+  --rx-radius-control: 0.35rem;
+  --rx-border-width: 1px;
+  --rx-border-width-strong: 2px;
+  --rx-border-width-focus: 3px;
 
+  // Layout.
+  --rx-site-header-height: 4.25rem;
+  --rx-site-header-height-mobile: 4rem;
   --rx-page-gutter: clamp(1rem, 3.5vw, 3.25rem);
   --rx-content-width: 76rem;
   --rx-content-wide: 92rem;
   --rx-content-reading: 68rem;
   --rx-section-space: clamp(4rem, 9vw, 8rem);
+  --rx-stage-height-sm: 11.25rem;
+  --rx-stage-height-md: 16.25rem;
+  --rx-stage-height-lg: 18.125rem;
 
-  --rx-color-background: #0c0e13;
-  --rx-color-surface: #111319;
-  --rx-color-surface-raised: #1b1e27;
-  --rx-color-surface-sunken: #090b0f;
-  --rx-color-border: rgba(130, 137, 160, 0.38);
-  --rx-color-border-strong: #8289a0;
-  --rx-color-grid: rgba(238, 240, 247, 0.09);
-  --rx-color-text: #eef0f7;
-  --rx-color-text-muted: rgba(238, 240, 247, 0.82);
-  --rx-color-text-subtle: rgba(238, 240, 247, 0.66);
-  --rx-color-primary: #a78bfa;
-  --rx-color-primary-strong: #9474ff;
-  --rx-color-secondary: #14c8dd;
-  --rx-color-warning: #ffba81;
-  --rx-color-error: #ff9eab;
-  --rx-color-info: #91a4ff;
-  --rx-color-success: #72e0d1;
-  --rx-color-on-primary: #100d1a;
-  --rx-color-on-surface: #eef0f7;
-  --rx-shadow-focus: 0 0 0 3px rgba(167, 139, 250, 0.28);
+  // Motion. Animation-specific durations (e.g. a wave cycle) may remain local.
+  --rx-motion-duration-fast: 140ms;
+  --rx-motion-duration-interaction: 160ms;
+  --rx-motion-duration-standard: 180ms;
+  --rx-motion-duration-medium: 200ms;
+  --rx-motion-duration-emphasis: 260ms;
+  --rx-motion-duration-slow: 350ms;
+  --rx-motion-duration-enter: 250ms;
+  --rx-motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --rx-motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-  // Legacy shorthand aliases retained while existing demos are migrated.
+  // Layering and depth.
+  --rx-z-below: -1;
+  --rx-z-base: 0;
+  --rx-z-scene: 1;
+  --rx-z-overlay-content: 2;
+  --rx-z-raised: 3;
+  --rx-z-sticky: 10;
+  --rx-z-app-bar: 20;
+  --rx-z-header: 100;
+  --rx-z-mobile-menu: 200;
+  --rx-z-overlay: 800;
+  --rx-z-skip-link: 10000;
+  --rx-shadow-xs: 0 1px 2px rgba(var(--rx-color-black-rgb), 0.12);
+  --rx-shadow-sm: 0 4px 14px rgba(var(--rx-color-black-rgb), 0.16);
+  --rx-shadow-md: 0 1.5rem 2rem rgba(var(--rx-color-black-rgb), 0.22);
+  --rx-shadow-lg: 0 26px 90px rgba(var(--rx-color-black-rgb), 0.22);
+  --rx-shadow-focus: 0 0 0 3px rgba(var(--rx-theme-primary), 0.28);
+  --rx-shadow-glow-primary: 0 0 3rem rgba(var(--rx-theme-primary), 0.12);
+  --rx-shadow-glow-secondary: 0 0 2.2rem rgba(var(--rx-theme-secondary), 0.12);
+  --rx-gradient-brand: linear-gradient(100deg, var(--rx-color-secondary) 3%, var(--rx-color-accent-blue) 52%, var(--rx-color-primary) 100%);
+  --rx-gradient-brand-reverse: linear-gradient(100deg, var(--rx-color-primary) 10%, var(--rx-color-accent-blue) 58%, var(--rx-color-secondary) 100%);
+  --rx-gradient-secondary-primary: linear-gradient(120deg, var(--rx-color-secondary), var(--rx-color-primary) 75%);
+  --rx-gradient-primary: linear-gradient(145deg, var(--rx-color-primary), var(--rx-color-primary-strong));
+  --rx-gradient-accent-horizontal: linear-gradient(90deg, var(--rx-color-secondary), var(--rx-color-primary));
+}
+
+// The color primitives below derive from theme channel tokens, so switching themes
+// updates component styles without duplicating the palette in every theme block.
+:root,
+.rx-theme--dark,
+.rx-theme--light {
+  --rx-color-background: rgb(var(--rx-theme-background));
+  --rx-color-surface: rgb(var(--rx-theme-surface));
+  --rx-color-surface-raised: rgb(var(--rx-theme-surface-variant));
+  --rx-color-surface-sunken: rgb(var(--rx-theme-surface-sunken));
+  --rx-color-border: rgba(var(--rx-theme-border-strong), 0.38);
+  --rx-color-border-strong: rgb(var(--rx-theme-border-strong));
+  --rx-color-grid: rgba(var(--rx-theme-on-background), 0.09);
+  --rx-color-text: rgb(var(--rx-theme-on-background));
+  --rx-color-text-muted: rgba(var(--rx-theme-on-background), var(--rx-medium-emphasis-opacity));
+  --rx-color-text-subtle: rgba(var(--rx-theme-on-background), var(--rx-low-emphasis-opacity));
+  --rx-color-primary: rgb(var(--rx-theme-primary));
+  --rx-color-primary-strong: rgb(var(--rx-theme-primary-strong));
+  --rx-color-secondary: rgb(var(--rx-theme-secondary));
+  --rx-color-warning: rgb(var(--rx-theme-warning));
+  --rx-color-error: rgb(var(--rx-theme-error));
+  --rx-color-info: rgb(var(--rx-theme-info));
+  --rx-color-success: rgb(var(--rx-theme-success));
+  --rx-color-on-primary: rgb(var(--rx-theme-on-primary));
+  --rx-color-on-surface: rgb(var(--rx-theme-on-surface));
+  --rx-shadow-focus: 0 0 0 var(--rx-border-width-focus) rgba(var(--rx-theme-primary), 0.28);
+
+  // Backwards-compatible aliases used by older demos.
   --bg: var(--rx-color-background);
   --panel: var(--rx-color-surface);
   --panel-soft: var(--rx-color-surface-raised);
@@ -119,44 +316,13 @@ $rx-breakpoint-lg: 80rem;
   --rx-theme-on-surface: 238, 240, 247;
   --rx-theme-on-warning: 36, 22, 12;
   --rx-theme-on-error: 37, 17, 22;
+  --rx-theme-border-strong: 130, 137, 160;
+  --rx-theme-border-muted: 150, 156, 174;
   --rx-border-color: 117, 121, 134;
-  --rx-border-opacity: 1;
   --rx-medium-emphasis-opacity: 0.82;
+  --rx-low-emphasis-opacity: 0.66;
   --rx-high-emphasis-opacity: 0.96;
-  --rx-color-background: #0c0e13;
-  --rx-color-surface: #111319;
-  --rx-color-surface-raised: #1b1e27;
-  --rx-color-surface-sunken: #090b0f;
-  --rx-color-border: rgba(130, 137, 160, 0.38);
-  --rx-color-border-strong: #8289a0;
-  --rx-color-grid: rgba(238, 240, 247, 0.09);
-  --rx-color-text: #eef0f7;
-  --rx-color-text-muted: rgba(238, 240, 247, 0.82);
-  --rx-color-text-subtle: rgba(238, 240, 247, 0.66);
-  --rx-color-primary: #a78bfa;
-  --rx-color-primary-strong: #9474ff;
-  --rx-color-secondary: #14c8dd;
-  --rx-color-warning: #ffba81;
-  --rx-color-error: #ff9eab;
-  --rx-color-info: #91a4ff;
-  --rx-color-success: #72e0d1;
-  --rx-color-on-primary: #100d1a;
-  --rx-color-on-surface: #eef0f7;
-  --rx-shadow-focus: 0 0 0 3px rgba(167, 139, 250, 0.28);
-
-  // Recompute aliases in the active theme scope so they follow theme changes.
-  --bg: var(--rx-color-background);
-  --panel: var(--rx-color-surface);
-  --panel-soft: var(--rx-color-surface-raised);
-  --border: var(--rx-color-border);
-  --muted: var(--rx-color-text-muted);
-  --muted2: var(--rx-color-text-subtle);
-  --text: var(--rx-color-text);
-  --violet: var(--rx-color-primary);
-  --violet-bright: var(--rx-color-primary-strong);
-  --cyan: var(--rx-color-secondary);
-  --orange: var(--rx-color-warning);
-  --pink: var(--rx-color-error);
+  --rx-opacity-subdued: 0.72;
 }
 
 :root[data-rx-theme='light'],
@@ -179,41 +345,10 @@ $rx-breakpoint-lg: 80rem;
   --rx-theme-on-surface: 23, 27, 41;
   --rx-theme-on-warning: 255, 255, 255;
   --rx-theme-on-error: 255, 255, 255;
+  --rx-theme-border-strong: 128, 130, 138;
+  --rx-theme-border-muted: 128, 130, 138;
   --rx-border-color: 128, 130, 138;
-  --rx-border-opacity: 1;
   --rx-medium-emphasis-opacity: 0.82;
+  --rx-low-emphasis-opacity: 0.66;
   --rx-high-emphasis-opacity: 0.92;
-  --rx-color-background: #f7f8fc;
-  --rx-color-surface: #ffffff;
-  --rx-color-surface-raised: #ffffff;
-  --rx-color-surface-sunken: #eff1f8;
-  --rx-color-border: rgba(128, 130, 138, 0.42);
-  --rx-color-border-strong: #80828a;
-  --rx-color-grid: rgba(23, 27, 41, 0.1);
-  --rx-color-text: #171b29;
-  --rx-color-text-muted: rgba(23, 27, 41, 0.82);
-  --rx-color-text-subtle: rgba(23, 27, 41, 0.66);
-  --rx-color-primary: #5c4ac7;
-  --rx-color-primary-strong: #4032a3;
-  --rx-color-secondary: #087e78;
-  --rx-color-warning: #8a4300;
-  --rx-color-error: #b42332;
-  --rx-color-info: #3156b6;
-  --rx-color-success: #176d48;
-  --rx-color-on-primary: #ffffff;
-  --rx-color-on-surface: #171b29;
-  --rx-shadow-focus: 0 0 0 3px rgba(92, 74, 199, 0.22);
-
-  --bg: var(--rx-color-background);
-  --panel: var(--rx-color-surface);
-  --panel-soft: var(--rx-color-surface-raised);
-  --border: var(--rx-color-border);
-  --muted: var(--rx-color-text-muted);
-  --muted2: var(--rx-color-text-subtle);
-  --text: var(--rx-color-text);
-  --violet: var(--rx-color-primary);
-  --violet-bright: var(--rx-color-primary-strong);
-  --cyan: var(--rx-color-secondary);
-  --orange: var(--rx-color-warning);
-  --pink: var(--rx-color-error);
 }

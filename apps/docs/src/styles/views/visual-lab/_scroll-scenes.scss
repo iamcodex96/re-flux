@@ -1,5 +1,5 @@
 .visual-demo-grid {
-  row-gap: 20px;
+  row-gap: var(--rx-space-5);
 }
 
 .scroll-demo__viewport {
@@ -7,14 +7,14 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scroll-behavior: auto;
-  border: 1px solid rgba(148, 163, 184, 0.24);
-  border-radius: 12px;
-  background: #070c17;
-  scrollbar-color: rgba(103, 232, 249, 0.5) rgba(148, 163, 184, 0.1);
+  border: var(--rx-border-width) solid rgba(var(--rx-theme-border-strong), 0.24);
+  border-radius: var(--rx-radius-lg);
+  background: var(--rx-color-canvas-night-deep);
+  scrollbar-color: rgba(var(--rx-color-accent-cyan-rgb), 0.5) rgba(var(--rx-theme-border-strong), 0.1);
 
   &:focus-visible {
-    outline: 2px solid rgb(var(--rx-theme-primary));
-    outline-offset: 3px;
+    outline: var(--rx-border-width-strong) solid rgb(var(--rx-theme-primary));
+    outline-offset: var(--rx-space-fine);
   }
 
   .scroll-stage {
@@ -35,22 +35,22 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  color: rgba(226, 232, 240, 0.65);
+  gap: var(--rx-space-2-5);
+  color: rgba(var(--rx-theme-on-background), 0.65);
   text-align: center;
   background-image:
-    linear-gradient(rgba(103, 232, 249, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(103, 232, 249, 0.045) 1px, transparent 1px);
+    linear-gradient(rgba(var(--rx-color-accent-cyan-rgb), 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--rx-color-accent-cyan-rgb), 0.045) 1px, transparent 1px);
   background-size: 24px 24px;
 
-  &--top { border-bottom: 1px dashed rgba(103, 232, 249, 0.24); }
-  &--bottom { border-top: 1px dashed rgba(167, 139, 250, 0.25); }
+  &--top { border-bottom: var(--rx-border-width) dashed rgba(var(--rx-color-accent-cyan-rgb), 0.24); }
+  &--bottom { border-top: var(--rx-border-width) dashed rgba(var(--rx-theme-primary), 0.25); }
 }
 
 .scroll-demo__hint {
-  font-size: 0.75rem;
+  font-size: var(--rx-font-size-caption);
 }
 
 .visual-footer {
-  border-radius: 12px;
+  border-radius: var(--rx-radius-lg);
 }

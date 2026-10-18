@@ -3,8 +3,8 @@
   height: 230px;
   overflow: hidden;
   touch-action: pan-y;
-  border: 1px solid var(--rx-color-border);
-  border-radius: 12px;
+  border: var(--rx-border-width) solid var(--rx-color-border);
+  border-radius: var(--rx-radius-lg);
   background:
     linear-gradient(90deg, rgba(var(--rx-theme-on-surface), 0.045) 1px, transparent 1px),
     linear-gradient(0deg, rgba(var(--rx-theme-on-surface), 0.045) 1px, transparent 1px),
@@ -16,7 +16,7 @@
     width: 22px;
     height: 22px;
     margin: -11px 0 0 -11px;
-    border: 2px solid var(--rx-color-secondary);
+    border: var(--rx-border-width-strong) solid var(--rx-color-secondary);
     border-radius: 50%;
     background: rgba(var(--rx-theme-secondary), 0.16);
     pointer-events: none;
@@ -24,15 +24,15 @@
 
   &__handle {
     position: absolute;
-    z-index: 1;
+    z-index: var(--rx-z-scene);
     width: 76px;
     height: 48px;
     margin: -24px 0 0 -38px;
-    border: 1px solid var(--rx-color-primary);
-    border-radius: 12px;
+    border: var(--rx-border-width) solid var(--rx-color-primary);
+    border-radius: var(--rx-radius-lg);
     background: var(--rx-color-primary);
     color: rgb(var(--rx-theme-on-primary));
-    font: 600 11px var(--rx-font-mono);
+    font:var(--rx-font-weight-semibold) var(--rx-font-size-xs) var(--rx-font-mono);
     cursor: grab;
     touch-action: none;
     user-select: none;
@@ -48,7 +48,7 @@
     bottom: 10px;
     left: 12px;
     color: var(--rx-color-text-muted);
-    font: 10px var(--rx-font-mono);
+    font:var(--rx-font-size-2xs) var(--rx-font-mono);
     pointer-events: none;
   }
 }
@@ -56,29 +56,29 @@
 .motion-playground-card {
   min-width: 0;
   overflow: hidden;
-  border-radius: 8px !important;
+  border-radius: var(--rx-radius-md) !important;
 
   > .ui-card-title {
     display: block;
     max-width: 100%;
-    padding: 16px;
-    line-height: 1.45;
+    padding: var(--rx-space-4);
+    line-height: var(--rx-line-height-normal);
     white-space: normal;
     overflow-wrap: anywhere;
 
     > h2 {
-      margin-block: 2px 0;
+      margin-block: var(--rx-space-0-5) 0;
       font-size: 1.05rem;
-      font-weight: 650;
-      line-height: 1.4;
+      font-weight: var(--rx-font-weight-ui);
+      line-height: var(--rx-line-height-label);
       overflow-wrap: anywhere;
     }
 
     > p {
       max-width: 76ch;
-      margin-top: 8px !important;
-      font-size: 0.875rem;
-      line-height: 1.6;
+      margin-top: var(--rx-space-2) !important;
+      font-size: var(--rx-font-size-ui-large);
+      line-height: var(--rx-line-height-reading);
       white-space: normal;
       overflow-wrap: anywhere;
     }

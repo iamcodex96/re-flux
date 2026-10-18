@@ -14,7 +14,7 @@ The docs frontend uses Vue 3, TypeScript, SCSS, CSS custom properties, and the s
 
 All shared/global Sass lives under `apps/docs/src/styles/` and is assembled through `main.scss`:
 
-- `abstracts/_tokens.scss` owns product colors, typography, spacing, radii, content widths, and focus-ring tokens.
+- `abstracts/_tokens.scss` is the single source of truth for theme-aware colors, the brand/visual accent palette, typography, spacing, radii, breakpoints, z-index layers, shadows, motion durations, and content widths. Use these tokens for repeated design decisions instead of literal values.
 - `base/` owns the reset, typography primitives, and accessibility behavior.
 - `layout/_primitives.scss` owns reusable content rails, full-bleed sections, stacks, and responsive grids.
 - `components/` owns shared UI primitives, code presentations, docs demos, and reusable playground components.
@@ -26,7 +26,7 @@ Use Sass nesting for BEM element/modifier selectors (`&__element`, `&--modifier`
 
 ## Theme
 
-The app exposes `rx-theme--dark` and `rx-theme--light` classes to apply the re;Flux token palettes. Theme channel tokens use `--rx-theme-*` RGB triples where alpha compositing is useful; regular colors use `--rx-color-*`. Both are owned by this app and independent of a component framework.
+The app exposes `rx-theme--dark` and `rx-theme--light` classes to apply the re;Flux token palettes. Theme channel tokens use `--rx-theme-*` RGB triples where alpha compositing is useful; semantic colors use `--rx-color-*`. Fixed brand colors for the dark landing experience use `--rx-brand-*`, and the specialized colors for illustrations and Visual Lab scenes live in the same token file. Use Sass breakpoint variables for media queries (CSS custom properties are not valid media-query values). Prefer `--rx-space-*`, `--rx-radius-*`, `--rx-font-*`, `--rx-motion-*`, `--rx-shadow-*` and `--rx-z-*` for shared styling. Component-specific geometry (SVG paths, particle coordinates, animation-cycle durations) may remain local when it is not a reusable design decision.
 
 ## Accessibility and motion
 
@@ -42,3 +42,7 @@ The app exposes `rx-theme--dark` and `rx-theme--light` classes to apply the re;F
 - Let the owning Vue view handle playback, tab visibility, resize observation, input, and resource cleanup. Home demos should share their focused rendering components and pause when off-screen.
 - Prefer public re;Flux primitives for scheduling and interpolation rather than creating unrelated animation loops for every demo.
 - Restore modified styles, SVG attributes, DOM nodes, observers, and listeners when a scene is disposed.
+
+## Design-token quality gate
+
+Run `npm run check:scss-tokens` after styling changes. The check prevents raw hex/RGB palette values, numeric z-index layers, undefined Sass breakpoints, hardcoded width media-query breakpoints, and repeated literal typography/spacing/radius values from spreading through component/view SCSS. Put shared choices in `abstracts/_tokens.scss` or responsive thresholds in `abstracts/_breakpoints.scss`. It intentionally allows one-off geometry such as SVG/canvas dimensions, path coordinates, animation cycles, and bespoke responsive `clamp()` values when they describe a single illustration rather than a reusable design decision.

@@ -1,3 +1,5 @@
+@use '../abstracts/breakpoints' as breakpoints;
+
 .landing-principle-visual {
   position: relative;
   display: flex;
@@ -5,52 +7,52 @@
   min-height: 5.7rem;
   flex-direction: column;
   justify-content: center;
-  gap: 0.55rem;
+  gap: var(--rx-space-compact);
   overflow: hidden;
-  margin-top: 1rem;
-  padding: 0.7rem 0.75rem 0.55rem;
-  border: 1px solid rgba(130, 137, 160, 0.1);
-  border-radius: 0.3rem;
-  background: rgba(7, 9, 13, 0.62);
+  margin-top: var(--rx-space-4);
+  padding: var(--rx-space-control-wide) var(--rx-space-3) var(--rx-space-compact);
+  border: var(--rx-border-width) solid rgba(var(--rx-theme-border-strong), 0.1);
+  border-radius: var(--rx-radius-control-sm);
+  background: rgba(var(--rx-color-glow-shadow-rgb), 0.62);
 
   svg { display: block; width: 100%; height: 3.3rem; overflow: visible; }
 
-  &__guide { fill: none; stroke: rgba(130, 137, 160, 0.23); stroke-width: 1; stroke-dasharray: 3 5; }
-  &__wave { fill: none; stroke: rgba(20, 200, 221, 0.74); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-  &__point { fill: #14c8dd; filter: drop-shadow(0 0 3px rgba(20, 200, 221, 0.5)); }
-  &__point--violet { fill: #a78bfa; filter: drop-shadow(0 0 3px rgba(167, 139, 250, 0.45)); }
+  &__guide { fill: none; stroke: rgba(var(--rx-theme-border-strong), 0.23); stroke-width: 1; stroke-dasharray: 3 5; }
+  &__wave { fill: none; stroke: rgba(var(--rx-theme-secondary), 0.74); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  &__point { fill: var(--rx-color-secondary); filter: drop-shadow(0 0 3px rgba(var(--rx-theme-secondary), 0.5)); }
+  &__point--violet { fill: var(--rx-color-primary); filter: drop-shadow(0 0 3px rgba(var(--rx-theme-primary), 0.45)); }
 
   &__caption {
     display: flex;
     align-items: center;
-    gap: 0.48rem;
-    color: rgba(238, 240, 247, 0.42);
-    font: 500 0.47rem/1.5 var(--rx-font-mono), monospace;
+    gap: var(--rx-space-2);
+    color: rgba(var(--rx-theme-on-background), 0.42);
+    font:var(--rx-font-weight-medium) var(--rx-font-size-micro)/var(--rx-line-height-normal) var(--rx-font-mono), monospace;
     letter-spacing: 0.055em;
 
-    i { width: 0.2rem; height: 0.2rem; border-radius: 50%; background: #a78bfa; }
+    i { width: 0.2rem; height: 0.2rem; border-radius: 50%; background: var(--rx-color-primary); }
   }
 
   &__frame-labels {
     display: flex;
     justify-content: space-between;
-    padding-left: 1rem;
-    color: rgba(238, 240, 247, 0.32);
-    font: 500 0.42rem/1.4 var(--rx-font-mono), monospace;
+    padding-left: var(--rx-space-4);
+    color: rgba(var(--rx-theme-on-background), 0.32);
+    font:var(--rx-font-weight-medium) var(--rx-font-size-micro)/var(--rx-line-height-label) var(--rx-font-mono), monospace;
   }
 
   &__frame-row {
     display: grid;
     grid-template-columns: 0.4rem minmax(0, 1fr) 2.6rem;
     align-items: center;
-    gap: 0.45rem;
+    gap: var(--rx-space-control-tight);
 
-    > i { display: block; height: 0.22rem; overflow: hidden; border-radius: 1rem; background: rgba(130, 137, 160, 0.17); }
-    > i b { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #14c8dd, #a78bfa); }
-    code { color: rgba(238, 240, 247, 0.45); font: 500 0.45rem/1.4 var(--rx-font-mono), monospace; text-align: right; }
+    > i { display: block; height: 0.22rem; overflow: hidden; border-radius: var(--rx-radius-xl); background: rgba(var(--rx-theme-border-strong), 0.17); }
+    > i b { display: block; height: 100%; border-radius: inherit; background: var(--rx-gradient-accent-horizontal); }
+    code { color: rgba(var(--rx-theme-on-background), 0.45); font:var(--rx-font-weight-medium) 0.45rem/var(--rx-line-height-label) var(--rx-font-mono), monospace; text-align: right; }
   }
 
-  &__frame-dot { width: 0.32rem; height: 0.32rem; border-radius: 50%; background: #14c8dd; &--1 { background: #a78bfa; } &--2 { background: #f6b96e; } }
+  &__frame-dot { width: 0.32rem; height: 0.32rem; border-radius: 50%; background: var(--rx-color-secondary); &--1 { background: var(--rx-color-primary); } &--2 { background: var(--rx-color-accent-amber); } }
 
   &__adapter-rail {
     position: absolute;
@@ -58,51 +60,51 @@
     right: 1.2rem;
     left: 1.2rem;
     height: 1px;
-    background: rgba(130, 137, 160, 0.26);
+    background: rgba(var(--rx-theme-border-strong), 0.26);
 
-    i { display: block; width: 100%; height: 100%; transform-origin: left; background: linear-gradient(90deg, #14c8dd, #a78bfa); }
+    i { display: block; width: 100%; height: 100%; transform-origin: left; background: var(--rx-gradient-accent-horizontal); }
   }
 
   &__adapter-nodes {
     position: relative;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.35rem;
+    gap: var(--rx-space-tight);
 
-    span { position: relative; z-index: 1; padding: 0.35rem 0.1rem; border: 1px solid rgba(130, 137, 160, 0.2); border-radius: 0.2rem; background: #10131a; color: rgba(238, 240, 247, 0.47); font: 500 0.47rem/1.4 var(--rx-font-mono), monospace; text-align: center; }
-    span.is-active { border-color: rgba(20, 200, 221, 0.62); color: #67e8f9; }
+    span { position: relative; z-index: var(--rx-z-scene); padding: var(--rx-space-tight) 0.1rem; border: var(--rx-border-width) solid rgba(var(--rx-theme-border-strong), 0.2); border-radius: var(--rx-radius-control-tight); background: var(--rx-color-surface-deep); color: rgba(var(--rx-theme-on-background), 0.47); font:var(--rx-font-weight-medium) var(--rx-font-size-micro)/var(--rx-line-height-label) var(--rx-font-mono), monospace; text-align: center; }
+    span.is-active { border-color: rgba(var(--rx-theme-secondary), 0.62); color: var(--rx-color-accent-cyan-bright); }
   }
 
   &__adapter-pulse {
     position: absolute;
     top: 2.04rem;
-    z-index: 2;
+    z-index: var(--rx-z-overlay-content);
     width: 0.42rem;
     height: 0.42rem;
     transform: translateX(-50%);
-    border: 1px solid #090b0f;
+    border: var(--rx-border-width) solid var(--rx-color-surface-sunken);
     border-radius: 50%;
-    background: #14c8dd;
-    box-shadow: 0 0 0.7rem rgba(20, 200, 221, 0.8);
+    background: var(--rx-color-secondary);
+    box-shadow: 0 0 0.7rem rgba(var(--rx-theme-secondary), 0.8);
   }
 
   &__lifecycle {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.3rem;
+    gap: var(--rx-space-1);
 
-    span { display: flex; min-width: 0; align-items: center; flex-direction: column; gap: 0.4rem; color: rgba(238, 240, 247, 0.34); }
-    i { display: grid; width: 1.35rem; height: 1.35rem; place-items: center; border: 1px solid rgba(130, 137, 160, 0.23); border-radius: 50%; font: 500 0.45rem/1 var(--rx-font-mono), monospace; font-style: normal; }
-    b { font: 500 0.42rem/1.4 var(--rx-font-mono), monospace; font-weight: 500; letter-spacing: 0.025em; }
-    .is-current { color: #67e8f9; i { border-color: rgba(20, 200, 221, 0.7); background: rgba(20, 200, 221, 0.12); color: #67e8f9; } }
+    span { display: flex; min-width: 0; align-items: center; flex-direction: column; gap: var(--rx-space-control-gap); color: rgba(var(--rx-theme-on-background), 0.34); }
+    i { display: grid; width: 1.35rem; height: 1.35rem; place-items: center; border: var(--rx-border-width) solid rgba(var(--rx-theme-border-strong), 0.23); border-radius: 50%; font:var(--rx-font-weight-medium) 0.45rem/var(--rx-line-height-solid) var(--rx-font-mono), monospace; font-style: normal; }
+    b { font:var(--rx-font-weight-medium) var(--rx-font-size-micro)/var(--rx-line-height-label) var(--rx-font-mono), monospace; font-weight: var(--rx-font-weight-medium); letter-spacing: 0.025em; }
+    .is-current { color: var(--rx-color-accent-cyan-bright); i { border-color: rgba(var(--rx-theme-secondary), 0.7); background: rgba(var(--rx-theme-secondary), 0.12); color: var(--rx-color-accent-cyan-bright); } }
   }
 
-  &__lifecycle-track { height: 0.18rem; overflow: hidden; border-radius: 1rem; background: rgba(130, 137, 160, 0.15); i { display: block; width: 100%; height: 100%; transform-origin: left; background: linear-gradient(90deg, #14c8dd, #a78bfa); } }
+  &__lifecycle-track { height: 0.18rem; overflow: hidden; border-radius: var(--rx-radius-xl); background: rgba(var(--rx-theme-border-strong), 0.15); i { display: block; width: 100%; height: 100%; transform-origin: left; background: var(--rx-gradient-accent-horizontal); } }
 }
 
-@media (max-width: 36rem) {
+@media (max-width: breakpoints.$rx-breakpoint-small) {
   .landing-principle-visual {
-    padding-inline: 0.55rem;
+    padding-inline: var(--rx-space-compact);
     &__lifecycle b { font-size: 0.37rem; }
     &__caption { font-size: 0.42rem; }
   }

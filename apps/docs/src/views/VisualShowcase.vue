@@ -6,6 +6,7 @@ import PageHeader from '../components/PageHeader.vue';
 const route = useRoute();
 const panels = [
   { id: 'svg', name: 'visuals-svg', title: 'SVG & geometry', subtitle: 'Paths, morphing and filters', icon: 'mdi-vector-curve' },
+  { id: 'shaders', name: 'visuals-shaders', title: 'WebGL & shaders', subtitle: 'Fragment shader studies', icon: 'mdi-shimmer' },
   { id: 'canvas', name: 'visuals-canvas', title: 'Canvas & data', subtitle: 'Particles, waves and spectra', icon: 'mdi-chart-bell-curve-cumulative' },
   { id: 'interactions', name: 'visuals-interactions', title: 'DOM & interactions', subtitle: 'Counters, drag and layout', icon: 'mdi-gesture-tap' },
   { id: 'scroll', name: 'visuals-scroll', title: 'Scroll motion', subtitle: 'Triggers and timeline scrubbing', icon: 'mdi-arrow-down-bold-box-outline' },
@@ -16,7 +17,8 @@ const pageDescription = computed(() => String(route.meta.visualDescription ?? ac
 </script>
 
 <template>
-  <UiContainer class="visual-lab py-8 py-md-12" max-width="1240">
+  <RouterView v-if="route.name === 'visuals-home'" />
+  <UiContainer v-else class="visual-lab py-8 py-md-12" max-width="1240">
     <PageHeader
       eyebrow="Playground / Visual Lab"
       title="Beyond movement"

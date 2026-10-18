@@ -1,22 +1,24 @@
-@media (max-width: 900px) {
+@use '../../abstracts/breakpoints' as breakpoints;
+
+@media (max-width: breakpoints.$rx-breakpoint-tablet) {
   .gantt-ruler {
     margin-left: 84px;
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: breakpoints.$rx-breakpoint-mobile-wide) {
   .motion-stage {
     height: 160px;
   }
 
   .timeline-object-row {
     grid-template-columns: 83px minmax(0, 1fr) 34px;
-    gap: 6px;
+    gap: var(--rx-space-1-5);
   }
 
   .gantt-row {
     grid-template-columns: 72px minmax(0, 1fr);
-    gap: 7px;
+    gap: var(--rx-space-micro);
   }
 
   .gantt-ruler {
@@ -24,23 +26,23 @@
   }
 
   .gantt-segment span {
-    padding-left: 3px;
+    padding-left: var(--rx-space-fine);
     font-size: 7px;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: breakpoints.$rx-breakpoint-mobile) {
   .motion-playground-card > .ui-card-title {
-    padding: 14px;
+    padding: var(--rx-space-3-5);
   }
 
   .composition-helper-stage {
-    padding: 18px 12px;
+    padding: var(--rx-space-4-5) var(--rx-space-3);
   }
 
   .composition-helper-track {
     grid-template-columns: 14px minmax(0, 1fr);
-    gap: 8px;
+    gap: var(--rx-space-2);
 
     &__percent {
       grid-column: 2;

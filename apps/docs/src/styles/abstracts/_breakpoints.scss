@@ -1,0 +1,23 @@
+// Shared Sass-only breakpoints. Keep this module CSS-free so it can be used
+// from component-scoped SCSS without emitting duplicate or incorrectly-scoped CSS.
+$rx-breakpoint-compact-mobile: 30rem;       // 480px
+$rx-breakpoint-xs-mobile: 32.5rem;          // 520px
+$rx-breakpoint-small: 36rem;
+$rx-breakpoint-mobile-max: 37.4375rem;      // 599px
+$rx-breakpoint-mobile: 37.5rem;             // 600px
+$rx-breakpoint-mobile-wide: 38.75rem;       // 620px
+$rx-breakpoint-sm: 40rem;
+$rx-breakpoint-mobile-landscape: 42rem;
+$rx-breakpoint-small-tablet: 42.5rem;       // 680px
+$rx-breakpoint-mobile-navigation: 44rem;
+$rx-breakpoint-tablet-narrow: 47.5rem;      // 760px
+$rx-breakpoint-compact: 50rem;
+$rx-breakpoint-tablet: 56.25rem;            // 900px
+$rx-breakpoint-reading-narrow: 58rem;
+$rx-breakpoint-header-compact: 60rem;       // 960px
+$rx-breakpoint-desktop-compact: 62rem;
+$rx-breakpoint-layout-wide: 62.5rem;        // 1000px
+$rx-breakpoint-md: 64rem;
+$rx-breakpoint-reading: 76rem;
+$rx-breakpoint-lg: 80rem;                   // 1280px
+$rx-breakpoint-wide: 92rem;

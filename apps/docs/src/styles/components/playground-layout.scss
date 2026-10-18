@@ -1,36 +1,38 @@
+@use '../abstracts/breakpoints' as breakpoints;
+
 .playground-nav {
   position: sticky;
   top: 86px;
   max-height: calc(100vh - 108px);
   overflow: auto;
-  border-radius: 12px;
+  border-radius: var(--rx-radius-lg);
 
   .ui-list-item {
     min-height: 54px;
-    margin-bottom: 3px;
+    margin-bottom: var(--rx-space-fine);
 
     .ui-list-item__title {
-      font-size: 0.86rem;
-      font-weight: 650;
+      font-size: var(--rx-font-size-ui-large);
+      font-weight: var(--rx-font-weight-ui);
     }
 
     .ui-list-item__subtitle {
-      font-size: 0.72rem;
-      line-height: 1.4;
-      opacity: 0.72;
+      font-size: var(--rx-font-size-label);
+      line-height: var(--rx-line-height-label);
+      opacity: var(--rx-opacity-subdued);
     }
   }
 
   .playground-nav__group-label {
     min-height: 32px;
-    padding-inline: 12px;
-    font-size: 0.68rem;
-    font-weight: 750;
+    padding-inline: var(--rx-space-3);
+    font-size: var(--rx-font-size-xs);
+    font-weight: var(--rx-font-weight-display);
     letter-spacing: 0.09em;
     text-transform: uppercase;
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: breakpoints.$rx-breakpoint-header-compact) {
     position: static;
     max-height: none;
 
@@ -48,7 +50,7 @@
     }
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: breakpoints.$rx-breakpoint-mobile) {
     .ui-list {
       grid-template-columns: 1fr;
     }

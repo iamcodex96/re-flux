@@ -1,93 +1,24 @@
-@media (max-width: 1280px) {
-  .docs-layout {
-    grid-template-columns: 220px minmax(0, 1fr) 196px;
-  }
+@use '../../abstracts/breakpoints' as breakpoints;
 
-  .docs-sidebar {
-    padding-inline: 9px;
-  }
-
-  .docs-content {
-    padding-inline: clamp(22px, 3vw, 40px);
-  }
-
-  .docs-toc-column {
-    padding-inline: 8px;
-  }
+@media (max-width: breakpoints.$rx-breakpoint-lg) {
+  .docs-layout { grid-template-columns: 15rem minmax(0, 1fr); }
+  .docs-sidebar { padding-inline: var(--rx-space-2-5); }
+  .docs-content { padding-inline: clamp(var(--rx-space-5), 3vw, var(--rx-space-10)); }
 }
 
-@media (max-width: 1000px) {
-  .docs-layout {
-    grid-template-columns: 220px minmax(0, 1fr);
-  }
-
-  .docs-toc-column {
-    display: none;
-  }
-
-  .docs-content {
-    padding: 26px clamp(22px, 4vw, 40px) 42px;
-  }
+@media (max-width: breakpoints.$rx-breakpoint-tablet-narrow) {
+  .docs-layout { grid-template-columns: minmax(0, 1fr); }
+  .docs-sidebar { display: none; }
+  .docs-mobile-toolbar { display: flex; }
+  .docs-content { padding: var(--rx-space-5) var(--rx-page-gutter) var(--rx-space-8); }
+  .docs-page-heading { padding-bottom: var(--rx-space-5); }
+  .docs-page-heading h1 { font-size: clamp(var(--rx-font-size-xl), 7vw, var(--rx-font-size-2xl)); }
 }
 
-@media (max-width: 680px) {
-  .docs-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .docs-sidebar {
-    display: none;
-  }
-
-  .docs-mobile-nav {
-    display: block;
-    flex: 0 0 auto;
-    padding: 12px 14px 0;
-  }
-
-  .docs-content {
-    padding: 22px 16px 34px;
-  }
-
-  .docs-page-heading {
-    padding-bottom: 20px;
-
-    h1 {
-      font-size: 1.75rem;
-    }
-
-    p {
-      font-size: 0.88rem;
-    }
-  }
-}
-
-@media (max-width: 520px) {
-  .docs-content {
-    font-size: 0.82rem;
-
-    .text-h4 {
-      font-size: 1.1rem !important;
-    }
-
-    .text-h5 {
-      font-size: 1rem !important;
-    }
-  }
-
-  .docs-section-heading {
-    gap: 9px;
-
-    h2 {
-      font-size: 1rem !important;
-    }
-
-    p {
-      font-size: 0.78rem;
-    }
-  }
-
-  .docs-main-title {
-    font-size: 1.55rem;
-  }
+@media (max-width: breakpoints.$rx-breakpoint-xs-mobile) {
+  .docs-meta-chip { font-size: var(--rx-font-size-2xs); }
+  .docs-page-heading > p { font-size: var(--rx-font-size-ui); }
+  .docs-page-pagination { flex-direction: column; }
+  .docs-page-pagination__item { width: 100%; }
+  .docs-article-footer__package { margin-left: 0; }
 }

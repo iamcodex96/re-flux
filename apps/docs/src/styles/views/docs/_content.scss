@@ -11,14 +11,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 2px;
+    gap: var(--rx-space-2);
+    margin-bottom: var(--rx-space-0-5);
   }
 
   &__label {
     color: rgb(var(--rx-theme-on-surface));
-    font-size: 0.82rem;
-    line-height: 1.35;
+    font-size: var(--rx-font-size-ui-compact);
+    line-height: var(--rx-line-height-ui);
     white-space: normal;
   }
 
@@ -30,13 +30,13 @@
 .docs-section-heading {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--rx-space-3);
   min-width: 0;
-  margin-bottom: 12px;
+  margin-bottom: var(--rx-space-3);
 
   > .ui-avatar {
     flex: 0 0 auto;
-    margin-top: 1px;
+    margin-top: var(--rx-space-px);
   }
 
   > div {
@@ -46,17 +46,17 @@
 
   h2 {
     margin: 0;
-    font-size: 1.08rem !important;
+    font-size: var(--rx-font-size-lg) !important;
     line-height: 1.35 !important;
     letter-spacing: -0.015em;
     overflow-wrap: break-word;
   }
 
   p {
-    margin: 4px 0 0;
+    margin: var(--rx-space-1) 0 0;
     color: rgba(var(--rx-theme-on-surface), 0.7);
-    font-size: 0.82rem;
-    line-height: 1.5;
+    font-size: var(--rx-font-size-ui-compact);
+    line-height: var(--rx-line-height-normal);
     white-space: normal;
     overflow-wrap: break-word;
   }
@@ -64,29 +64,29 @@
 
 .docs-main-title {
   font-size: clamp(1.7rem, 3vw, 2.3rem);
-  line-height: 1.12;
+  line-height: var(--rx-line-height-display);
   letter-spacing: -0.045em;
 }
 
 .docs-lead {
   max-width: 70ch;
   font-size: 0.93rem;
-  line-height: 1.7;
+  line-height: var(--rx-line-height-readable);
 }
 
 .docs-visual-example {
   min-width: 0;
   overflow: hidden;
-  border-radius: 8px !important;
+  border-radius: var(--rx-radius-md) !important;
 
   .ui-expansion-panel__title {
     min-height: 42px;
-    padding: 10px 14px;
-    font-size: 0.78rem;
+    padding: var(--rx-space-2-5) var(--rx-space-3-5);
+    font-size: var(--rx-font-size-ui);
   }
 
   .ui-expansion-panel__content {
-    padding: 0 12px 12px;
+    padding: 0 var(--rx-space-3) var(--rx-space-3);
   }
 }
 

@@ -2,11 +2,11 @@
   position: relative;
   min-width: 0;
   overflow: hidden;
-  padding: 18px 0 9px;
+  padding: var(--rx-space-4-5) 0 var(--rx-space-icon);
 
   &-playhead {
     position: absolute;
-    z-index: 3;
+    z-index: var(--rx-z-raised);
     top: 13px;
     bottom: 8px;
     width: 1px;
@@ -19,16 +19,16 @@
   &-row {
     display: grid;
     grid-template-columns: 78px minmax(0, 1fr);
-    gap: 11px;
+    gap: var(--rx-space-control-wide);
     align-items: center;
     min-width: 0;
-    margin: 11px 0;
+    margin: var(--rx-space-control-wide) 0;
   }
 
   &-label {
     overflow: hidden;
     color: var(--rx-color-text-muted);
-    font-size: 10px;
+    font-size: var(--rx-font-size-2xs);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -38,7 +38,7 @@
     min-width: 0;
     height: 27px;
     overflow: hidden;
-    border-bottom: 1px solid var(--rx-color-border);
+    border-bottom: var(--rx-border-width) solid var(--rx-color-border);
     background: repeating-linear-gradient(
       90deg,
       var(--rx-color-grid) 0,
@@ -57,14 +57,14 @@
     min-width: 0;
     align-items: center;
     overflow: hidden;
-    border: 1px solid var(--rx-color-primary);
+    border: var(--rx-border-width) solid var(--rx-color-primary);
     border-radius: 4px;
     background: rgba(var(--rx-theme-primary), 0.5);
 
     b {
-      padding-left: 4px;
+      padding-left: var(--rx-space-1);
       color: var(--rx-color-text);
-      font: 8px var(--mono);
+      font:var(--rx-font-size-micro) var(--mono);
       white-space: nowrap;
     }
 
@@ -83,10 +83,10 @@
 .docs-timeline-objects {
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  margin-top: 18px;
-  padding-top: 17px;
-  border-top: 1px solid var(--rx-color-border);
+  gap: var(--rx-space-icon);
+  margin-top: var(--rx-space-4-5);
+  padding-top: var(--rx-space-4-5);
+  border-top: var(--rx-border-width) solid var(--rx-color-border);
 }
 
 .docs-timeline-object {
@@ -97,10 +97,10 @@
   width: 27px;
   height: 27px;
   place-items: center;
-  border-radius: 7px;
+  border-radius: var(--rx-radius-control-sm);
   background: var(--rx-color-primary);
   color: var(--rx-color-on-primary);
-  font: 9px var(--mono);
+  font:var(--rx-font-size-code-label) var(--mono);
   box-shadow: 0 5px 13px rgba(var(--rx-theme-primary-strong), 0.14);
 
   &.segment-1 {
@@ -117,7 +117,7 @@
     display: grid;
     grid-template-columns: 78px minmax(0, 1fr);
     align-items: center;
-    gap: 11px;
+    gap: var(--rx-space-control-wide);
   }
 
   &-track {
@@ -125,8 +125,8 @@
     min-width: 0;
     height: 39px;
     overflow: hidden;
-    border: 1px solid var(--rx-color-border);
-    border-radius: 6px;
+    border: var(--rx-border-width) solid var(--rx-color-border);
+    border-radius: var(--rx-radius-control-sm);
     background: var(--rx-color-surface-sunken);
   }
 
@@ -137,7 +137,7 @@
     left: 14px;
     height: 1px;
     transform: translateY(-50%);
-    border-top: 1px dashed rgba(var(--rx-theme-on-surface), 0.28);
+    border-top: var(--rx-border-width) dashed rgba(var(--rx-theme-on-surface), 0.28);
   }
 
 }

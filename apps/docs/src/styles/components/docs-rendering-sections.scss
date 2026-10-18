@@ -3,6 +3,6 @@
   margin: 0;
   white-space: pre;
   font-family: var(--rx-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: 0.82rem;
-  line-height: 1.65;
+  font-size: var(--rx-font-size-ui-compact);
+  line-height: var(--rx-line-height-reading);
 }

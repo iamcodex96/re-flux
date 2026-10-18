@@ -1,3 +1,9 @@
+## Unreleased
+
+- Promoted the Fluid Noise Field WebGL shader to the Home hero background and removed it from the Visual Lab catalog and shader selector to avoid duplicating the signature effect.
+- Reworked the fluid shader into a softly domain-warped, loopable teal/violet field and added visibility/reduced-motion lifecycle handling on Home.
+- Updated Visual Lab counts and static checks to keep the catalog and hero ownership in sync.
+
 # Changelog
 
 ## 0.2.0 — 2026-10-16

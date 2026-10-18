@@ -4,13 +4,13 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 12px;
-  padding: 16px 20px;
+  gap: var(--rx-space-3);
+  padding: var(--rx-space-4) var(--rx-space-5);
 
   &-track {
     position: relative;
     height: 34px;
-    border-bottom: 1px dashed rgba(var(--rx-theme-on-surface), 0.24);
+    border-bottom: var(--rx-border-width) dashed rgba(var(--rx-theme-on-surface), 0.24);
   }
 
   &-dot {
@@ -24,8 +24,8 @@
     border-radius: 50%;
     background: rgb(var(--rx-theme-secondary));
     color: rgb(var(--rx-theme-on-secondary));
-    font-size: 10px;
-    font-weight: 700;
+    font-size: var(--rx-font-size-2xs);
+    font-weight: var(--rx-font-weight-bold);
     box-shadow: 0 4px 14px rgba(var(--rx-theme-secondary), 0.25);
   }
 
@@ -34,11 +34,11 @@
     align-items: center;
     justify-content: space-between;
     color: rgb(var(--rx-theme-on-surface));
-    opacity: 0.72;
-    font: 10px var(--mono, monospace);
+    opacity: var(--rx-opacity-subdued);
+    font:var(--rx-font-size-2xs) var(--mono, monospace);
 
     strong {
-      font-weight: 600;
+      font-weight: var(--rx-font-weight-semibold);
     }
   }
 }
@@ -48,23 +48,23 @@
   height: 100%;
   flex-direction: column;
   justify-content: center;
-  gap: 13px;
-  padding: 16px 20px;
+  gap: var(--rx-space-card);
+  padding: var(--rx-space-4) var(--rx-space-5);
 }
 
 .docs-demo-easing-row {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
+  gap: var(--rx-space-3);
   color: rgb(var(--rx-theme-on-surface));
-  font: 11px var(--mono, monospace);
+  font:var(--rx-font-size-xs) var(--mono, monospace);
 }
 
 .docs-demo-easing-track {
   position: relative;
   height: 28px;
-  border-bottom: 1px dashed rgba(var(--rx-theme-on-surface), 0.17);
+  border-bottom: var(--rx-border-width) dashed rgba(var(--rx-theme-on-surface), 0.17);
 }
 
 .docs-demo-easing-dot {
@@ -79,6 +79,6 @@
   background: rgb(var(--rx-theme-secondary));
   color: rgb(var(--rx-theme-on-secondary));
   font-size: 9px;
-  font-weight: 700;
+  font-weight: var(--rx-font-weight-bold);
   box-shadow: 0 4px 14px rgba(var(--rx-theme-secondary), 0.25);
 }

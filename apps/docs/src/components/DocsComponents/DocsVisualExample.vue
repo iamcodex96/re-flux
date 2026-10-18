@@ -17,7 +17,6 @@ export type DocsVisualVariant =
   | 'timing'
   | 'repeat-yoyo'
   | 'callbacks'
-  | 'timeline'
   | 'offsets'
   | 'nested'
   | 'keyframes'
@@ -157,19 +156,6 @@ function buildAnimations(): void {
             { value: 'translateY(-50%) rotate(360deg) scale(1)', offset: 1 },
           ] },
           opacity: [0.5, 1],
-        },
-        ...looping,
-      });
-      break;
-    case 'timeline':
-      addAnimation('.docs-demo-item', {
-        duration: 680,
-        easing: 'easeOutCubic',
-        stagger: (index) => index * 170,
-        properties: {
-          transform: ['translateY(12px) scale(0.82)', 'translateY(-8px) scale(1.06)'],
-          opacity: [0.38, 1],
-          backgroundColor: ['rgb(70, 62, 136)', 'rgb(125, 108, 246)'],
         },
         ...looping,
       });
@@ -433,7 +419,7 @@ onBeforeUnmount(() => {
           <span class="docs-demo-pulse-caption">{{ ui.repeatYoyoDemoCaption }}</span>
         </div>
 
-        <div v-else-if="['timeline', 'offsets', 'nested', 'keyframes-dom'].includes(variant)" class="docs-demo-lanes">
+        <div v-else-if="['offsets', 'nested', 'keyframes-dom'].includes(variant)" class="docs-demo-lanes">
           <div v-for="index in 4" :key="index" class="docs-demo-lane">
             <span class="docs-demo-lane-label">{{ String(index).padStart(2, '0') }}</span>
             <div class="docs-demo-lane-track"><div class="docs-demo-item">{{ ['A', 'B', 'C', 'D'][index - 1] }}</div></div>

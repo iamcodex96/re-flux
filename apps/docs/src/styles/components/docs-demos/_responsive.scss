@@ -1,17 +1,19 @@
-@media (max-width: 520px) {
+@use '../../abstracts/breakpoints' as breakpoints;
+
+@media (max-width: breakpoints.$rx-breakpoint-xs-mobile) {
   .docs-gantt-row,
   .docs-timeline-object-row {
     grid-template-columns: 62px minmax(0, 1fr);
-    gap: 7px;
+    gap: var(--rx-space-micro);
   }
 
   .docs-gantt-segment b {
-    padding-left: 2px;
+    padding-left: var(--rx-space-0-5);
     font-size: 6px;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: breakpoints.$rx-breakpoint-compact-mobile) {
   .docs-easing-tile .easing-curve__svg {
     max-height: 74px;
   }

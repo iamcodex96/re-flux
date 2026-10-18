@@ -90,7 +90,11 @@
     "check:release": "node scripts/check-release-tag.mjs",
     "check:workflow-sync": "node scripts/check-workflow-sync.mjs",
     "check:ui-framework": "node scripts/check-ui-framework.mjs",
-    "check:home-experience": "node scripts/check-home-experience.mjs"
+    "check:home-experience": "node scripts/check-home-experience.mjs",
+    "check:scss-tokens": "node scripts/check-scss-tokens.mjs",
+    "check:docs-redesign": "node scripts/check-docs-redesign.mjs",
+    "check:visual-lab-hover": "node scripts/check-visual-lab-hover.mjs",
+    "check:visual-lab-complete": "node scripts/check-visual-lab-complete.mjs"
   },
   "peerDependencies": {
     "rxjs": "^7.8.0"

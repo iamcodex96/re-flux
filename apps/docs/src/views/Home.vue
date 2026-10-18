@@ -2,16 +2,20 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { createScrollTrigger, type ScrollTriggerController } from '@lib/dom';
-import { RetargetableMotion } from '@lib';
+import { MotionPreferences, RetargetableMotion } from '@lib';
 import type { Subscription } from 'rxjs';
 import { useAppStore } from '../stores/app';
 import LandingTelemetryStage from '../components/LandingTelemetryStage.vue';
 import LandingCodeMotion from '../components/LandingCodeMotion.vue';
 import LandingLabPreview, { type LandingLabPreviewKind } from '../components/LandingLabPreview.vue';
 import LandingPrincipleVisual, { type LandingPrincipleVisualKind } from '../components/LandingPrincipleVisual.vue';
+import VisualLabShaderPreview from '../components/VisualLab/VisualLabShaderPreview.vue';
 
 const store = useAppStore();
 const copy = computed(() => store.app.view.home);
+const heroSection = ref<HTMLElement | null>(null);
+const heroFluidActive = ref(false);
+const heroMotionPreferences = new MotionPreferences();
 const storyRunway = ref<HTMLElement | null>(null);
 const storyProgress = ref(0);
 const activeStep = ref(0);
@@ -32,6 +36,7 @@ function getPrincipleVisualKind(index: string): LandingPrincipleVisualKind {
   return kinds[Math.max(0, Math.min(kinds.length - 1, Number(index) - 1))] ?? 'stream';
 }
 const stepElements: HTMLElement[] = [];
+let heroVisibilityObserver: IntersectionObserver | null = null;
 let storyTrigger: ScrollTriggerController | null = null;
 let storySubscription: Subscription | null = null;
 let stepObserver: IntersectionObserver | null = null;
@@ -104,6 +109,15 @@ async function copyInstallCommand(): Promise<void> {
 
 onMounted(async () => {
   await nextTick();
+  if (heroSection.value && typeof IntersectionObserver !== 'undefined') {
+    heroVisibilityObserver = new IntersectionObserver((entries) => {
+      heroFluidActive.value = Boolean(entries[0]?.isIntersecting);
+    }, { threshold: 0.01 });
+    heroVisibilityObserver.observe(heroSection.value);
+  } else {
+    heroFluidActive.value = true;
+  }
+
   storyMediaQuery = window.matchMedia('(min-width: 800px) and (prefers-reduced-motion: no-preference)');
   springMotionQuery = window.matchMedia('(prefers-reduced-motion: no-preference)');
   springMotion = new RetargetableMotion({ initialValue: springFactor.value, stiffness: 240, damping: 28, mass: 1 });
@@ -131,6 +145,9 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  heroVisibilityObserver?.disconnect();
+  heroVisibilityObserver = null;
+  heroMotionPreferences.destroy();
   storyMediaQuery?.removeEventListener('change', syncScrollTrigger);
   springMotionQuery?.removeEventListener('change', handleSpringMotionPreference);
   springValueSubscription?.unsubscribe();
@@ -143,34 +160,14 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="home-page">
-    <section class="home-hero" aria-labelledby="home-title">
-      <div class="home-hero__ambient home-hero__ambient--one" aria-hidden="true" />
-      <div class="home-hero__ambient home-hero__ambient--two" aria-hidden="true" />
-      <svg class="home-hero__wave-field" viewBox="0 0 1600 720" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <defs>
-          <linearGradient id="home-wave-cyan" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stop-color="#11c9dc" stop-opacity="0" />
-            <stop offset="0.48" stop-color="#11c9dc" stop-opacity="0.5" />
-            <stop offset="1" stop-color="#11c9dc" stop-opacity="0" />
-          </linearGradient>
-          <linearGradient id="home-wave-violet" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stop-color="#a68cff" stop-opacity="0" />
-            <stop offset="0.55" stop-color="#a68cff" stop-opacity="0.68" />
-            <stop offset="1" stop-color="#a68cff" stop-opacity="0" />
-          </linearGradient>
-          <filter id="home-wave-blur"><feGaussianBlur stdDeviation="7" /></filter>
-        </defs>
-        <g class="home-hero__waves home-hero__waves--blur" filter="url(#home-wave-blur)">
-          <path d="M-80 320 C 180 80, 285 80, 465 285 S 710 570, 925 320 S 1230 70, 1680 320" />
-          <path d="M-80 420 C 160 650, 345 600, 520 380 S 810 110, 1015 390 S 1360 670, 1680 410" />
-        </g>
-        <g class="home-hero__waves">
-          <path class="home-hero__wave--cyan" d="M-80 320 C 180 80, 285 80, 465 285 S 710 570, 925 320 S 1230 70, 1680 320" />
-          <path class="home-hero__wave--violet" d="M-80 420 C 160 650, 345 600, 520 380 S 810 110, 1015 390 S 1360 670, 1680 410" />
-          <path class="home-hero__wave--thin" d="M-80 510 C 160 390, 290 260, 470 390 S 760 560, 930 430 S 1230 260, 1680 480" />
-          <path class="home-hero__wave--cyan" d="M-80 235 C 180 410, 320 420, 525 250 S 830 50, 1030 230 S 1350 450, 1680 245" />
-        </g>
-      </svg>
+    <section ref="heroSection" class="home-hero" aria-labelledby="home-title">
+      <VisualLabShaderPreview
+        class="home-hero__fluid-shader"
+        kind="shader-fluid"
+        :active="heroFluidActive"
+        :preferences="heroMotionPreferences"
+      />
+      <div class="home-hero__shader-overlay" aria-hidden="true" />
 
       <div class="home-hero__inner rx-content-rail rx-content-rail--wide">
         <div class="home-hero__copy">

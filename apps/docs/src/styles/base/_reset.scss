@@ -15,7 +15,7 @@
 html {
   min-width: 320px;
   scroll-behavior: auto;
-  scroll-padding-top: calc(var(--rx-site-header-height) + 1rem);
+  scroll-padding-top: calc(var(--rx-site-header-height) + var(--rx-space-4));
 }
 
 body {

@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useAppStore } from '../../stores/app';
 import DocsVisualExample from './DocsVisualExample.vue';
+import LandingCodeMotion from '../LandingCodeMotion.vue';
 
 const appStore = useAppStore();
 const copy = computed(() => appStore.app.view.docs);
@@ -16,7 +17,7 @@ const snippets = computed(() => copy.value.snippets);
       <div><h2 class="text-h5 font-weight-bold mb-1">{{ copy.section.timeline.title }}</h2><p>{{ copy.section.timeline.subtitle }}</p></div>
     </div>
     <p class="text-body-2 text-medium-emphasis mb-4">{{ copy.section.timeline.description }}</p>
-    <DocsVisualExample variant="timeline" :code="snippets.timeline" :code-title="ui.timelineCodeTitle" />
+    <LandingCodeMotion initial-demo="timeline" embedded />
     <p class="text-body-2 text-medium-emphasis mt-3">{{ ui.timelinePromptPrefix }} <RouterLink to="/timeline">{{ ui.openTimelinePlayground }}</RouterLink></p>
   </section>
 

@@ -1,11 +1,11 @@
 .docs-nested-tree {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 18px;
+  gap: var(--rx-space-2);
+  margin-top: var(--rx-space-4-5);
   padding: 15px;
-  border: 1px solid var(--rx-color-border);
-  border-radius: 9px;
+  border: var(--rx-border-width) solid var(--rx-color-border);
+  border-radius: var(--rx-radius-compact-sm);
   background: var(--rx-color-surface-sunken);
 }
 
@@ -14,42 +14,42 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--rx-space-2-5);
   min-height: 30px;
-  padding: 7px 9px;
-  border: 1px solid var(--rx-color-border);
-  border-radius: 6px;
+  padding: var(--rx-space-micro) var(--rx-space-icon);
+  border: var(--rx-border-width) solid var(--rx-color-border);
+  border-radius: var(--rx-radius-control-sm);
   background: var(--rx-color-surface-raised);
 
   > span {
     color: var(--rx-color-primary);
-    font: 9px var(--mono);
+    font:var(--rx-font-size-code-label) var(--mono);
   }
 
   > b {
     margin-left: auto;
     color: var(--muted2);
-    font: 400 8px var(--mono);
+    font:var(--rx-font-weight-regular) var(--rx-font-size-micro) var(--mono);
   }
 }
 
 .docs-tree-branch {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-left: 17px;
-  padding-left: 13px;
-  border-left: 1px solid rgba(var(--rx-theme-primary), 0.24);
+  gap: var(--rx-space-2);
+  margin-left: var(--rx-space-4-5);
+  padding-left: var(--rx-space-card);
+  border-left: var(--rx-border-width) solid rgba(var(--rx-theme-primary), 0.24);
 }
 
 .docs-tree-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-left: 14px;
-  padding: 8px;
-  border: 1px dashed rgba(var(--rx-theme-primary), 0.24);
-  border-radius: 7px;
+  gap: var(--rx-space-1-5);
+  margin-left: var(--rx-space-3-5);
+  padding: var(--rx-space-2);
+  border: var(--rx-border-width) dashed rgba(var(--rx-theme-primary), 0.24);
+  border-radius: var(--rx-radius-control-sm);
 
   .docs-tree-parent {
     border-color: rgba(var(--rx-theme-primary), 0.35);

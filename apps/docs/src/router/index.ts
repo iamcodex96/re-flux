@@ -84,42 +84,47 @@ export const router = createRouter({
         {
           path: 'introduction', name: 'docs-introduction',
           component: () => import('../components/DocsComponents/DocsGettingStarted.vue'),
-          meta: { docsPage: 'introduction', tocIds: ['overview', 'install'] },
+          meta: { docsPage: 'introduction' },
         },
         {
           path: 'animation', name: 'docs-animation',
           component: () => import('../components/DocsComponents/DocsAnimationSections.vue'),
-          meta: { docsPage: 'animation', tocIds: ['animation', 'parameters', 'timing-examples', 'controls', 'callback-examples'] },
+          meta: { docsPage: 'animation' },
         },
         {
           path: 'timelines', name: 'docs-timelines',
           component: () => import('../components/DocsComponents/DocsTimelineSections.vue'),
-          meta: { docsPage: 'timelines', tocIds: ['timeline', 'offsets', 'offset-explorer', 'nested-timeline'] },
+          meta: { docsPage: 'timelines' },
         },
         {
           path: 'reactivity', name: 'docs-reactivity',
           component: () => import('../components/DocsComponents/DocsReactivitySections.vue'),
-          meta: { docsPage: 'reactivity', tocIds: ['reactivity', 'await-example', 'easings', 'easing-gallery'] },
+          meta: { docsPage: 'reactivity' },
         },
         {
           path: 'streams', name: 'docs-streams',
           component: () => import('../components/DocsComponents/DocsMotionStreams.vue'),
-          meta: { docsPage: 'streams', tocIds: ['retarget-motion', 'smooth-stream', 'adaptive-tween'] },
+          meta: { docsPage: 'streams' },
         },
         {
           path: 'rendering', name: 'docs-rendering',
           component: () => import('../components/DocsComponents/DocsRenderingSections.vue'),
-          meta: { docsPage: 'rendering', tocIds: ['render-adapters', 'keyframes-dom', 'svg-path-morph'] },
+          meta: { docsPage: 'rendering' },
         },
         {
           path: 'interactions', name: 'docs-interactions',
           component: () => import('../components/DocsComponents/DocsInteractionSections.vue'),
-          meta: { docsPage: 'interactions', tocIds: ['gesture-physics', 'motion-lifecycle', 'scroll-triggers'] },
+          meta: { docsPage: 'interactions' },
         },
         {
           path: 'performance', name: 'docs-performance',
           component: () => import('../components/DocsComponents/DocsPerformanceSections.vue'),
-          meta: { docsPage: 'performance', tocIds: ['frame-observability'] },
+          meta: { docsPage: 'performance' },
+        },
+        {
+          path: 'api-reference', name: 'docs-api-reference',
+          component: () => import('../components/DocsComponents/DocsApiReference.vue'),
+          meta: { docsPage: 'api-reference' },
         },
       ],
     },
@@ -127,12 +132,21 @@ export const router = createRouter({
     {
       path: '/visuals',
       component: () => import('../views/VisualShowcase.vue'),
-      redirect: { name: 'visuals-svg' },
       children: [
+        {
+          path: '', name: 'visuals-home',
+          component: () => import('../views/VisualLabOverview.vue'),
+          meta: { visualTitle: 'Visual Lab', visualDescription: 'A catalog of motion experiments driven by re;Flux.' },
+        },
         {
           path: 'svg', name: 'visuals-svg',
           component: () => import('../components/VisualLab/VisualSvgPanel.vue'),
           meta: { visualTitle: 'SVG & geometry', visualDescription: 'Path drawing, normalized morphing, liquid filters and motion paths.' },
+        },
+        {
+          path: 'shaders', name: 'visuals-shaders',
+          component: () => import('../components/VisualLab/VisualShadersPanel.vue'),
+          meta: { visualTitle: 'WebGL & shader studies', visualDescription: 'Interactive fragment shader studies driven by re;Flux value streams.' },
         },
         {
           path: 'canvas', name: 'visuals-canvas',

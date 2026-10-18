@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import DocsSpringSimulator from './DocsSpringSimulator.vue';
 import { useAppStore } from '../../stores/app';
 import DocsVisualExample from './DocsVisualExample.vue';
 
@@ -10,6 +11,7 @@ const snippets = computed(() => copy.value.snippets);
 </script>
 
 <template>
+  <DocsSpringSimulator />
 <section id="retarget-motion" class="docs-anchor py-7 border-b">
     <div class="docs-section-heading">
       <UiAvatar size="30" color="primary" variant="tonal" class="text-caption font-weight-bold">15</UiAvatar>
