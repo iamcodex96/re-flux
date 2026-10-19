@@ -202,6 +202,25 @@ describe('Timeline labels and transport controls', () => {
     expect(callback).toHaveBeenCalledTimes(2);
   });
 
+  it('re-arms callbacks at offset zero after rewinding without firing during reverse travel', () => {
+    const callback = jest.fn();
+    const timeline = new Timeline()
+      .call(callback, 0)
+      .add(new Animation({ duration: 100 }), 0);
+
+    timeline.seek(25);
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    timeline.seek(0);
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    timeline.seek(0);
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    timeline.seek(25);
+    expect(callback).toHaveBeenCalledTimes(2);
+  });
+
   it('supports time scaling and reverse playback on the same shared frame clock', async () => {
     const tween = new Tween({ from: 0, to: 100, duration: 100 });
     const timeline = new Timeline().add(tween).timeScale(2);

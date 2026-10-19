@@ -133,10 +133,40 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   call(callback: () => void, offset?: TimelineOffset): this {
     if (typeof callback !== 'function') throw new TypeError('Timeline callback must be a function.');
     let invoked = false;
+    let waitingForForwardCrossing = false;
+    let lastLocalTime: number | null = null;
     const action: AnimatableItem = {
       duration: 0,
-      seekLocal: () => { if (!invoked) { invoked = true; callback(); } },
-      resetInternal: () => { invoked = false; },
+      seekLocal: (localTime) => {
+        const movingBackward = lastLocalTime !== null && localTime < lastLocalTime;
+        if (movingBackward) {
+          // A callback at offset zero can never move to a time before its own segment.
+          // Re-arm it when the playhead crosses back to the marker, but don't invoke it
+          // while travelling backward; the next forward crossing starts the next pass.
+          if (lastLocalTime > 0 && localTime <= 0) {
+            invoked = false;
+            waitingForForwardCrossing = true;
+          }
+          lastLocalTime = localTime;
+          return;
+        }
+
+        const movedForward = lastLocalTime !== null && localTime > lastLocalTime;
+        lastLocalTime = localTime;
+        if (waitingForForwardCrossing) {
+          if (!movedForward) return;
+          waitingForForwardCrossing = false;
+        }
+        if (!invoked) {
+          invoked = true;
+          callback();
+        }
+      },
+      resetInternal: () => {
+        invoked = false;
+        waitingForForwardCrossing = false;
+        lastLocalTime = null;
+      },
     };
     const previousStart = this.lastAddedStart;
     const previousEnd = this.lastAddedEnd;
