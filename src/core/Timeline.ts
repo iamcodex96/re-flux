@@ -138,8 +138,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     const action: AnimatableItem = {
       duration: 0,
       seekLocal: (localTime) => {
-        const movingBackward = lastLocalTime !== null && localTime < lastLocalTime;
-        if (movingBackward) {
+        if (lastLocalTime !== null && localTime < lastLocalTime) {
           // A callback at offset zero can never move to a time before its own segment.
           // Re-arm it when the playhead crosses back to the marker, but don't invoke it
           // while travelling backward; the next forward crossing starts the next pass.

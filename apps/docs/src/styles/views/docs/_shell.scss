@@ -106,7 +106,9 @@
 
 @media (max-width: breakpoints.$rx-breakpoint-tablet-narrow) {
   .site-shell--docs { height: auto; min-height: 100svh; overflow: visible; }
-  .site-shell--docs > .site-main.docs-main { height: auto; min-height: calc(100svh - var(--rx-site-header-height-mobile)); overflow: visible; }
+  // Let the header's responsive height determine its flex size on narrow screens.
+  .site-shell--docs > .site-header { flex-basis: auto; }
+  .site-shell--docs > .site-main.docs-main { height: auto; min-height: calc(100svh - var(--rx-site-header-height)); overflow: visible; }
   .docs-viewport { height: auto; min-height: 0; overflow: visible; }
   .docs-layout { grid-template-columns: minmax(0, 1fr); height: auto; min-height: 0; }
   .docs-sidebar { display: none; }
@@ -126,6 +128,10 @@
   .docs-article-footer__package { width: 100%; margin-left: 0; }
   .docs-page-pagination__item { padding: var(--rx-space-3); }
   .docs-page-pagination__item strong { font-size: var(--rx-font-size-ui); }
+}
+
+@media (max-width: breakpoints.$rx-breakpoint-mobile-navigation) {
+  .site-shell--docs > .site-main.docs-main { min-height: calc(100svh - var(--rx-site-header-height-mobile)); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -22,11 +22,9 @@ The docs app lives in `apps/docs` and is managed as the `re-flux-docs` npm works
 npm run typecheck
 npm run typecheck:tests
 npm test -- --runInBand
-npm run check:workflow-sync
+npm run check:docs
 npm run check:tree-shaking
 npm run check:package
-npm run check:visual-lab
-npm run check:playground-lifecycle
 npm run build:lib
 npm run build --workspace=re-flux-docs
 ```
@@ -40,9 +38,9 @@ npm run build --workspace=re-flux-docs
 
 The public documentation URL is `https://iamcodex96.github.io/re-flux/`. Update the README and Vite base path if the repository or domain changes.
 
-## Workflow copies
+## GitHub Actions
 
-GitHub executes workflows from `.github/workflows/`. Matching copies are kept under `ci/workflows/` for discoverability. Keep each pair identical; `npm run check:workflow-sync` verifies this.
+GitHub Actions workflows live in `.github/workflows/`. This is the single source of truth for CI, documentation deployment, and npm publishing.
 
 ## Publishing
 

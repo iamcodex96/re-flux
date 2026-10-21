@@ -10,6 +10,8 @@ const docs = locale.app.view.docs;
 const router = await read('apps/docs/src/router/index.ts');
 const publicExports = await read('src/index.ts');
 const mainScss = await read('apps/docs/src/styles/main.scss');
+const docsResponsive = await read('apps/docs/src/styles/views/docs/_responsive.scss');
+const docsShell = await read('apps/docs/src/styles/views/docs/_shell.scss');
 
 const requiredComponents = [
   'apps/docs/src/components/DocsComponents/DocsSpringSimulator.vue',
@@ -35,6 +37,16 @@ for (const link of navigationPages) {
 }
 assert.ok(docs.pageNavigation.some((group) => group.links.some((link) => link.page === 'api-reference')), 'API reference is not present in the docs navigation.');
 assert.ok(router.includes("name: 'docs-api-reference'"), 'API reference route is missing.');
+
+// Mobile docs must use the browser's page scroll, not retain the desktop
+// article's fixed-height overflow scroller after the responsive cascade.
+const mobileDocsStyles = docsResponsive.split('@media (max-width: breakpoints.$rx-breakpoint-xs-mobile)')[0];
+assert.match(mobileDocsStyles, /\.docs-article-column\s*\{[^}]*overflow:\s*visible;/s, 'Mobile docs article column must allow natural page scrolling.');
+assert.match(mobileDocsStyles, /\.docs-content\s*\{[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;[^}]*overflow:\s*visible;/s, 'Mobile docs article must not keep the desktop nested scroll container.');
+assert.match(mobileDocsStyles, /\.docs-mobile-toolbar\s*\{[^}]*top:\s*var\(--rx-site-header-height\)/s, 'Mobile docs toolbar must sit below the sticky site header.');
+assert.match(docsResponsive, /@media \(max-width: breakpoints\.\$rx-breakpoint-mobile-navigation\)[\s\S]*?\.docs-mobile-toolbar\s*\{\s*top:\s*var\(--rx-site-header-height-mobile\)/s, 'Compact mobile docs toolbar offset must match the shorter header.');
+assert.match(docsShell, /@media \(max-width: breakpoints\.\$rx-breakpoint-tablet-narrow\)[\s\S]*?\.site-shell--docs > \.site-header \{\s*flex-basis:\s*auto;/s, 'Mobile docs header must use its responsive height rather than the desktop flex-basis.');
+assert.match(docsShell, /@media \(max-width: breakpoints\.\$rx-breakpoint-mobile-navigation\)[\s\S]*?\.site-main\.docs-main \{\s*min-height:\s*calc\(100svh - var\(--rx-site-header-height-mobile\)\)/s, 'Compact mobile docs viewport must account for the shorter header.');
 
 for (const fragment of [
   "@use './components/docs-spring-simulator'",

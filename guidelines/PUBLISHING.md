@@ -5,7 +5,7 @@
 - The package version lives in the root `package.json`.
 - Every release tag must exactly match that version, prefixed with `v` (for example, package version `0.2.0` uses tag `v0.2.0`).
 - `package-lock.json` is committed. CI uses `npm ci`; it must never generate or rewrite the lockfile.
-- CI, workflow-copy synchronization, type checks, tests, tree-shaking, and package allowlist checks must pass before publication.
+- CI, type checks, tests, tree-shaking, and package allowlist checks must pass before publication.
 
 ## npm Trusted Publishing (OIDC)
 
@@ -33,6 +33,6 @@ The workflow requests `id-token: write` and publishes with provenance. Do not ad
 
 Use the actual package version from `package.json` when creating the tag.
 
-## Workflow locations
+## Workflow location
 
-GitHub runs workflows only from `.github/workflows/`. Identical source copies are also kept in `ci/workflows/` for repository organization. The `check:workflow-sync` script verifies that each pair remains byte-for-byte identical.
+GitHub Actions workflows are maintained only in `.github/workflows/`. Edit the canonical workflow there; do not maintain duplicate copies elsewhere in the repository.

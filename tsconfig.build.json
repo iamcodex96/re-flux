@@ -9,16 +9,7 @@
     "outDir": "dist"
   },
   "include": [
-    "src/*.ts",
-    "src/index.ts",
-    "src/types.ts",
-    "src/core/**/*.ts",
-    "src/utils/**/*.ts",
-    "src/values/**/*.ts",
-    "src/physics/**/*.ts",
-    "src/operators/**/*.ts",
-    "src/adapters/**/*.ts",
-    "src/effects/**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",

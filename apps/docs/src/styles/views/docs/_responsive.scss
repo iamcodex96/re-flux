@@ -9,10 +9,36 @@
 @media (max-width: breakpoints.$rx-breakpoint-tablet-narrow) {
   .docs-layout { grid-template-columns: minmax(0, 1fr); }
   .docs-sidebar { display: none; }
-  .docs-mobile-toolbar { display: flex; }
-  .docs-content { padding: var(--rx-space-5) var(--rx-page-gutter) var(--rx-space-8); }
+  .docs-mobile-toolbar {
+    top: var(--rx-site-header-height);
+    display: flex;
+  }
+
+  // On mobile, the browser document must own vertical scrolling. Keep these
+  // overrides after _article-shell.scss so its desktop scroller cannot win in
+  // the cascade and trap touch scrolling inside the article.
+  .docs-article-column {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .docs-content {
+    height: auto;
+    min-height: 0;
+    flex: 0 0 auto;
+    overflow: visible;
+    overscroll-behavior: auto;
+    scrollbar-gutter: auto;
+    padding: var(--rx-space-5) var(--rx-page-gutter) var(--rx-space-8);
+  }
+
   .docs-page-heading { padding-bottom: var(--rx-space-5); }
   .docs-page-heading h1 { font-size: clamp(var(--rx-font-size-xl), 7vw, var(--rx-font-size-2xl)); }
+}
+
+@media (max-width: breakpoints.$rx-breakpoint-mobile-navigation) {
+  .docs-mobile-toolbar { top: var(--rx-site-header-height-mobile); }
 }
 
 @media (max-width: breakpoints.$rx-breakpoint-xs-mobile) {

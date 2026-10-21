@@ -2,8 +2,11 @@
 
 ### Maintenance
 
-- Restore the documented `ci/workflows/` mirrors and run byte-for-byte workflow synchronization checks in both CI and the npm release workflow.
+- Remove the temporary `ci/workflows/` mirrors and keep `.github/workflows/` as the sole source of truth for GitHub Actions.
 - Fix `Timeline.call()` markers at offset zero so backward scrubbing re-arms the callback without invoking it repeatedly at the marker.
+- Consolidate source-level documentation and UI contract checks into `npm run check:docs` and run the full set in CI.
+- Simplify the library build TypeScript include list to match the source tree.
+- Fix mobile documentation scrolling by restoring natural page scroll, keeping the article from becoming a nested scroll container, and aligning the sticky toolbar/header sizes.
 
 - Promoted the Fluid Noise Field WebGL shader to the Home hero background and removed it from the Visual Lab catalog and shader selector to avoid duplicating the signature effect.
 - Reworked the fluid shader into a softly domain-warped, loopable teal/violet field and added visibility/reduced-motion lifecycle handling on Home.
@@ -30,7 +33,6 @@
 ### Developer experience and maintenance
 
 - Enable `noUnusedLocals` and `noUnusedParameters` in TypeScript configuration and remove unused declarations.
-- Verify copies of GitHub Actions workflows under `ci/workflows/` stay in sync with `.github/workflows/`.
 - Add a benchmark command covering shared frame scheduling and timeline operations.
 
 ### Compatibility
