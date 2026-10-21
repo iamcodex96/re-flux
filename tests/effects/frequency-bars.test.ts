@@ -12,17 +12,22 @@ function createContext(): CanvasRenderingContext2D & { calls: string[] } {
   } as unknown as CanvasRenderingContext2D & { calls: string[] };
 }
 
-describe('optional Canvas frequency-bars extension', () => {
-  it('draws data-driven bins without owning an audio lifecycle', () => {
-    const context = createContext();
-    drawFrequencyBars(context, [0.1, 0.3, 0.9, 0.7, 0.2, 0.8], { width: 240, height: 100 }, { barCount: 6 });
-    expect(context.calls.filter((call) => call === 'fillRect')).toHaveLength(6);
-    expect(context.calls[0]).toBe('save');
-    expect(context.calls.at(-1)).toBe('restore');
-  });
-
-  it('rejects data outside the normalized range', () => {
-    const context = createContext();
-    expect(() => drawFrequencyBars(context, [0, 1.1], { width: 100, height: 50 })).toThrow('normalized');
+describe('Given optional Canvas frequency-bars extension', () => {
+  describe('When the optional Canvas frequency-bars extension is used', () => {
+    describe('And When frequency-bin data is passed to the Canvas extension', () => {
+      it('Then it draws data-driven bins without owning an audio lifecycle', () => {
+        const context = createContext();
+        drawFrequencyBars(context, [0.1, 0.3, 0.9, 0.7, 0.2, 0.8], { width: 240, height: 100 }, { barCount: 6 });
+        expect(context.calls.filter((call) => call === 'fillRect')).toHaveLength(6);
+        expect(context.calls[0]).toBe('save');
+        expect(context.calls.at(-1)).toBe('restore');
+      });
+    });
+    describe('And When frequency-bin data contains values outside the normalized range', () => {
+      it('Then it rejects data outside the normalized range', () => {
+        const context = createContext();
+        expect(() => drawFrequencyBars(context, [0, 1.1], { width: 100, height: 50 })).toThrow('normalized');
+      });
+    });
   });
 });
