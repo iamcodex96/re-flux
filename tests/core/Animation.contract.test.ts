@@ -233,4 +233,24 @@ describe('Given Animation public contracts', () => {
       });
     });
   });
+
+
+  describe('When an idle animation receives a non-finite seek time', () => {
+    describe('And When the playhead is set to NaN or Infinity', () => {
+      it('Then it normalizes the playhead to zero without starting playback', () => {
+        // Given: a fresh animation with no active clock.
+        const animation = new Animation({ duration: 100 });
+
+        // When: non-finite positions are provided to the public seek API.
+        animation.seek(Number.NaN);
+        animation.seek(Number.POSITIVE_INFINITY);
+
+        // Then: the playhead remains at the start and no requestAnimationFrame is pending.
+        expect(animation.progress$.value).toBe(0);
+        expect(animation.state$.value).toBe('idle');
+        expect(raf.pendingCount).toBe(0);
+      });
+    });
+  });
+
 });

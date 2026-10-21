@@ -222,4 +222,75 @@ describe('Given Timeline public contracts', () => {
       });
     });
   });
+
+
+  describe('When reverse playback starts from the beginning', () => {
+    describe('And When a finite Timeline reverses to its start', () => {
+      it('Then it begins at the end and resolves completion after traversing backward', async () => {
+        // Given: a finite timeline and a child whose value follows its local time.
+        const onComplete = jest.fn();
+        const tween = new Tween({ from: 0, to: 100, duration: 100 });
+        const timeline = new Timeline({ onComplete }).add(tween);
+        const completion = timeline.toPromise();
+
+        // When: reverse is requested while the playhead is at zero.
+        timeline.reverse();
+        expect(timeline.currentTime).toBe(100);
+        expect(raf.pendingCount).toBe(1);
+        raf.advance(0);
+        expect(tween.value$.value).toBe(100);
+        raf.advance(40);
+        expect(tween.value$.value).toBe(60);
+        raf.advance(100);
+
+        // Then: the playhead reaches zero, the promise resolves once, and the shared clock is released.
+        await expect(completion).resolves.toBeUndefined();
+        expect(timeline.currentTime).toBe(0);
+        expect(timeline.progress).toBe(0);
+        expect(timeline.state$.value).toBe('completed');
+        expect(timeline.isReversed).toBe(true);
+        expect(tween.value$.value).toBe(0);
+        expect(onComplete).toHaveBeenCalledTimes(1);
+        expect(raf.pendingCount).toBe(0);
+      });
+    });
+  });
+
+
+
+  describe('When a Timeline has completed in reverse', () => {
+    describe('And When forward playback is requested again', () => {
+      it('Then it starts a fresh forward cycle from zero', async () => {
+        // Given: a finite Timeline that completes a reverse pass to its start.
+        const tween = new Tween({ from: 0, to: 100, duration: 100 });
+        const timeline = new Timeline().add(tween);
+        const reverseCompletion = timeline.toPromise();
+        timeline.reverse();
+        raf.advance(0);
+        raf.advance(100);
+        await expect(reverseCompletion).resolves.toBeUndefined();
+        expect(timeline.state$.value).toBe('completed');
+        expect(tween.value$.value).toBe(0);
+
+        // When: normal forward playback is requested after the reverse cycle completed.
+        timeline.play();
+        const forwardCompletion = timeline.toPromise();
+
+        // Then: a new forward cycle begins at zero and reaches its end independently.
+        expect(timeline.currentTime).toBe(0);
+        expect(timeline.progress).toBe(0);
+        expect(timeline.state$.value).toBe('running');
+        expect(timeline.isReversed).toBe(false);
+        raf.advance(200);
+        expect(tween.value$.value).toBe(0);
+        raf.advance(300);
+        await expect(forwardCompletion).resolves.toBeUndefined();
+        expect(timeline.progress).toBe(1);
+        expect(timeline.state$.value).toBe('completed');
+        expect(tween.value$.value).toBe(100);
+        expect(raf.pendingCount).toBe(0);
+      });
+    });
+  });
+
 });

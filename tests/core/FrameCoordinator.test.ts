@@ -43,6 +43,38 @@ describe('Given FrameCoordinator', () => {
     });
   });
 
+  describe('When many consumers subscribe to the shared clock', () => {
+    describe('And When one frame is broadcast and every consumer unsubscribes', () => {
+      it('Then one RAF loop serves all consumers and teardown leaves no pending work', () => {
+        const coordinator = new FrameCoordinator();
+        const consumerCount = 250;
+        const receivedFrames = Array.from({ length: consumerCount }, () => 0);
+        const subscriptions = receivedFrames.map((_, index) => coordinator.frames$.subscribe(() => {
+          receivedFrames[index] = (receivedFrames[index] ?? 0) + 1;
+        }));
+
+        expect(raf.pendingCount).toBe(1);
+
+        raf.advance(16);
+
+        expect(receivedFrames).toEqual(Array.from({ length: consumerCount }, () => 1));
+        expect(raf.pendingCount).toBe(1);
+
+        for (const subscription of subscriptions) subscription.unsubscribe();
+
+        expect(raf.pendingCount).toBe(0);
+        expect(coordinator.getDiagnostics()).toMatchObject({
+          isIdle: true,
+          activeFrameSubscribers: 0,
+          pendingReadTasks: 0,
+          pendingWriteTasks: 0,
+          clockActive: false,
+        });
+        expect(() => coordinator.assertIdle()).not.toThrow();
+      });
+    });
+  });
+
   describe('When multiple frame subscribers are active', () => {
     describe('And When timestamps advance or move backward', () => {
       it('Then they share a delta and negative deltas are clamped', () => {

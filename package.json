@@ -82,7 +82,7 @@
     "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
     "test:coverage": "npm test -- --coverage",
     "typecheck:tests": "tsc -p tsconfig.test.json",
-    "bench": "npm run build:lib && node benchmarks/frame-coordinator.bench.mjs && node benchmarks/timeline.bench.mjs",
+    "bench": "npm run build:lib && node benchmarks/frame-coordinator.bench.mjs && node benchmarks/timeline.bench.mjs && node benchmarks/animation-load.bench.mjs",
     "check:tree-shaking": "npm run build:lib && node scripts/check-tree-shaking.mjs",
     "check:package": "npm run build:lib && node scripts/check-package-files.mjs",
     "check:visual-lab": "node scripts/check-visual-lab.mjs",
@@ -95,7 +95,9 @@
     "check:visual-lab-hover": "node scripts/check-visual-lab-hover.mjs",
     "check:visual-lab-complete": "node scripts/check-visual-lab-complete.mjs",
     "check:docs": "node scripts/check-docs-redesign.mjs && node scripts/check-home-experience.mjs && node scripts/check-playground-lifecycle.mjs && node scripts/check-scss-tokens.mjs && node scripts/check-ui-framework.mjs && node scripts/check-visual-lab.mjs && node scripts/check-visual-lab-hover.mjs && node scripts/check-visual-lab-complete.mjs",
-    "check:all": "npm run typecheck && npm run typecheck:tests && npm test -- --runInBand && npm run build:lib && node scripts/check-tree-shaking.mjs && node scripts/check-package-files.mjs && npm run check:docs && npm run build --workspace=re-flux-docs"
+    "check:all": "npm run typecheck && npm run typecheck:tests && npm test -- --runInBand && npm run build:lib && node scripts/check-tree-shaking.mjs && node scripts/check-package-files.mjs && node scripts/check-package-consumer.mjs && npm run check:docs && npm run build --workspace=re-flux-docs",
+    "check:package:consumer": "npm run build:lib && node scripts/check-package-consumer.mjs",
+    "bench:animation-load": "npm run build:lib && node benchmarks/animation-load.bench.mjs"
   },
   "peerDependencies": {
     "rxjs": "^7.8.0"
