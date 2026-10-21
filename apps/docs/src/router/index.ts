@@ -5,6 +5,7 @@ export const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: () => import('../views/Home.vue') },
+    { path: '/benchmarks', name: 'benchmarks', component: () => import('../views/BrowserBenchmarks.vue') },
     {
       path: '/playground',
       component: () => import('../components/Playground/PlaygroundLayout.vue'),

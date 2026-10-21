@@ -19,6 +19,7 @@ const currentYear = new Date().getFullYear();
 const navigation = [
   { label: 'Visual Lab', icon: 'mdi-flask-outline', to: '/visuals' },
   { label: 'Playground', icon: 'mdi-play-circle-outline', to: '/playground' },
+  { label: 'Benchmarks', icon: 'mdi-chart-box-outline', to: '/benchmarks' },
   { label: 'Docs', icon: 'mdi-book-open-page-variant-outline', to: '/docs' },
 ];
 
@@ -170,6 +171,7 @@ watch(() => route.fullPath, async () => {
             <h2>Engine</h2>
             <RouterLink to="/visuals">Visual Lab</RouterLink>
             <RouterLink to="/playground">Playground</RouterLink>
+            <RouterLink to="/benchmarks">Benchmark Lab</RouterLink>
             <RouterLink to="/docs/rendering">Render adapters</RouterLink>
           </div>
 
