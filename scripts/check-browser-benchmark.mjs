@@ -29,6 +29,12 @@ for (const fragment of [
   "longtask",
   'frameBudgetReferenceMs',
   'renderedTargetsPerCallback',
+  'calibrateFrameInterval',
+  'estimatedRafCadenceHz',
+  'estimatedMissedRefreshCount',
+  'engine-only',
+  'per-target-dom',
+  'schemaVersion: 2',
   'methodology',
   'createObjectURL',
   'No benchmark results are uploaded',
@@ -36,10 +42,16 @@ for (const fragment of [
 
 assert.ok(page.includes("id: 'dom'") && page.includes("id: 'svg'") && page.includes("id: 'canvas'"), 'DOM, SVG and Canvas scenarios must be available.');
 assert.ok(page.includes('runOrders'), 'The engine order must rotate across measured repetitions.');
+assert.ok(page.includes('const repetitions = 10;'), 'The browser benchmark must run ten measured repetitions per engine.');
+assert.ok(page.includes('calibrationIntervalCount = 60'), 'The active requestAnimationFrame cadence must be calibrated before measurement.');
+assert.ok(page.includes('estimateMissedRefreshes'), 'Refresh-aware missed-frame estimates must be reported.');
+assert.ok(page.includes('createPerTargetRunner'), 'Engine-only and per-target DOM workloads must use per-target animation paths.');
 assert.ok(page.includes('rendererWorkSamples'), 'Shared renderer callback cost must be sampled.');
 assert.ok(page.includes('longTaskSupported ? longTaskDurations.length : null'), 'Unsupported browser diagnostics must be represented as unavailable, not zero.');
 assert.ok(styles.includes('@media (prefers-reduced-motion: reduce)'), 'Benchmark transitions must respect reduced-motion preferences.');
 assert.ok(styles.includes('@media (max-width: breakpoints.$rx-breakpoint-tablet-narrow)'), 'Benchmark page must use the shared responsive breakpoint tokens.');
+assert.ok(styles.includes('grid-template-columns: repeat(4, minmax(0, 1fr))'), 'Four benchmark controls must fit as a four-column desktop grid.');
+assert.ok(page.includes('Estimated rAF cadence:'), 'The calibrated callback cadence must be visible beside measured results.');
 
 // Keep third-party animation engines runtime-loaded instead of pulling them into the main application entrypoint.
 assert.doesNotMatch(page, /from\s+['"](?:gsap|animejs)['"]/,

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { keyframes } from '@lib';
 
 type EngineId = 're-flux' | 'gsap' | 'animejs';
 type RendererId = 'dom' | 'svg' | 'canvas';
+type BenchmarkRendererId = RendererId | 'none';
+type ScenarioId = 'shared-renderer' | 'engine-only' | 'per-target-dom';
 type EngineStatus = 'idle' | 'loading' | 'warming-up' | 'running' | 'complete' | 'error';
 
 interface EngineMeta {
@@ -21,24 +23,26 @@ interface FrameStats {
   p99Ms: number | null;
   maxMs: number | null;
   stretchedFrameCount: number;
+  estimatedMissedRefreshCount: number;
 }
 
 interface BrowserRunResult {
   engine: EngineId;
   repetition: number;
-  renderer: RendererId;
+  scenario: ScenarioId;
+  renderer: BenchmarkRendererId;
   targetCount: number;
   configuredDurationMs: number;
   completed: boolean;
   elapsedMs: number;
   renderCallbacks: number;
   renderedTargetsPerCallback: number;
-  rendererWork: { medianMs: number | null; p95Ms: number | null; p99Ms: number | null; totalMs: number };
+  rendererWork: { medianMs: number | null; p95Ms: number | null; p99Ms: number | null; totalMs: number | null };
   frameIntervals: FrameStats;
   longTaskCount: number | null;
   longTaskDurationMs: number | null;
   longAnimationFrameCount: number | null;
-  cleanupPassed: boolean;
+  cleanupPassed: boolean | null;
 }
 
 interface EngineSummary {
@@ -56,14 +60,15 @@ interface EngineSummary {
   medianFrameP99Ms: number | null;
   medianFrameIntervalMs: number | null;
   medianStretchedFrameCount: number;
+  medianEstimatedMissedRefreshCount: number;
   medianLongTaskCount: number | null;
   medianLongAnimationFrameCount: number | null;
-  cleanupPassed: boolean;
+  cleanupPassed: boolean | null;
 }
 
 interface BenchmarkReport {
   benchmark: string;
-  schemaVersion: 1;
+  schemaVersion: 2;
   createdAt: string;
   environment: {
     userAgent: string;
@@ -75,11 +80,15 @@ interface BenchmarkReport {
     visibilityState: DocumentVisibilityState;
   };
   configuration: {
-    renderer: RendererId;
+    scenario: ScenarioId;
+    renderer: BenchmarkRendererId;
     targetCount: number;
     durationMs: number;
     repetitions: number;
     frameBudgetReferenceMs: number;
+    frameBudgetSource: 'raf-calibration' | '60hz-fallback';
+    estimatedRafCadenceHz: number;
+    calibrationSamples: number;
     stretchedFrameThresholdMs: number;
   };
   libraries: Array<{ id: EngineId; name: string; version: string; source: string }>;
@@ -120,6 +129,8 @@ interface RenderScene {
   render(progress: number): void;
   cleanup(): void;
   targetCount: number;
+  domTargets?: HTMLDivElement[];
+  objectTargets?: Array<{ value: number }>;
 }
 
 const engines: readonly EngineMeta[] = [
@@ -137,24 +148,35 @@ const engines: readonly EngineMeta[] = [
   },
 ];
 
+const scenarios: Array<{ id: ScenarioId; label: string; description: string }> = [
+  { id: 'engine-only', label: 'Engine overhead', description: 'Each engine animates a collection of plain JavaScript objects. No DOM, SVG, Canvas or layout writes are performed in the measured workload.' },
+  { id: 'per-target-dom', label: 'Per-target DOM', description: 'Each engine updates opacity independently on the selected number of real DOM elements. This includes each engine’s per-target animation path.' },
+  { id: 'shared-renderer', label: 'Shared renderer', description: 'Each engine animates one scalar progress value and drives the same renderer callback for DOM, SVG or Canvas.' },
+];
 const renderers: Array<{ id: RendererId; label: string; description: string }> = [
   { id: 'dom', label: 'DOM', description: 'Real HTML elements; inline transform and opacity updates.' },
   { id: 'svg', label: 'SVG', description: 'Real SVG rectangles; transform and opacity attributes are updated per target.' },
   { id: 'canvas', label: 'Canvas 2D', description: 'A real canvas redraws the selected number of shapes on each engine update.' },
 ];
-const targetOptions = [100, 250, 500, 1000];
+const targetOptions = [100, 250, 500, 1000, 2500, 5000];
 const durationOptions = [1000, 1500, 2000, 2500];
-const repetitions = 3;
+const repetitions = 10;
 const warmupTargets = 80;
 const warmupDurationMs = 250;
-const frameBudgetReferenceMs = 1000 / 60;
-const stretchedFrameThresholdMs = frameBudgetReferenceMs * 1.5;
+const fallbackFrameIntervalMs = 1000 / 60;
+const calibrationIntervalCount = 60;
 const cdnUrls = {
   gsap: 'https://esm.sh/gsap@3.15.0',
   animejs: 'https://esm.sh/animejs@4.5.0',
 } as const;
 
+const selectedScenario = ref<ScenarioId>('shared-renderer');
 const selectedRenderer = ref<RendererId>('dom');
+const frameBudgetReferenceMs = ref(fallbackFrameIntervalMs);
+const frameBudgetSource = ref<'raf-calibration' | '60hz-fallback'>('60hz-fallback');
+const calibrationSamples = ref(0);
+const estimatedRafCadenceHz = computed(() => 1000 / frameBudgetReferenceMs.value);
+const stretchedFrameThresholdMs = computed(() => frameBudgetReferenceMs.value * 1.5);
 const selectedTargetCount = ref(500);
 const selectedDurationMs = ref(1500);
 const stageHost = ref<HTMLDivElement | null>(null);
@@ -172,7 +194,14 @@ const report = ref<BenchmarkReport | null>(null);
 let activeController: AbortController | null = null;
 let cachedModules: Promise<EngineModules> | null = null;
 
-const selectedRendererMeta = computed(() => renderers.find((item) => item.id === selectedRenderer.value)!);
+const selectedScenarioMeta = computed(() => scenarios.find((item) => item.id === selectedScenario.value)!);
+const selectedRendererMeta = computed(() => {
+  if (selectedScenario.value === 'engine-only') return { id: 'none' as const, label: 'JavaScript objects', description: 'Object updates only; no browser renderer is involved in the measured workload.' };
+  if (selectedScenario.value === 'per-target-dom') return { id: 'dom' as const, label: 'Per-target DOM', description: 'Each engine animates opacity on each real DOM target using its per-target animation path.' };
+  return renderers.find((item) => item.id === selectedRenderer.value)!;
+});
+const activeRenderer = computed<BenchmarkRendererId>(() => selectedScenario.value === 'engine-only' ? 'none' : selectedScenario.value === 'per-target-dom' ? 'dom' : selectedRenderer.value);
+const activeFrameThresholdMs = computed(() => stretchedFrameThresholdMs.value);
 const progressPercent = computed(() => totalSteps > 0 ? Math.min(100, Math.round((progressStep.value / totalSteps) * 100)) : 0);
 const summaries = computed<EngineSummary[]>(() => engines.map((engine) => summarizeEngine(engine, runResults.value[engine.id] ?? [])));
 const measuredResultsExist = computed(() => summaries.value.some((summary) => summary.runs.length > 0));
@@ -180,6 +209,16 @@ const maxRendererP95Ms = computed(() => Math.max(0, ...summaries.value.map((summ
 const statusLabel = computed(() => isRunning.value
   ? (currentEngine.value ? `Running ${engineName(currentEngine.value)}…` : 'Preparing benchmark…')
   : report.value ? 'Run complete' : errorMessage.value ? 'Run needs attention' : 'Ready');
+
+watch([selectedScenario, selectedRenderer, selectedTargetCount, selectedDurationMs], () => {
+  if (isRunning.value) return;
+  runResults.value = {};
+  report.value = null;
+  progressStep.value = 0;
+  errorMessage.value = null;
+  engineStatus.value = { 're-flux': 'idle', gsap: 'idle', animejs: 'idle' };
+  statusMessage.value = 'Configuration changed. Ready for a new benchmark.';
+});
 
 function engineName(id: EngineId): string {
   return engines.find((engine) => engine.id === id)?.name ?? id;
@@ -218,15 +257,18 @@ function summarizeEngine(engine: EngineMeta, runs: BrowserRunResult[]): EngineSu
     runs,
     medianCompletionMs: median(runs.map((run) => run.elapsedMs)) ?? 0,
     medianRendererP95Ms: median(runs.flatMap((run) => run.rendererWork.p95Ms === null ? [] : [run.rendererWork.p95Ms])),
-    medianRendererTotalMs: median(runs.map((run) => run.rendererWork.totalMs)),
+    medianRendererTotalMs: median(runs.flatMap((run) => run.rendererWork.totalMs === null ? [] : [run.rendererWork.totalMs])),
     medianRenderCallbacks: median(runs.map((run) => run.renderCallbacks)),
     medianFrameP95Ms: median(runs.flatMap((run) => run.frameIntervals.p95Ms === null ? [] : [run.frameIntervals.p95Ms])),
     medianFrameP99Ms: median(runs.flatMap((run) => run.frameIntervals.p99Ms === null ? [] : [run.frameIntervals.p99Ms])),
     medianFrameIntervalMs: median(runs.flatMap((run) => run.frameIntervals.medianMs === null ? [] : [run.frameIntervals.medianMs])),
     medianStretchedFrameCount: median(runs.map((run) => run.frameIntervals.stretchedFrameCount)) ?? 0,
+    medianEstimatedMissedRefreshCount: median(runs.map((run) => run.frameIntervals.estimatedMissedRefreshCount)) ?? 0,
     medianLongTaskCount: median(runs.flatMap((run) => run.longTaskCount === null ? [] : [run.longTaskCount])),
     medianLongAnimationFrameCount: median(runs.flatMap((run) => run.longAnimationFrameCount === null ? [] : [run.longAnimationFrameCount])),
-    cleanupPassed: runs.length > 0 && runs.every((run) => run.cleanupPassed),
+    cleanupPassed: runs.length > 0 && runs.some((run) => run.cleanupPassed !== null)
+      ? runs.filter((run) => run.cleanupPassed !== null).every((run) => run.cleanupPassed === true)
+      : null,
   };
 }
 
@@ -284,6 +326,7 @@ function createScene(host: HTMLElement, renderer: RendererId, targetCount: numbe
     host.append(grid);
     return {
       targetCount,
+      domTargets: nodes,
       render(progress) {
         const translateX = progress * 16;
         const rotation = progress * 90;
@@ -377,13 +420,103 @@ function createScene(host: HTMLElement, renderer: RendererId, targetCount: numbe
   };
 }
 
+function createObjectScene(host: HTMLElement, targetCount: number): RenderScene {
+  host.replaceChildren();
+  const objectTargets = Array.from({ length: targetCount }, () => ({ value: 0 }));
+  return {
+    targetCount,
+    objectTargets,
+    render(progress) {
+      for (const target of objectTargets) target.value = progress;
+    },
+    cleanup() {
+      // Read the final values before releasing the targets so the benchmark workload remains observable.
+      const finalValueChecksum = objectTargets.reduce((sum, target) => sum + target.value, 0);
+      void finalValueChecksum;
+      host.replaceChildren();
+    },
+  };
+}
+
+function createPerTargetRunner(
+  engine: EngineId,
+  scene: RenderScene,
+  scenario: Exclude<ScenarioId, 'shared-renderer'>,
+  durationMs: number,
+  onComplete: () => void,
+  modules: EngineModules,
+): AnimationRunner {
+  const targets = scenario === 'engine-only'
+    ? (scene.objectTargets ?? [])
+    : (scene.domTargets ?? []);
+  if (targets.length === 0) throw new Error('The selected benchmark scenario has no targets.');
+
+  if (engine === 're-flux') {
+    const animations: ReturnType<typeof keyframes<number>>[] = [];
+    const subscriptions: Array<{ unsubscribe(): void }> = [];
+    let completedTargets = 0;
+    const completeTarget = () => {
+      completedTargets += 1;
+      if (completedTargets === targets.length) onComplete();
+    };
+    for (const target of targets) {
+      const animation = keyframes<number>({
+        duration: durationMs,
+        easing: 'linear',
+        keyframes: [{ value: 0, offset: 0 }, { value: 1, offset: 1 }],
+        onComplete: completeTarget,
+      });
+      void animation.catch(() => undefined);
+      subscriptions.push(animation.value$.subscribe((progress) => {
+        if (scenario === 'engine-only') {
+          (target as { value: number }).value = progress;
+        } else {
+          (target as HTMLDivElement).style.opacity = String(0.38 + (0.96 - 0.38) * progress);
+        }
+      }));
+      animations.push(animation);
+    }
+    return {
+      start() { for (const animation of animations) animation.play(); },
+      cleanup() {
+        for (const subscription of subscriptions) subscription.unsubscribe();
+        for (const animation of animations) animation.stop();
+      },
+    };
+  }
+
+  if (engine === 'gsap') {
+    const tween = modules.gsap.to(targets as object, {
+      ...(scenario === 'engine-only' ? { value: 1 } : { opacity: 0.96 }),
+      duration: durationMs / 1000,
+      ease: 'none',
+      paused: true,
+      onComplete,
+    });
+    return { start: () => { tween.play(0); }, cleanup: () => tween.kill() };
+  }
+
+  const animation = modules.animeAnimate(targets as object, {
+    ...(scenario === 'engine-only' ? { value: [0, 1] } : { opacity: [0.38, 0.96] }),
+    duration: durationMs,
+    ease: 'linear',
+    autoplay: false,
+    onComplete,
+  });
+  return { start: () => { animation.play(); }, cleanup: () => { animation.cancel(); } };
+}
+
 function createRunner(
   engine: EngineId,
   scene: RenderScene,
   durationMs: number,
   onComplete: () => void,
   modules: EngineModules,
+  scenario: ScenarioId,
 ): AnimationRunner {
+  if (scenario !== 'shared-renderer') {
+    return createPerTargetRunner(engine, scene, scenario, durationMs, onComplete, modules);
+  }
   if (engine === 're-flux') {
     const animation = keyframes<number>({
       duration: durationMs,
@@ -460,19 +593,76 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+async function calibrateFrameInterval(signal: AbortSignal): Promise<{ intervalMs: number; sampleCount: number; source: 'raf-calibration' | '60hz-fallback' }> {
+  throwIfAborted(signal);
+  const samples: number[] = [];
+  let previousTimestamp: number | null = null;
+  let rafId = 0;
+  let abortHandler: (() => void) | null = null;
+  const sampling = new Promise<void>((resolve, reject) => {
+    const finish = () => {
+      if (abortHandler) signal.removeEventListener('abort', abortHandler);
+      if (rafId) window.cancelAnimationFrame(rafId);
+      rafId = 0;
+      resolve();
+    };
+    abortHandler = () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
+      rafId = 0;
+      signal.removeEventListener('abort', abortHandler!);
+      reject(new DOMException('Benchmark canceled.', 'AbortError'));
+    };
+    signal.addEventListener('abort', abortHandler, { once: true });
+    const sample = (timestamp: number) => {
+      if (previousTimestamp !== null) samples.push(timestamp - previousTimestamp);
+      previousTimestamp = timestamp;
+      if (samples.length >= calibrationIntervalCount) {
+        finish();
+        return;
+      }
+      rafId = window.requestAnimationFrame(sample);
+    };
+    rafId = window.requestAnimationFrame(sample);
+  });
+  await awaitWithAbort(sampling, signal);
+  throwIfAborted(signal);
+
+  const plausible = samples.filter((value) => Number.isFinite(value) && value > 0);
+  const preliminaryMedian = median(plausible);
+  if (preliminaryMedian === null || plausible.length < 20) {
+    return { intervalMs: fallbackFrameIntervalMs, sampleCount: plausible.length, source: '60hz-fallback' };
+  }
+  // Drop cadence outliers caused by occasional missed callbacks; the median remains robust to a few outliers.
+  const stableSamples = plausible.filter((value) => value >= preliminaryMedian * 0.5 && value <= preliminaryMedian * 1.5);
+  const calibrated = median(stableSamples);
+  if (calibrated === null || calibrated < 4 || calibrated > 50) {
+    return { intervalMs: fallbackFrameIntervalMs, sampleCount: stableSamples.length, source: '60hz-fallback' };
+  }
+  return { intervalMs: calibrated, sampleCount: stableSamples.length, source: 'raf-calibration' };
+}
+
+function estimateMissedRefreshes(intervalMs: number, referenceIntervalMs: number): number {
+  if (!Number.isFinite(intervalMs) || !Number.isFinite(referenceIntervalMs) || referenceIntervalMs <= 0) return 0;
+  return Math.max(0, Math.round(intervalMs / referenceIntervalMs) - 1);
+}
+
 async function measureRun(
   engine: EngineId,
-  renderer: RendererId,
+  renderer: BenchmarkRendererId,
+  scenario: ScenarioId,
   targetCount: number,
   durationMs: number,
   repetition: number,
   modules: EngineModules,
   signal: AbortSignal,
+  frameIntervalReferenceMs: number,
 ): Promise<BrowserRunResult> {
   throwIfAborted(signal);
   const host = stageHost.value;
   if (!host) throw new Error('The benchmark stage is not available.');
-  const scene = createScene(host, renderer, targetCount);
+  const scene = renderer === 'none'
+    ? createObjectScene(host, targetCount)
+    : createScene(host, renderer, targetCount);
   const intervals: number[] = [];
   const longTaskDurations: number[] = [];
   const longAnimationFrameDurations: number[] = [];
@@ -491,9 +681,9 @@ async function measureRun(
   const renderScene = scene.render.bind(scene);
   scene.render = (progress: number) => {
     if (runnerCleaned) postCleanupRenderCallbacks += 1;
-    const startedAt = measuring ? performance.now() : 0;
+    const startedAt = measuring && scenario === 'shared-renderer' ? performance.now() : 0;
     renderScene(progress);
-    if (measuring) {
+    if (measuring && scenario === 'shared-renderer') {
       renderCallbacks += 1;
       rendererWorkSamples.push(performance.now() - startedAt);
     }
@@ -502,7 +692,7 @@ async function measureRun(
   let endTime = Number.POSITIVE_INFINITY;
   let completionResolver: (() => void) | null = null;
   const completionPromise = new Promise<void>((resolve) => { completionResolver = resolve; });
-  const runner = createRunner(engine, scene, durationMs, () => completionResolver?.(), modules);
+  const runner = createRunner(engine, scene, durationMs, () => completionResolver?.(), modules, scenario);
   const supportedEntryTypes = typeof PerformanceObserver !== 'undefined'
     ? (PerformanceObserver.supportedEntryTypes ?? [])
     : [];
@@ -567,23 +757,25 @@ async function measureRun(
       p95Ms: percentile(intervals, 0.95),
       p99Ms: percentile(intervals, 0.99),
       maxMs: intervals.length ? round(Math.max(...intervals)) : null,
-      stretchedFrameCount: intervals.filter((value) => value > stretchedFrameThresholdMs).length,
+      stretchedFrameCount: intervals.filter((value) => value > frameIntervalReferenceMs * 1.5).length,
+      estimatedMissedRefreshCount: intervals.reduce((total, value) => total + estimateMissedRefreshes(value, frameIntervalReferenceMs), 0),
     };
     resultForCleanup = {
       engine,
       repetition,
+      scenario,
       renderer,
       targetCount,
       configuredDurationMs: durationMs,
       completed: true,
       elapsedMs: round(elapsedMs),
       renderCallbacks,
-      renderedTargetsPerCallback: targetCount,
+      renderedTargetsPerCallback: scenario === 'shared-renderer' ? targetCount : 0,
       rendererWork: {
         medianMs: median(rendererWorkSamples),
         p95Ms: percentile(rendererWorkSamples, 0.95),
         p99Ms: percentile(rendererWorkSamples, 0.99),
-        totalMs: round(rendererWorkSamples.reduce((total, value) => total + value, 0)),
+        totalMs: scenario === 'shared-renderer' ? round(rendererWorkSamples.reduce((total, value) => total + value, 0)) : null,
       },
       frameIntervals: stats,
       longTaskCount: longTaskSupported ? longTaskDurations.length : null,
@@ -617,7 +809,9 @@ async function measureRun(
           probeRafId = window.requestAnimationFrame(finishProbe);
         }
       });
-      if (resultForCleanup) resultForCleanup.cleanupPassed = postCleanupRenderCallbacks === 0;
+      if (resultForCleanup) resultForCleanup.cleanupPassed = scenario === 'shared-renderer'
+        ? postCleanupRenderCallbacks === 0
+        : null;
     } finally {
       longTaskObserver?.disconnect();
       longAnimationFrameObserver?.disconnect();
@@ -629,7 +823,7 @@ async function measureRun(
 function buildReport(): BenchmarkReport {
   return {
     benchmark: 're;Flux public browser benchmark',
-    schemaVersion: 1,
+    schemaVersion: 2,
     createdAt: new Date().toISOString(),
     environment: {
       userAgent: navigator.userAgent,
@@ -641,12 +835,16 @@ function buildReport(): BenchmarkReport {
       visibilityState: document.visibilityState,
     },
     configuration: {
-      renderer: selectedRenderer.value,
+      scenario: selectedScenario.value,
+      renderer: activeRenderer.value,
       targetCount: selectedTargetCount.value,
       durationMs: selectedDurationMs.value,
       repetitions,
-      frameBudgetReferenceMs: round(frameBudgetReferenceMs, 4),
-      stretchedFrameThresholdMs: round(stretchedFrameThresholdMs, 4),
+      frameBudgetReferenceMs: round(frameBudgetReferenceMs.value, 4),
+      frameBudgetSource: frameBudgetSource.value,
+      estimatedRafCadenceHz: round(estimatedRafCadenceHz.value, 2),
+      calibrationSamples: calibrationSamples.value,
+      stretchedFrameThresholdMs: round(stretchedFrameThresholdMs.value, 4),
     },
     libraries: engines.map((engine) => ({
       id: engine.id,
@@ -656,14 +854,20 @@ function buildReport(): BenchmarkReport {
     })),
     methodology: [
       'Competitor modules are fetched before measurements; CDN load time is excluded.',
-      'Each measured engine animates the same scalar progress value from 0 to 1 using linear easing.',
-      'A shared renderer updates the same number of real DOM elements, SVG elements, or Canvas shapes for all engines within a scenario.',
-      'One short unreported warm-up run is completed per engine before three measured repetitions.',
-      'Run order rotates between repetitions to reduce ordering bias.',
+      selectedScenario.value === 'shared-renderer'
+        ? 'Each engine animates the same scalar progress value from 0 to 1 using linear easing and drives a shared renderer.'
+        : selectedScenario.value === 'engine-only'
+          ? 'Each engine animates one plain JavaScript object per target without DOM, SVG, Canvas or layout writes; re;Flux uses one keyframes animation per object while GSAP and Anime.js use their multi-target object APIs.'
+          : 'Each engine animates opacity independently on the same number of real DOM targets; re;Flux uses one keyframes animation per target while GSAP and Anime.js use their multi-target DOM APIs.',
+      'The shared-renderer scenario uses the same DOM/SVG/Canvas write function and target count for each engine.',
+      'One short unreported warm-up run is completed per engine before ten measured repetitions.',
+      'The benchmark calibrates requestAnimationFrame cadence first and uses the median interval as its estimated refresh opportunity; this is not a hardware display-mode query.',
+      'Run order rotates through three permutations across ten measured repetitions to reduce ordering bias.',
       'After each run, one extra browser scheduling opportunity checks whether stopped animation runners still call the renderer.',
-      'Renderer callback time is measured around the shared DOM/SVG/Canvas write function and includes two performance.now() calls per measured callback; it does not include all engine internals.',
+      'Renderer callback time is reported only for the shared-renderer scenario; it includes two performance.now() calls per measured callback and does not include all engine internals.',
       'Frame intervals come from a separate requestAnimationFrame observer; they are not a direct measurement of paint completion or physical display presentation.',
-      'Stretched frames are requestAnimationFrame intervals longer than 1.5 times the 60 Hz reference budget (25 ms).',
+      'Estimated missed refreshes are computed by rounding each observed requestAnimationFrame interval to the nearest calibrated interval and subtracting one; this is an estimate, not a presentation-timing measurement.',
+      'Stretched intervals exceed 1.5 times the calibrated frame interval; the threshold is no longer hard-coded to 60 Hz.',
       'Long Tasks and Long Animation Frames are reported only when supported by the browser.',
     ],
     results: summaries.value.filter((summary) => summary.runs.length > 0),
@@ -698,35 +902,46 @@ async function runComparison(): Promise<void> {
     const modules = await awaitWithAbort(loadCompetitorModules(), controller.signal);
     throwIfAborted(controller.signal);
 
+    statusMessage.value = 'Calibrating the browser frame cadence…';
+    const calibration = await calibrateFrameInterval(controller.signal);
+    frameBudgetReferenceMs.value = calibration.intervalMs;
+    frameBudgetSource.value = calibration.source;
+    calibrationSamples.value = calibration.sampleCount;
+
     statusMessage.value = 'Warming up each engine with a small, unreported run…';
     const warmupOrder: EngineId[] = ['animejs', 'gsap', 're-flux'];
     for (const engine of warmupOrder) {
       throwIfAborted(controller.signal);
       currentEngine.value = engine;
       engineStatus.value[engine] = 'warming-up';
-      await measureRun(engine, selectedRenderer.value, warmupTargets, warmupDurationMs, 0, modules, controller.signal);
+      await measureRun(engine, activeRenderer.value, selectedScenario.value, warmupTargets, warmupDurationMs, 0, modules, controller.signal, frameBudgetReferenceMs.value);
       progressStep.value += 1;
     }
 
-    const runOrders: EngineId[][] = [
-      ['re-flux', 'gsap', 'animejs'],
-      ['animejs', 'gsap', 're-flux'],
-      ['gsap', 're-flux', 'animejs'],
-    ];
+    const runOrders: EngineId[][] = Array.from({ length: repetitions }, (_, index) => {
+      const permutations: EngineId[][] = [
+        ['re-flux', 'gsap', 'animejs'],
+        ['animejs', 'gsap', 're-flux'],
+        ['gsap', 're-flux', 'animejs'],
+      ];
+      return permutations[index % permutations.length]!;
+    });
     engineStatus.value = { 're-flux': 'running', gsap: 'running', animejs: 'running' };
     for (let repetition = 1; repetition <= repetitions; repetition += 1) {
       for (const engine of runOrders[repetition - 1]!) {
         throwIfAborted(controller.signal);
         currentEngine.value = engine;
-        statusMessage.value = `Repetition ${repetition} of ${repetitions} · ${engineName(engine)} · ${selectedRendererMeta.value.label}`;
+        statusMessage.value = `Repetition ${repetition} of ${repetitions} · ${engineName(engine)} · ${selectedScenarioMeta.value.label}`;
         const result = await measureRun(
           engine,
-          selectedRenderer.value,
+          activeRenderer.value,
+          selectedScenario.value,
           selectedTargetCount.value,
           selectedDurationMs.value,
           repetition,
           modules,
           controller.signal,
+          frameBudgetReferenceMs.value,
         );
         runResults.value = {
           ...runResults.value,
@@ -738,7 +953,7 @@ async function runComparison(): Promise<void> {
 
     engineStatus.value = { 're-flux': 'complete', gsap: 'complete', animejs: 'complete' };
     report.value = buildReport();
-    statusMessage.value = 'All nine measured runs are complete. Export the JSON to keep or share this result.';
+    statusMessage.value = `All ${repetitions * engines.length} measured runs are complete. Export the JSON to keep or share this result.`;
   } catch (error) {
     if (isAbortError(error)) {
       statusMessage.value = 'Benchmark canceled. Completed runs remain available below.';
@@ -798,7 +1013,7 @@ onBeforeUnmount(() => activeController?.abort());
       </p>
       <div class="browser-benchmarks__hero-meta">
         <span><UiIcon icon="mdi-laptop" /> Client-side execution</span>
-        <span><UiIcon icon="mdi-repeat" /> 3 measured repetitions per engine</span>
+        <span><UiIcon icon="mdi-repeat" /> 10 measured repetitions per engine</span>
         <span><UiIcon icon="mdi-download-outline" /> Exportable JSON</span>
       </div>
     </section>
@@ -814,12 +1029,23 @@ onBeforeUnmount(() => activeController?.abort());
 
       <div class="browser-benchmarks__controls">
         <label class="browser-benchmarks__field">
+          <span>Scenario</span>
+          <select v-model="selectedScenario" :disabled="isRunning">
+            <option v-for="scenario in scenarios" :key="scenario.id" :value="scenario.id">{{ scenario.label }}</option>
+          </select>
+          <small>{{ selectedScenarioMeta.description }}</small>
+        </label>
+        <label v-if="selectedScenario === 'shared-renderer'" class="browser-benchmarks__field">
           <span>Render target</span>
           <select v-model="selectedRenderer" :disabled="isRunning">
             <option v-for="renderer in renderers" :key="renderer.id" :value="renderer.id">{{ renderer.label }}</option>
           </select>
           <small>{{ selectedRendererMeta.description }}</small>
         </label>
+        <div v-else class="browser-benchmarks__field browser-benchmarks__field-note">
+          <span>{{ selectedScenario === 'engine-only' ? 'Rendering' : 'Per-target update' }}</span>
+          <small>{{ selectedRendererMeta.description }}</small>
+        </div>
         <label class="browser-benchmarks__field">
           <span>Target count</span>
           <select v-model.number="selectedTargetCount" :disabled="isRunning">
@@ -832,7 +1058,7 @@ onBeforeUnmount(() => activeController?.abort());
           <select v-model.number="selectedDurationMs" :disabled="isRunning">
             <option v-for="duration in durationOptions" :key="duration" :value="duration">{{ (duration / 1000).toFixed(1) }} seconds</option>
           </select>
-          <small>Linear progress from 0 to 1 per repetition.</small>
+          <small>One duration and target count for all three engines.</small>
         </label>
       </div>
 
@@ -854,6 +1080,11 @@ onBeforeUnmount(() => activeController?.abort());
       </div>
       <p v-else class="browser-benchmarks__status"><span class="browser-benchmarks__status-dot" /> {{ statusMessage }}</p>
       <p v-if="errorMessage" class="browser-benchmarks__error" role="alert">{{ errorMessage }}</p>
+      <p v-if="report" class="browser-benchmarks__calibration-note">
+        Estimated rAF cadence: <strong>{{ estimatedRafCadenceHz.toFixed(1) }} Hz</strong>
+        ({{ formatMs(frameBudgetReferenceMs, 2) }} median interval; {{ calibrationSamples }} calibration samples).
+        This estimates callback cadence, not the display's physical refresh mode.
+      </p>
     </section>
 
     <section class="browser-benchmarks__workspace" aria-label="Benchmark animation stage and live comparison results">
@@ -861,12 +1092,12 @@ onBeforeUnmount(() => activeController?.abort());
         <div class="browser-benchmarks__section-heading">
           <div>
             <div class="browser-benchmarks__kicker">02 / LIVE WORKLOAD</div>
-            <h2>{{ selectedRendererMeta.label }} scene</h2>
+            <h2>{{ selectedRendererMeta.label }}{{ selectedScenario === 'engine-only' ? ' workload' : ' scene' }}</h2>
           </div>
-          <span class="browser-benchmarks__stage-targets">{{ selectedTargetCount.toLocaleString() }} targets</span>
+          <span class="browser-benchmarks__stage-targets">{{ selectedTargetCount.toLocaleString() }} {{ selectedScenario === 'engine-only' ? 'objects' : 'targets' }}</span>
         </div>
         <div class="browser-benchmarks__stage-frame">
-          <div ref="stageHost" class="browser-benchmarks__stage" :data-renderer="selectedRenderer" />
+          <div ref="stageHost" class="browser-benchmarks__stage" :data-renderer="activeRenderer" />
           <div v-if="!isRunning && !measuredResultsExist" class="browser-benchmarks__stage-placeholder">
             <span class="browser-benchmarks__stage-orb"><i /><i /><i /></span>
             <p>Ready when you are</p>
@@ -878,7 +1109,7 @@ onBeforeUnmount(() => activeController?.abort());
           <span><i class="browser-benchmarks__legend-swatch browser-benchmarks__legend-swatch--gsap" /> GSAP</span>
           <span><i class="browser-benchmarks__legend-swatch browser-benchmarks__legend-swatch--anime" /> Anime.js</span>
         </div>
-        <p class="browser-benchmarks__stage-note">The scene shows the engine currently under test. Renderer work is shared across engines for the selected target type.</p>
+        <p class="browser-benchmarks__stage-note">{{ selectedScenario === 'shared-renderer' ? 'The scene shows the engine currently under test. Renderer work is shared across engines for the selected target type.' : selectedScenario === 'engine-only' ? 'The measured objects stay off-DOM to focus on per-target object updates. The stage is intentionally blank.' : 'Each engine animates opacity directly on real DOM targets; the shared scalar renderer is bypassed.' }}</p>
       </div>
 
       <div class="browser-benchmarks__panel browser-benchmarks__results-panel">
@@ -900,24 +1131,29 @@ onBeforeUnmount(() => activeController?.abort());
               <span class="browser-benchmarks__engine-status">{{ engineStatus[engine.id] === 'complete' ? 'Complete' : engineStatus[engine.id] === 'error' ? 'Error' : engine.runs.length ? `${engine.runs.length}/${repetitions}` : 'Waiting' }}</span>
             </div>
             <p class="browser-benchmarks__engine-version">{{ engine.version }} · {{ engine.runs.length ? 'measured' : engine.subtitle }}</p>
-            <div class="browser-benchmarks__engine-primary">
-              <span>Renderer callback p95</span>
+            <div v-if="selectedScenario === 'shared-renderer'" class="browser-benchmarks__engine-primary">
+              <span>Shared renderer callback p95</span>
               <strong>{{ engine.runs.length ? formatMs(engine.medianRendererP95Ms, 4) : '—' }}</strong>
+            </div>
+            <div v-else class="browser-benchmarks__engine-primary">
+              <span>{{ selectedScenario === 'engine-only' ? 'Mode' : 'Update path' }}</span>
+              <strong>{{ selectedScenario === 'engine-only' ? 'JS objects' : 'Direct DOM' }}</strong>
             </div>
             <div class="browser-benchmarks__engine-metrics">
               <div><span>Completion time</span><strong>{{ engine.runs.length ? formatMs(engine.medianCompletionMs) : '—' }}</strong></div>
               <div><span>Frame interval p95</span><strong>{{ formatMs(engine.medianFrameP95Ms) }}</strong></div>
               <div><span>Frame interval p99</span><strong>{{ formatMs(engine.medianFrameP99Ms) }}</strong></div>
-              <div><span>Median callbacks</span><strong>{{ engine.runs.length ? formatCount(engine.medianRenderCallbacks) : '—' }}</strong></div>
-              <div><span>Intervals &gt; 25 ms</span><strong>{{ engine.runs.length ? formatCount(engine.medianStretchedFrameCount) : '—' }}</strong></div>
+              <div v-if="selectedScenario === 'shared-renderer'"><span>Shared renderer callbacks</span><strong>{{ engine.runs.length ? formatCount(engine.medianRenderCallbacks) : '—' }}</strong></div>
+              <div><span>Estimated missed refreshes</span><strong>{{ engine.runs.length ? formatCount(engine.medianEstimatedMissedRefreshCount) : '—' }}</strong></div>
+              <div><span>Intervals &gt; {{ formatMs(activeFrameThresholdMs, 1) }}</span><strong>{{ engine.runs.length ? formatCount(engine.medianStretchedFrameCount) : '—' }}</strong></div>
               <div><span>Long tasks</span><strong>{{ engine.runs.length ? formatCount(engine.medianLongTaskCount) : '—' }}</strong></div>
               <div><span>Long animation frames</span><strong>{{ engine.runs.length ? formatCount(engine.medianLongAnimationFrameCount) : '—' }}</strong></div>
-              <div><span>Cleanup probe</span><strong>{{ engine.runs.length ? engine.cleanupPassed ? 'Passed' : 'Failed' : '—' }}</strong></div>
+              <div><span>Cleanup probe</span><strong>{{ !engine.runs.length || engine.cleanupPassed === null ? 'N/A' : engine.cleanupPassed ? 'Passed' : 'Failed' }}</strong></div>
             </div>
           </article>
         </div>
 
-        <div v-if="measuredResultsExist" class="browser-benchmarks__comparison-bars">
+        <div v-if="measuredResultsExist && selectedScenario === 'shared-renderer'" class="browser-benchmarks__comparison-bars">
           <h3>Renderer callback p95 <span>shared DOM/SVG/Canvas write path</span></h3>
           <div v-for="engine in summaries" :key="engine.id" class="browser-benchmarks__bar-row">
             <span>{{ engine.name }}</span>
@@ -925,7 +1161,7 @@ onBeforeUnmount(() => activeController?.abort());
             <strong>{{ formatMs(engine.medianRendererP95Ms, 4) }}</strong>
           </div>
         </div>
-        <div v-else class="browser-benchmarks__empty-result">
+        <div v-else-if="!measuredResultsExist" class="browser-benchmarks__empty-result">
           <UiIcon icon="mdi-chart-timeline-variant-shimmer" />
           <p>Results will appear here after the first measured repetition.</p>
         </div>
@@ -936,13 +1172,16 @@ onBeforeUnmount(() => activeController?.abort());
       <div class="browser-benchmarks__method-copy">
         <div class="browser-benchmarks__kicker">04 / METHODOLOGY</div>
         <h2>Compare the work, not the marketing.</h2>
-        <p>Every engine animates one scalar progress value from 0 to 1. The same render function writes the selected number of real DOM, SVG or Canvas targets, so the renderer workload stays consistent while the animation engine changes.</p>
+        <p v-if="selectedScenario === 'shared-renderer'">Every engine animates one scalar progress value from 0 to 1. The same render function writes the selected number of real DOM, SVG or Canvas targets, so the renderer workload stays consistent while the animation engine changes.</p>
+        <p v-else-if="selectedScenario === 'engine-only'">Every engine updates the same number of JavaScript object targets without touching the DOM. The report focuses on callback cadence, completion and main-thread diagnostics rather than renderer duration.</p>
+        <p v-else>Every engine updates opacity on the same number of real DOM elements. re;Flux uses an Animation instance per target; GSAP and Anime.js use their multi-target APIs. The different native API shapes are part of this workload and are documented in the export.</p>
       </div>
       <div class="browser-benchmarks__method-list">
         <div><span>01</span><p><strong>Warm-up</strong> Each engine gets one short, unreported run before measurement.</p></div>
-        <div><span>02</span><p><strong>Rotating order</strong> The engine order changes between the three measured repetitions.</p></div>
-        <div><span>03</span><p><strong>Percentiles</strong> Frame interval p95 and p99 show tail behavior; they are not direct paint timings.</p></div>
-        <div><span>04</span><p><strong>Local report</strong> JSON is created in your browser. No benchmark result is uploaded.</p></div>
+        <div><span>02</span><p><strong>10 repetitions</strong> The run order rotates through three permutations. Compare results on the same machine.</p></div>
+        <div><span>03</span><p><strong>Refresh calibration</strong> The median requestAnimationFrame interval estimates the active callback cadence; it does not query the physical display mode.</p></div>
+        <div><span>04</span><p><strong>Percentiles</strong> Frame interval p95/p99 and missed-refresh estimates show tail behavior, not actual display presentation.</p></div>
+        <div><span>05</span><p><strong>Local report</strong> JSON is created in your browser. No benchmark result is uploaded.</p></div>
       </div>
     </section>
 
@@ -955,8 +1194,8 @@ onBeforeUnmount(() => activeController?.abort());
       </div>
       <ul>
         <li>GSAP and Anime.js are loaded on demand from esm.sh at pinned versions. Their download time is not included, but results require the CDN to be reachable.</li>
-        <li>The comparison is an equivalent scalar-progress workload using a shared render callback—not a comparison of every library's full native API, plugins or framework integrations.</li>
-        <li>Frame intervals are sampled with <code>requestAnimationFrame</code>. They do not prove that a frame was physically presented or measure paint completion by themselves.</li>
+        <li>The shared-renderer scenario compares a scalar-progress callback. Engine-only and per-target DOM scenarios compare each library's target API shape; re;Flux creates one Animation per target while GSAP and Anime.js use multi-target calls.</li>
+        <li>Frame cadence is calibrated from requestAnimationFrame timestamps. Missed-refresh values are estimates from callback intervals, not proof of dropped physical presentations.</li>
         <li>Long Tasks and Long Animation Frames depend on browser support. “N/A” means the relevant observer is unavailable, not that the browser experienced zero work.</li>
         <li>Results vary with browser, refresh rate, operating system, thermal state, extensions, other tabs and system load. Use multiple runs and compare the same environment.</li>
       </ul>

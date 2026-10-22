@@ -111,7 +111,7 @@
 
   &__controls {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--rx-space-4);
   }
 
@@ -328,6 +328,7 @@
   &__notes code { border-radius: 0.3rem; background: rgba(var(--rx-theme-border-strong), 0.12); padding: var(--rx-space-0-5) 0.28rem; font-size: 0.92em; }
 
   @media (max-width: breakpoints.$rx-breakpoint-layout-wide) {
+    &__controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     &__workspace { grid-template-columns: minmax(0, 1fr); }
     &__stage-panel { order: 1; }
     &__results-panel { order: 2; }
