@@ -51,6 +51,14 @@ assert.ok(page.includes('longTaskSupported ? longTaskDurations.length : null'), 
 assert.ok(styles.includes('@media (prefers-reduced-motion: reduce)'), 'Benchmark transitions must respect reduced-motion preferences.');
 assert.ok(styles.includes('@media (max-width: breakpoints.$rx-breakpoint-tablet-narrow)'), 'Benchmark page must use the shared responsive breakpoint tokens.');
 assert.ok(styles.includes('grid-template-columns: repeat(4, minmax(0, 1fr))'), 'Four benchmark controls must fit as a four-column desktop grid.');
+const workspaceLayout = styles.match(/&__workspace\s*\{([^}]*)\}/s)?.[1] ?? '';
+assert.match(workspaceLayout, /grid-template-columns:\s*minmax\(0,\s*1fr\)/, 'The live scene and results must stack in a single-column workspace.');
+const engineResultsLayout = styles.match(/&__engine-results\s*\{([^}]*)\}/s)?.[1] ?? '';
+assert.match(engineResultsLayout, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/, 'Engine result cards must use a three-column desktop layout.');
+const stagePanelPosition = page.indexOf('class=\"browser-benchmarks__panel browser-benchmarks__stage-panel\"');
+const callbackComparisonPosition = page.indexOf('class=\"browser-benchmarks__comparison-bars\"');
+const resultsPanelPosition = page.indexOf('class=\"browser-benchmarks__panel browser-benchmarks__results-panel\"');
+assert.ok(stagePanelPosition >= 0 && callbackComparisonPosition > stagePanelPosition && callbackComparisonPosition < resultsPanelPosition, 'Renderer callback comparison must sit beneath the live scene and above the results cards.');
 assert.ok(page.includes('Estimated rAF cadence:'), 'The calibrated callback cadence must be visible beside measured results.');
 
 // Keep third-party animation engines runtime-loaded instead of pulling them into the main application entrypoint.

@@ -1110,6 +1110,15 @@ onBeforeUnmount(() => activeController?.abort());
           <span><i class="browser-benchmarks__legend-swatch browser-benchmarks__legend-swatch--anime" /> Anime.js</span>
         </div>
         <p class="browser-benchmarks__stage-note">{{ selectedScenario === 'shared-renderer' ? 'The scene shows the engine currently under test. Renderer work is shared across engines for the selected target type.' : selectedScenario === 'engine-only' ? 'The measured objects stay off-DOM to focus on per-target object updates. The stage is intentionally blank.' : 'Each engine animates opacity directly on real DOM targets; the shared scalar renderer is bypassed.' }}</p>
+
+        <div v-if="measuredResultsExist && selectedScenario === 'shared-renderer'" class="browser-benchmarks__comparison-bars" aria-label="Renderer callback timing comparison">
+          <h3>Renderer callback p95 <span>shared DOM/SVG/Canvas write path</span></h3>
+          <div v-for="engine in summaries" :key="engine.id" class="browser-benchmarks__bar-row">
+            <span>{{ engine.name }}</span>
+            <div class="browser-benchmarks__bar-track"><span :class="`bar-${engine.id}`" :style="{ width: barWidth(engine.medianRendererP95Ms) }" /></div>
+            <strong>{{ formatMs(engine.medianRendererP95Ms, 4) }}</strong>
+          </div>
+        </div>
       </div>
 
       <div class="browser-benchmarks__panel browser-benchmarks__results-panel">
@@ -1153,15 +1162,7 @@ onBeforeUnmount(() => activeController?.abort());
           </article>
         </div>
 
-        <div v-if="measuredResultsExist && selectedScenario === 'shared-renderer'" class="browser-benchmarks__comparison-bars">
-          <h3>Renderer callback p95 <span>shared DOM/SVG/Canvas write path</span></h3>
-          <div v-for="engine in summaries" :key="engine.id" class="browser-benchmarks__bar-row">
-            <span>{{ engine.name }}</span>
-            <div class="browser-benchmarks__bar-track"><span :class="`bar-${engine.id}`" :style="{ width: barWidth(engine.medianRendererP95Ms) }" /></div>
-            <strong>{{ formatMs(engine.medianRendererP95Ms, 4) }}</strong>
-          </div>
-        </div>
-        <div v-else-if="!measuredResultsExist" class="browser-benchmarks__empty-result">
+        <div v-if="!measuredResultsExist" class="browser-benchmarks__empty-result">
           <UiIcon icon="mdi-chart-timeline-variant-shimmer" />
           <p>Results will appear here after the first measured repetition.</p>
         </div>
