@@ -24,6 +24,19 @@
     pointer-events: none;
   }
 
+  &__shader-placeholder {
+    position: absolute;
+    z-index: var(--rx-z-base);
+    inset: 0;
+    opacity: 0.96;
+    background:
+      radial-gradient(ellipse at 27% 38%, rgba(var(--rx-color-glow-cyan-rgb), 0.34), transparent 42%),
+      radial-gradient(ellipse at 72% 28%, rgba(var(--rx-color-glow-violet-rgb), 0.31), transparent 44%),
+      radial-gradient(ellipse at 54% 76%, rgba(var(--rx-color-glow-cyan-rgb), 0.2), transparent 42%),
+      var(--rx-color-canvas-night-deep);
+    pointer-events: none;
+  }
+
   &__fluid-shader {
     z-index: var(--rx-z-base);
     opacity: 0.96;

@@ -19,6 +19,10 @@ for (const section of ['home-hero', 'home-story-runway', 'home-lab', 'home-princ
 }
 assert.ok(home.includes('<LandingTelemetryStage'), 'Home must render the telemetry hero visual.');
 assert.match(home, /<VisualLabShaderPreview[\s\S]*?kind="shader-fluid"[\s\S]*?:active="heroFluidActive"/, 'The Fluid Noise shader should be mounted as the Home hero background.');
+assert.ok(home.includes('defineAsyncComponent(() => import('), 'The heavy Home shader component must be code-split and loaded asynchronously.');
+assert.ok(home.includes('scheduleHeroShader') && home.includes('requestIdleCallback'), 'The Home shader should be requested during idle time, not during initial rendering.');
+assert.ok(home.includes('!heroMotionPreferences.snapshot.visible'), 'The Home shader must stay deferred while the document is hidden.');
+assert.ok(home.includes('v-if="!heroShaderRequested"'), 'The Home hero must show a static visual while the shader chunk is deferred.');
 assert.ok(home.includes('new MotionPreferences()'), 'Home shader background must use shared motion preferences.');
 assert.ok(home.includes('heroVisibilityObserver?.disconnect()'), 'Home shader background must stop observing visibility on unmount.');
 assert.ok(home.includes('heroMotionPreferences.destroy()'), 'Home must release its motion preferences listeners.');

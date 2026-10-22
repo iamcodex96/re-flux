@@ -22,6 +22,7 @@ const props = defineProps<{
 const root = ref<HTMLDivElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 const webglUnavailable = ref(false);
+const shaderReady = ref(false);
 const fallbackReason = ref('');
 const reducedMotion = ref(props.preferences.snapshot.reducedMotion);
 const pointer = { x: 0.5, y: 0.5 };
@@ -235,6 +236,7 @@ function initializeWebGL(): void {
       nextBuffer = null;
       resize();
       draw(0);
+      shaderReady.value = true;
     } finally {
       context.deleteShader(vertexShader);
       if (pixelShader) context.deleteShader(pixelShader);
@@ -374,8 +376,8 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="root" class="lab-shader-preview" :class="{ 'is-active': active, 'is-fallback': webglUnavailable }" aria-hidden="true">
-    <canvas v-if="!webglUnavailable" ref="canvas" class="lab-shader-preview__canvas" @pointermove="onPointerMove" />
-    <div v-else class="lab-shader-preview__fallback" :class="`lab-shader-preview__fallback--${kind}`">
+    <canvas v-if="!webglUnavailable" ref="canvas" class="lab-shader-preview__canvas" :class="{ 'is-ready': shaderReady }" @pointermove="onPointerMove" />
+    <div v-if="webglUnavailable || !shaderReady" class="lab-shader-preview__fallback" :class="`lab-shader-preview__fallback--${kind}`">
       <span class="lab-shader-preview__fallback-orb" />
       <span class="lab-shader-preview__fallback-ring" />
       <span class="lab-shader-preview__fallback-label">{{ copy.staticText.cssFallback }}</span>

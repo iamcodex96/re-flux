@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { createScrollTrigger, type ScrollTriggerController } from '@lib/dom';
 import { MotionPreferences, RetargetableMotion } from '@lib';
@@ -9,12 +9,18 @@ import LandingTelemetryStage from '../components/LandingTelemetryStage.vue';
 import LandingCodeMotion from '../components/LandingCodeMotion.vue';
 import LandingLabPreview, { type LandingLabPreviewKind } from '../components/LandingLabPreview.vue';
 import LandingPrincipleVisual, { type LandingPrincipleVisualKind } from '../components/LandingPrincipleVisual.vue';
-import VisualLabShaderPreview from '../components/VisualLab/VisualLabShaderPreview.vue';
+const VisualLabShaderPreview = defineAsyncComponent(() => import('../components/VisualLab/VisualLabShaderPreview.vue'));
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
 
 const store = useAppStore();
 const copy = computed(() => store.app.view.home);
 const heroSection = ref<HTMLElement | null>(null);
 const heroFluidActive = ref(false);
+const heroShaderRequested = ref(false);
 const heroMotionPreferences = new MotionPreferences();
 const storyRunway = ref<HTMLElement | null>(null);
 const storyProgress = ref(0);
@@ -37,6 +43,9 @@ function getPrincipleVisualKind(index: string): LandingPrincipleVisualKind {
 }
 const stepElements: HTMLElement[] = [];
 let heroVisibilityObserver: IntersectionObserver | null = null;
+let heroShaderIdleHandle: number | null = null;
+let heroShaderTimeout: number | null = null;
+let heroMotionSubscription: Subscription | null = null;
 let storyTrigger: ScrollTriggerController | null = null;
 let storySubscription: Subscription | null = null;
 let stepObserver: IntersectionObserver | null = null;
@@ -47,6 +56,46 @@ let springValueSubscription: Subscription | null = null;
 
 function setStepRef(element: unknown, index: number): void {
   if (element instanceof HTMLElement) stepElements[index] = element;
+}
+
+function cancelDeferredHeroShader(): void {
+  const idleWindow = window as IdleWindow;
+  if (heroShaderIdleHandle !== null) {
+    idleWindow.cancelIdleCallback?.(heroShaderIdleHandle);
+    heroShaderIdleHandle = null;
+  }
+  if (heroShaderTimeout !== null) {
+    window.clearTimeout(heroShaderTimeout);
+    heroShaderTimeout = null;
+  }
+}
+
+function scheduleHeroShader(): void {
+  if (heroShaderRequested.value || heroMotionPreferences.snapshot.reducedMotion || !heroMotionPreferences.snapshot.visible) return;
+  cancelDeferredHeroShader();
+
+  const idleWindow = window as IdleWindow;
+  if (typeof idleWindow.requestIdleCallback === 'function') {
+    heroShaderIdleHandle = idleWindow.requestIdleCallback(() => {
+      heroShaderIdleHandle = null;
+      if (!heroMotionPreferences.snapshot.reducedMotion && heroMotionPreferences.snapshot.visible) heroShaderRequested.value = true;
+    }, { timeout: 1800 });
+    return;
+  }
+
+  // Safari and older browsers without requestIdleCallback get a short post-render delay.
+  heroShaderTimeout = window.setTimeout(() => {
+    heroShaderTimeout = null;
+    if (!heroMotionPreferences.snapshot.reducedMotion && heroMotionPreferences.snapshot.visible) heroShaderRequested.value = true;
+  }, 900);
+}
+
+function syncDeferredHeroShaderPreference(): void {
+  if (heroMotionPreferences.snapshot.reducedMotion || !heroMotionPreferences.snapshot.visible) {
+    cancelDeferredHeroShader();
+    return;
+  }
+  scheduleHeroShader();
 }
 
 function disconnectScrollTrigger(): void {
@@ -118,6 +167,9 @@ onMounted(async () => {
     heroFluidActive.value = true;
   }
 
+  heroMotionSubscription = heroMotionPreferences.state$.subscribe(() => syncDeferredHeroShaderPreference());
+  syncDeferredHeroShaderPreference();
+
   storyMediaQuery = window.matchMedia('(min-width: 800px) and (prefers-reduced-motion: no-preference)');
   springMotionQuery = window.matchMedia('(prefers-reduced-motion: no-preference)');
   springMotion = new RetargetableMotion({ initialValue: springFactor.value, stiffness: 240, damping: 28, mass: 1 });
@@ -147,6 +199,9 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   heroVisibilityObserver?.disconnect();
   heroVisibilityObserver = null;
+  cancelDeferredHeroShader();
+  heroMotionSubscription?.unsubscribe();
+  heroMotionSubscription = null;
   heroMotionPreferences.destroy();
   storyMediaQuery?.removeEventListener('change', syncScrollTrigger);
   springMotionQuery?.removeEventListener('change', handleSpringMotionPreference);
@@ -161,7 +216,9 @@ onBeforeUnmount(() => {
 <template>
   <div class="home-page">
     <section ref="heroSection" class="home-hero" aria-labelledby="home-title">
+      <div v-if="!heroShaderRequested" class="home-hero__shader-placeholder" aria-hidden="true" />
       <VisualLabShaderPreview
+        v-if="heroShaderRequested"
         class="home-hero__fluid-shader"
         kind="shader-fluid"
         :active="heroFluidActive"

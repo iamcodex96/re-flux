@@ -1,0 +1,225 @@
+diff --git a/apps/docs/src/components/VisualLab/VisualLabShaderPreview.vue b/apps/docs/src/components/VisualLab/VisualLabShaderPreview.vue
+index 50e381c..fb6cfac 100644
+--- a/apps/docs/src/components/VisualLab/VisualLabShaderPreview.vue
++++ b/apps/docs/src/components/VisualLab/VisualLabShaderPreview.vue
+@@ -22,6 +22,7 @@ const props = defineProps<{
+ const root = ref<HTMLDivElement | null>(null);
+ const canvas = ref<HTMLCanvasElement | null>(null);
+ const webglUnavailable = ref(false);
++const shaderReady = ref(false);
+ const fallbackReason = ref('');
+ const reducedMotion = ref(props.preferences.snapshot.reducedMotion);
+ const pointer = { x: 0.5, y: 0.5 };
+@@ -235,6 +236,7 @@ function initializeWebGL(): void {
+       nextBuffer = null;
+       resize();
+       draw(0);
++      shaderReady.value = true;
+     } finally {
+       context.deleteShader(vertexShader);
+       if (pixelShader) context.deleteShader(pixelShader);
+@@ -374,8 +376,8 @@ onBeforeUnmount(() => {
+ 
+ <template>
+   <div ref="root" class="lab-shader-preview" :class="{ 'is-active': active, 'is-fallback': webglUnavailable }" aria-hidden="true">
+-    <canvas v-if="!webglUnavailable" ref="canvas" class="lab-shader-preview__canvas" @pointermove="onPointerMove" />
+-    <div v-else class="lab-shader-preview__fallback" :class="`lab-shader-preview__fallback--${kind}`">
++    <canvas v-if="!webglUnavailable" ref="canvas" class="lab-shader-preview__canvas" :class="{ 'is-ready': shaderReady }" @pointermove="onPointerMove" />
++    <div v-if="webglUnavailable || !shaderReady" class="lab-shader-preview__fallback" :class="`lab-shader-preview__fallback--${kind}`">
+       <span class="lab-shader-preview__fallback-orb" />
+       <span class="lab-shader-preview__fallback-ring" />
+       <span class="lab-shader-preview__fallback-label">{{ copy.staticText.cssFallback }}</span>
+diff --git a/apps/docs/src/styles/components/_visual-experiment-card.scss b/apps/docs/src/styles/components/_visual-experiment-card.scss
+index 609dde0..38df910 100644
+--- a/apps/docs/src/styles/components/_visual-experiment-card.scss
++++ b/apps/docs/src/styles/components/_visual-experiment-card.scss
+@@ -336,6 +336,10 @@
+     width: 100%;
+     height: 100%;
+     min-height: inherit;
++    opacity: 0;
++    transition: opacity 180ms ease-out;
++
++    &.is-ready { opacity: 1; }
+   }
+ 
+   &__fallback {
+@@ -398,6 +402,7 @@
+ }
+ 
+ @media (prefers-reduced-motion: reduce) {
++  .lab-shader-preview__canvas { transition: none; }
+   .lab-shader-preview__fallback-orb,
+   .lab-shader-preview__fallback-ring { transition: none; }
+ }
+diff --git a/apps/docs/src/styles/views/home/_hero.scss b/apps/docs/src/styles/views/home/_hero.scss
+index b256559..938cdef 100644
+--- a/apps/docs/src/styles/views/home/_hero.scss
++++ b/apps/docs/src/styles/views/home/_hero.scss
+@@ -24,6 +24,19 @@
+     pointer-events: none;
+   }
+ 
++  &__shader-placeholder {
++    position: absolute;
++    z-index: var(--rx-z-base);
++    inset: 0;
++    opacity: 0.96;
++    background:
++      radial-gradient(ellipse at 27% 38%, rgba(var(--rx-color-glow-cyan-rgb), 0.34), transparent 42%),
++      radial-gradient(ellipse at 72% 28%, rgba(var(--rx-color-glow-violet-rgb), 0.31), transparent 44%),
++      radial-gradient(ellipse at 54% 76%, rgba(var(--rx-color-glow-cyan-rgb), 0.2), transparent 42%),
++      var(--rx-color-canvas-night-deep);
++    pointer-events: none;
++  }
++
+   &__fluid-shader {
+     z-index: var(--rx-z-base);
+     opacity: 0.96;
+diff --git a/apps/docs/src/views/Home.vue b/apps/docs/src/views/Home.vue
+index 65e6214..a1960f7 100644
+--- a/apps/docs/src/views/Home.vue
++++ b/apps/docs/src/views/Home.vue
+@@ -1,5 +1,5 @@
+ <script setup lang="ts">
+-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
++import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+ import { RouterLink } from 'vue-router';
+ import { createScrollTrigger, type ScrollTriggerController } from '@lib/dom';
+ import { MotionPreferences, RetargetableMotion } from '@lib';
+@@ -9,12 +9,18 @@ import LandingTelemetryStage from '../components/LandingTelemetryStage.vue';
+ import LandingCodeMotion from '../components/LandingCodeMotion.vue';
+ import LandingLabPreview, { type LandingLabPreviewKind } from '../components/LandingLabPreview.vue';
+ import LandingPrincipleVisual, { type LandingPrincipleVisualKind } from '../components/LandingPrincipleVisual.vue';
+-import VisualLabShaderPreview from '../components/VisualLab/VisualLabShaderPreview.vue';
++const VisualLabShaderPreview = defineAsyncComponent(() => import('../components/VisualLab/VisualLabShaderPreview.vue'));
++
++type IdleWindow = Window & {
++  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
++  cancelIdleCallback?: (handle: number) => void;
++};
+ 
+ const store = useAppStore();
+ const copy = computed(() => store.app.view.home);
+ const heroSection = ref<HTMLElement | null>(null);
+ const heroFluidActive = ref(false);
++const heroShaderRequested = ref(false);
+ const heroMotionPreferences = new MotionPreferences();
+ const storyRunway = ref<HTMLElement | null>(null);
+ const storyProgress = ref(0);
+@@ -37,6 +43,9 @@ function getPrincipleVisualKind(index: string): LandingPrincipleVisualKind {
+ }
+ const stepElements: HTMLElement[] = [];
+ let heroVisibilityObserver: IntersectionObserver | null = null;
++let heroShaderIdleHandle: number | null = null;
++let heroShaderTimeout: number | null = null;
++let heroMotionSubscription: Subscription | null = null;
+ let storyTrigger: ScrollTriggerController | null = null;
+ let storySubscription: Subscription | null = null;
+ let stepObserver: IntersectionObserver | null = null;
+@@ -49,6 +58,46 @@ function setStepRef(element: unknown, index: number): void {
+   if (element instanceof HTMLElement) stepElements[index] = element;
+ }
+ 
++function cancelDeferredHeroShader(): void {
++  const idleWindow = window as IdleWindow;
++  if (heroShaderIdleHandle !== null) {
++    idleWindow.cancelIdleCallback?.(heroShaderIdleHandle);
++    heroShaderIdleHandle = null;
++  }
++  if (heroShaderTimeout !== null) {
++    window.clearTimeout(heroShaderTimeout);
++    heroShaderTimeout = null;
++  }
++}
++
++function scheduleHeroShader(): void {
++  if (heroShaderRequested.value || heroMotionPreferences.snapshot.reducedMotion || !heroMotionPreferences.snapshot.visible) return;
++  cancelDeferredHeroShader();
++
++  const idleWindow = window as IdleWindow;
++  if (typeof idleWindow.requestIdleCallback === 'function') {
++    heroShaderIdleHandle = idleWindow.requestIdleCallback(() => {
++      heroShaderIdleHandle = null;
++      if (!heroMotionPreferences.snapshot.reducedMotion && heroMotionPreferences.snapshot.visible) heroShaderRequested.value = true;
++    }, { timeout: 1800 });
++    return;
++  }
++
++  // Safari and older browsers without requestIdleCallback get a short post-render delay.
++  heroShaderTimeout = window.setTimeout(() => {
++    heroShaderTimeout = null;
++    if (!heroMotionPreferences.snapshot.reducedMotion && heroMotionPreferences.snapshot.visible) heroShaderRequested.value = true;
++  }, 900);
++}
++
++function syncDeferredHeroShaderPreference(): void {
++  if (heroMotionPreferences.snapshot.reducedMotion || !heroMotionPreferences.snapshot.visible) {
++    cancelDeferredHeroShader();
++    return;
++  }
++  scheduleHeroShader();
++}
++
+ function disconnectScrollTrigger(): void {
+   storySubscription?.unsubscribe();
+   storySubscription = null;
+@@ -118,6 +167,9 @@ onMounted(async () => {
+     heroFluidActive.value = true;
+   }
+ 
++  heroMotionSubscription = heroMotionPreferences.state$.subscribe(() => syncDeferredHeroShaderPreference());
++  syncDeferredHeroShaderPreference();
++
+   storyMediaQuery = window.matchMedia('(min-width: 800px) and (prefers-reduced-motion: no-preference)');
+   springMotionQuery = window.matchMedia('(prefers-reduced-motion: no-preference)');
+   springMotion = new RetargetableMotion({ initialValue: springFactor.value, stiffness: 240, damping: 28, mass: 1 });
+@@ -147,6 +199,9 @@ onMounted(async () => {
+ onBeforeUnmount(() => {
+   heroVisibilityObserver?.disconnect();
+   heroVisibilityObserver = null;
++  cancelDeferredHeroShader();
++  heroMotionSubscription?.unsubscribe();
++  heroMotionSubscription = null;
+   heroMotionPreferences.destroy();
+   storyMediaQuery?.removeEventListener('change', syncScrollTrigger);
+   springMotionQuery?.removeEventListener('change', handleSpringMotionPreference);
+@@ -161,7 +216,9 @@ onBeforeUnmount(() => {
+ <template>
+   <div class="home-page">
+     <section ref="heroSection" class="home-hero" aria-labelledby="home-title">
++      <div v-if="!heroShaderRequested" class="home-hero__shader-placeholder" aria-hidden="true" />
+       <VisualLabShaderPreview
++        v-if="heroShaderRequested"
+         class="home-hero__fluid-shader"
+         kind="shader-fluid"
+         :active="heroFluidActive"
+diff --git a/scripts/check-home-experience.mjs b/scripts/check-home-experience.mjs
+index f6a1d5e..03da914 100644
+--- a/scripts/check-home-experience.mjs
++++ b/scripts/check-home-experience.mjs
+@@ -19,6 +19,10 @@ for (const section of ['home-hero', 'home-story-runway', 'home-lab', 'home-princ
+ }
+ assert.ok(home.includes('<LandingTelemetryStage'), 'Home must render the telemetry hero visual.');
+ assert.match(home, /<VisualLabShaderPreview[\s\S]*?kind="shader-fluid"[\s\S]*?:active="heroFluidActive"/, 'The Fluid Noise shader should be mounted as the Home hero background.');
++assert.ok(home.includes('defineAsyncComponent(() => import('), 'The heavy Home shader component must be code-split and loaded asynchronously.');
++assert.ok(home.includes('scheduleHeroShader') && home.includes('requestIdleCallback'), 'The Home shader should be requested during idle time, not during initial rendering.');
++assert.ok(home.includes('!heroMotionPreferences.snapshot.visible'), 'The Home shader must stay deferred while the document is hidden.');
++assert.ok(home.includes('v-if="!heroShaderRequested"'), 'The Home hero must show a static visual while the shader chunk is deferred.');
+ assert.ok(home.includes('new MotionPreferences()'), 'Home shader background must use shared motion preferences.');
+ assert.ok(home.includes('heroVisibilityObserver?.disconnect()'), 'Home shader background must stop observing visibility on unmount.');
+ assert.ok(home.includes('heroMotionPreferences.destroy()'), 'Home must release its motion preferences listeners.');
+diff --git a/scripts/check-visual-lab-complete.mjs b/scripts/check-visual-lab-complete.mjs
+index 873a191..62abee6 100644
+--- a/scripts/check-visual-lab-complete.mjs
++++ b/scripts/check-visual-lab-complete.mjs
+@@ -56,6 +56,9 @@ assert.doesNotMatch(registry, /shader-fluid|Fluid Noise Field/, 'Fluid Noise Fie
+ assert.doesNotMatch(shadersPanel, /shader-fluid|Fluid noise field/i, 'Fluid Noise Field must not remain selectable on the Visual Lab shader page.');
+ assert.match(shaderPreview, /getContext\('webgl'/, 'Shader previews must use a real WebGL context.');
+ assert.match(shaderPreview, /function syncAnimation\(\)[\s\S]*?initializeWebGL\(\)/, 'WebGL previews must initialize lazily on activation.');
++assert.ok(shaderPreview.includes('const shaderReady = ref(false);'), 'WebGL previews must remain on their CSS fallback until the first frame is ready.');
++assert.ok(shaderPreview.includes('shaderReady.value = true;'), 'WebGL preview readiness must be signaled after the first successful draw.');
++assert.match(shaderPreview, /v-if="webglUnavailable \|\| !shaderReady"/, 'The CSS fallback must remain visible until WebGL is ready.');
+ assert.match(shaderPreview, /new IntersectionObserver[\s\S]*?initializeWebGL\(\)[\s\S]*?intersectionObserver\?\.disconnect\(\)/, 'Inactive shader previews should initialize near the viewport, not all at startup.');
+ assert.match(shaderPreview, /gl\.uniform1f\(uniforms\.time, time\)/, 'The animated stream must update the shader time uniform.');
+ assert.match(shaderPreview, /copy\.staticText\.webglUnavailableFallbackActive/, 'A locale-backed fallback is required when WebGL is unavailable.');

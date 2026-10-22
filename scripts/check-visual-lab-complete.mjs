@@ -56,6 +56,9 @@ assert.doesNotMatch(registry, /shader-fluid|Fluid Noise Field/, 'Fluid Noise Fie
 assert.doesNotMatch(shadersPanel, /shader-fluid|Fluid noise field/i, 'Fluid Noise Field must not remain selectable on the Visual Lab shader page.');
 assert.match(shaderPreview, /getContext\('webgl'/, 'Shader previews must use a real WebGL context.');
 assert.match(shaderPreview, /function syncAnimation\(\)[\s\S]*?initializeWebGL\(\)/, 'WebGL previews must initialize lazily on activation.');
+assert.ok(shaderPreview.includes('const shaderReady = ref(false);'), 'WebGL previews must remain on their CSS fallback until the first frame is ready.');
+assert.ok(shaderPreview.includes('shaderReady.value = true;'), 'WebGL preview readiness must be signaled after the first successful draw.');
+assert.match(shaderPreview, /v-if="webglUnavailable \|\| !shaderReady"/, 'The CSS fallback must remain visible until WebGL is ready.');
 assert.match(shaderPreview, /new IntersectionObserver[\s\S]*?initializeWebGL\(\)[\s\S]*?intersectionObserver\?\.disconnect\(\)/, 'Inactive shader previews should initialize near the viewport, not all at startup.');
 assert.match(shaderPreview, /gl\.uniform1f\(uniforms\.time, time\)/, 'The animated stream must update the shader time uniform.');
 assert.match(shaderPreview, /copy\.staticText\.webglUnavailableFallbackActive/, 'A locale-backed fallback is required when WebGL is unavailable.');
