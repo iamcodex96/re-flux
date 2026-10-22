@@ -36,9 +36,17 @@ const playgroundGroups = [
     ],
   },
 ] as const;
+type PlaygroundPageKey = keyof typeof appStore.app.view.playgroundLayout.pages;
+
+function isPlaygroundPageKey(key: string): key is PlaygroundPageKey {
+  return Object.prototype.hasOwnProperty.call(copy.value.pages, key);
+}
+
 const activePage = computed(() => {
-  const pageKey = String(route.meta.playgroundPage ?? 'animation');
-  return copy.value.pages[pageKey] ?? copy.value.pages.animation;
+  const pageKey = route.meta.playgroundPage;
+  return typeof pageKey === 'string' && isPlaygroundPageKey(pageKey)
+    ? copy.value.pages[pageKey]
+    : copy.value.pages.animation;
 });
 </script>
 

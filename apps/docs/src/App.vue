@@ -123,7 +123,7 @@ watch(() => route.fullPath, async () => {
         </nav>
 
         <div class="site-header__actions">
-          <a class="site-github-link" href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener" :aria-label="copy.githubAriaLabel" :title="copy.githubSource">
+          <a class="site-github-link" href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener" :aria-label="copy.staticText.githubAriaLabel" :title="copy.githubSource">
             <UiIcon icon="mdi-github" />
           </a>
           <button
@@ -142,7 +142,7 @@ watch(() => route.fullPath, async () => {
             type="button"
             :aria-expanded="mobileMenuOpen"
             aria-controls="primary-navigation"
-            :aria-label="mobileMenuOpen ? copy.closeNavigation : copy.openNavigation"
+            :aria-label="mobileMenuOpen ? copy.staticText.closeNavigation : copy.staticText.openNavigation"
             @click="mobileMenuOpen = !mobileMenuOpen"
           >
             <UiIcon :icon="mobileMenuOpen ? 'mdi-close' : 'mdi-menu'" />
