@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>re;Flux browser integration fixture</title>
+    <style>
+      html, body { margin: 0; min-height: 100%; }
+      #gesture-target { position: absolute; z-index: 1; left: 20px; top: 20px; width: 100px; height: 100px; background: #e5e7eb; touch-action: none; }
+      #style-target { opacity: 0.25 !important; color: rgb(12, 34, 56); }
+      #flip-container { position: relative; height: 260px; }
+      #flip-target { position: absolute; left: 20px; top: 20px; width: 40px; height: 20px; background: black; transform: translateX(4px); transform-origin: center center; }
+      #canvas-target { display: block; width: 16px; height: 16px; }
+    </style>
+  </head>
+  <body>
+    <div id="gesture-target"></div>
+    <div id="style-target" style="opacity: 0.25 !important; color: rgb(12, 34, 56)"></div>
+    <svg width="24" height="24" aria-hidden="true">
+      <circle id="svg-target" cx="4" cy="4" r="2" fill="red"></circle>
+    </svg>
+    <div id="flip-container"><div id="flip-target" style="left: 20px; top: 20px; transform: translateX(4px); transform-origin: center center"></div></div>
+    <canvas id="canvas-target" width="16" height="16"></canvas>
+    <script type="module" src="/fixture.js"></script>
+  </body>
+</html>

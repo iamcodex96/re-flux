@@ -11,6 +11,7 @@ From the repository root:
 
 ```bash
 npm ci
+npx playwright install chromium
 npm run dev
 ```
 
@@ -23,10 +24,12 @@ npm run typecheck
 npm run typecheck:tests
 npm test -- --runInBand
 npm run check:docs
+npm run check:browser-integration
 npm run check:tree-shaking
 npm run check:package
 npm run build:lib
 npm run build --workspace=re-flux-docs
+npm run check:all
 ```
 
 ## GitHub Pages
@@ -45,3 +48,7 @@ GitHub Actions workflows live in `.github/workflows/`. This is the single source
 ## Publishing
 
 See [`PUBLISHING.md`](./PUBLISHING.md) for npm Trusted Publishing, release tags, and package-version requirements.
+
+## Browser integration checks
+
+The browser integration suite launches Playwright Chromium against a small fixture bundled directly from the TypeScript source. Install its browser binary once per environment with `npx playwright install chromium`; GitHub Actions installs Chromium automatically on the Node 24 quality job. The checks exercise native pointer capture/cancellation, DOM/SVG restoration, FLIP geometry, Canvas scheduling, and teardown without adding Playwright to runtime dependencies.

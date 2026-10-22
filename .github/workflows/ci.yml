@@ -36,6 +36,12 @@ jobs:
         run: npm run typecheck:tests
       - name: Run Jest suite
         run: npm test -- --runInBand
+      - name: Install Chromium for browser integration
+        if: matrix.node == 24
+        run: npx playwright install --with-deps chromium
+      - name: Check browser integration contracts
+        if: matrix.node == 24
+        run: npm run check:browser-integration
       - name: Check Visual Lab structure
         run: npm run check:visual-lab
       - name: Check Playground lifecycle
