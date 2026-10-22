@@ -5,6 +5,8 @@ import type { CssStyleMap } from '../../src/adapters/dom/animationTypes.js';
 import { flip } from '../../src/adapters/dom/layout.js';
 import { bindSvgAttributes, type SvgAttributeMap } from '../../src/adapters/svg.js';
 import { frameCoordinator } from '../../src/core/FrameCoordinator.js';
+import { Animation } from '../../src/core/Animation.js';
+import { MotionPreferences } from '../../src/core/MotionPreferences.js';
 import { pointerGestures$ } from '../../src/operators/gestures.js';
 
 interface PointerEventRecord {
@@ -34,6 +36,28 @@ interface CanvasState {
   readonly coordinator: ReturnType<typeof frameCoordinator.getDiagnostics>;
 }
 
+interface MotionStartOptions {
+  readonly reducedMotion?: 'finish' | 'ignore';
+  readonly pauseWhenHidden?: boolean;
+  readonly includeUnmanaged?: boolean;
+}
+
+interface MotionCallbackCounts {
+  starts: number;
+  pauses: number;
+  resumes: number;
+  completes: number;
+}
+
+interface MotionAnimationState {
+  readonly state: string | null;
+  readonly progress: number | null;
+  readonly callbacks: MotionCallbackCounts;
+  readonly preferences: { readonly reducedMotion: boolean; readonly visible: boolean } | null;
+  readonly unmanagedState: string | null;
+  readonly unmanagedProgress: number | null;
+}
+
 interface BrowserContractApi {
   startPointerGestures(): void;
   pointerState(): PointerState;
@@ -52,6 +76,11 @@ interface BrowserContractApi {
   emitCanvasColor(color: string): void;
   canvasState(): CanvasState;
   stopCanvasBinding(): void;
+  startMotionAnimations(options?: MotionStartOptions): void;
+  motionAnimationState(): MotionAnimationState;
+  explicitlyPauseMotionAnimation(): void;
+  setDocumentVisibility(visible: boolean): void;
+  stopMotionAnimations(): void;
 }
 
 declare global {
@@ -88,6 +117,13 @@ let flipAnimation: ReturnType<typeof flip> | null = null;
 const canvasValues = new Subject<string>();
 let canvasSubscription: Subscription | null = null;
 let canvasDraws = 0;
+
+let motionPreferences: MotionPreferences | null = null;
+let motionAnimation: Animation | null = null;
+let unmanagedMotionAnimation: Animation | null = null;
+let motionCallbacks: MotionCallbackCounts = { starts: 0, pauses: 0, resumes: 0, completes: 0 };
+let simulatedVisibility: boolean | null = null;
+let originalVisibilityDescriptor: PropertyDescriptor | undefined;
 
 window.__reFluxBrowserTest = {
   startPointerGestures(): void {
@@ -217,5 +253,80 @@ window.__reFluxBrowserTest = {
   stopCanvasBinding(): void {
     canvasSubscription?.unsubscribe();
     canvasSubscription = null;
+  },
+
+  startMotionAnimations(options: MotionStartOptions = {}): void {
+    this.stopMotionAnimations();
+    motionCallbacks = { starts: 0, pauses: 0, resumes: 0, completes: 0 };
+    motionPreferences = new MotionPreferences();
+
+    const motionOptions = {
+      preferences: motionPreferences,
+      ...(options.reducedMotion ? { reducedMotion: options.reducedMotion } : {}),
+      ...(options.pauseWhenHidden ? { pauseWhenHidden: true } : {}),
+    };
+    motionAnimation = new Animation({
+      duration: 60_000,
+      motion: motionOptions,
+      onStart: () => { motionCallbacks.starts += 1; },
+      onPause: () => { motionCallbacks.pauses += 1; },
+      onResume: () => { motionCallbacks.resumes += 1; },
+      onComplete: () => { motionCallbacks.completes += 1; },
+    });
+    void motionAnimation.catch(() => undefined);
+
+    if (options.includeUnmanaged) {
+      unmanagedMotionAnimation = new Animation({ duration: 60_000 });
+      void unmanagedMotionAnimation.catch(() => undefined);
+    }
+
+    motionAnimation.play();
+    unmanagedMotionAnimation?.play();
+  },
+
+  motionAnimationState(): MotionAnimationState {
+    const snapshot = motionPreferences?.snapshot ?? null;
+    return {
+      state: motionAnimation?.state$.value ?? null,
+      progress: motionAnimation?.progress$.value ?? null,
+      callbacks: { ...motionCallbacks },
+      preferences: snapshot ? { reducedMotion: snapshot.reducedMotion, visible: snapshot.visible } : null,
+      unmanagedState: unmanagedMotionAnimation?.state$.value ?? null,
+      unmanagedProgress: unmanagedMotionAnimation?.progress$.value ?? null,
+    };
+  },
+
+  explicitlyPauseMotionAnimation(): void {
+    motionAnimation?.pause();
+  },
+
+  setDocumentVisibility(visible: boolean): void {
+    if (simulatedVisibility === null) {
+      originalVisibilityDescriptor = Object.getOwnPropertyDescriptor(document, 'visibilityState');
+    }
+    simulatedVisibility = visible;
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => simulatedVisibility ? 'visible' : 'hidden',
+    });
+    document.dispatchEvent(new Event('visibilitychange'));
+  },
+
+  stopMotionAnimations(): void {
+    motionAnimation?.stop();
+    unmanagedMotionAnimation?.stop();
+    motionAnimation = null;
+    unmanagedMotionAnimation = null;
+    motionPreferences?.destroy();
+    motionPreferences = null;
+    if (simulatedVisibility !== null) {
+      if (originalVisibilityDescriptor) {
+        Object.defineProperty(document, 'visibilityState', originalVisibilityDescriptor);
+      } else {
+        Reflect.deleteProperty(document, 'visibilityState');
+      }
+      simulatedVisibility = null;
+      originalVisibilityDescriptor = undefined;
+    }
   },
 };

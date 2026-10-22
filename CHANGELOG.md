@@ -1,6 +1,13 @@
 ## Unreleased
 
+### Release readiness
+
+- Run the public package-consumer and full documentation contract checks in CI.
+- Make npm tag publishing install Chromium and pass the complete `check:all` gate before publishing.
+
 ### Maintenance
+
+- Extend Chromium integration checks to cover live `prefers-reduced-motion` changes, per-animation policy isolation, hidden-page pause/resume, and explicit-pause precedence.
 
 - Remove the temporary `ci/workflows/` mirrors and keep `.github/workflows/` as the sole source of truth for GitHub Actions.
 - Fix `Timeline.call()` markers at offset zero so backward scrubbing re-arms the callback without invoking it repeatedly at the marker.

@@ -52,6 +52,11 @@ jobs:
         run: node scripts/check-tree-shaking.mjs
       - name: Verify package contents
         run: node scripts/check-package-files.mjs
+      - name: Validate public package consumer
+        run: node scripts/check-package-consumer.mjs
+      - name: Check documentation and demo contracts
+        if: matrix.node == 24
+        run: npm run check:docs
       - name: Build documentation
         if: matrix.node == 24
         run: npm run build --workspace=re-flux-docs

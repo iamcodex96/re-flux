@@ -5,7 +5,8 @@
 - The package version lives in the root `package.json`.
 - Every release tag must exactly match that version, prefixed with `v` (for example, package version `0.2.0` uses tag `v0.2.0`).
 - `package-lock.json` is committed. CI uses `npm ci`; it must never generate or rewrite the lockfile.
-- CI, type checks, tests, tree-shaking, and package allowlist checks must pass before publication.
+- Run `npm run check:all` successfully before creating a release tag. This includes type checks, Jest, real-browser integration, tree-shaking, package allowlist and consumer checks, documentation contracts, and the production documentation build.
+- The tag-triggered publishing workflow installs Chromium and reruns `npm run check:all`; publication is blocked if any release contract fails.
 
 ## npm Trusted Publishing (OIDC)
 
@@ -20,18 +21,26 @@ The workflow requests `id-token: write` and publishes with provenance. Do not ad
 
 ## Create a release
 
-1. Update the root package version and commit the changes.
-2. Wait for CI on `main` to pass.
-3. Push the matching tag:
+1. Update the root package version and changelog, then commit the changes.
+2. Install dependencies and run the complete local release gate:
 
    ```bash
-   git tag v0.2.0
-   git push origin v0.2.0
+   npm ci
+   npx playwright install chromium
+   npm run check:all
    ```
 
-4. Confirm the `Publish to npm` workflow succeeds and verify the published version with `npm view @re-code/flux version`.
+3. Wait for CI on `main` to pass.
+4. Push a tag that exactly matches the package version. For example, if the version is `X.Y.Z`:
 
-Use the actual package version from `package.json` when creating the tag.
+   ```bash
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+
+5. Confirm the `Publish to npm` workflow succeeds and verify the version with `npm view @re-code/flux@X.Y.Z version`.
+
+Replace `X.Y.Z` with the exact version in `package.json`. Do not create the tag until the full check passes locally and CI is green.
 
 ## Workflow location
 

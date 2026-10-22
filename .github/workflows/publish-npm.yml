@@ -30,13 +30,11 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
+      - name: Install Chromium for browser integration
+        run: npx playwright install --with-deps chromium
       - name: Validate release tag and package metadata
         run: npm run check:release
-      - name: Type-check library and tests
-        run: |
-          npm run typecheck
-          npm run typecheck:tests
-      - name: Run tests
-        run: npm test -- --runInBand
+      - name: Run full release validation
+        run: npm run check:all
       - name: Publish with npm Trusted Publishing (OIDC)
         run: npm publish --provenance --access public

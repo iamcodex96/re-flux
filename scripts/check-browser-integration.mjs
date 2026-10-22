@@ -222,7 +222,108 @@ try {
     assert.equal(disposed.coordinator.isIdle, true);
   });
 
-  process.stdout.write('Browser integration checks passed (6 cases).\n');
+  await runCase('prefers-reduced-motion finishes opted-in finite animations without affecting unrelated animations', async (page) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.evaluate(() => window.__reFluxBrowserTest.startMotionAnimations({ includeUnmanaged: true }));
+    await page.waitForFunction(() => {
+      const state = window.__reFluxBrowserTest.motionAnimationState();
+      return state.state === 'running' && state.progress !== null && state.progress > 0;
+    });
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.waitForFunction(() => {
+      const state = window.__reFluxBrowserTest.motionAnimationState();
+      return state.preferences?.reducedMotion === true && state.state === 'completed';
+    });
+
+    const state = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
+    assert.equal(state.callbacks.completes, 1, 'Reduced motion should complete the finite opt-in animation exactly once.');
+    assert.equal(state.progress, 1);
+    assert.equal(state.unmanagedState, 'running', 'Animations without a motion policy must remain independent.');
+    await page.evaluate(() => window.__reFluxBrowserTest.stopMotionAnimations());
+  });
+
+  await runCase('prefers-reduced-motion ignore policy keeps opted-in playback running', async (page) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.evaluate(() => window.__reFluxBrowserTest.startMotionAnimations({ reducedMotion: 'ignore' }));
+    await page.waitForFunction(() => {
+      const state = window.__reFluxBrowserTest.motionAnimationState();
+      return state.state === 'running' && state.progress !== null && state.progress > 0;
+    });
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.waitForFunction(() => window.__reFluxBrowserTest.motionAnimationState().preferences?.reducedMotion === true);
+    const before = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
+    assert.equal(before.state, 'running');
+    assert.equal(before.callbacks.completes, 0);
+    await page.waitForFunction((progress) => {
+      const state = window.__reFluxBrowserTest.motionAnimationState();
+      return state.state === 'running' && state.progress !== null && state.progress > progress;
+    }, before.progress);
+    await page.evaluate(() => window.__reFluxBrowserTest.stopMotionAnimations());
+  });
+
+  await runCase('hidden document pauses playback and visible document resumes from the held progress', async (page) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.evaluate(() => window.__reFluxBrowserTest.startMotionAnimations({ pauseWhenHidden: true }));
+    await page.waitForFunction(() => {
+      const state = window.__reFluxBrowserTest.motionAnimationState();
+      return state.state === 'running' && state.progress !== null && state.progress > 0;
+    });
+
+    try {
+      await page.evaluate(() => window.__reFluxBrowserTest.setDocumentVisibility(false));
+      await page.waitForFunction(() => {
+        const state = window.__reFluxBrowserTest.motionAnimationState();
+        return state.preferences?.visible === false && state.state === 'paused';
+      });
+      const paused = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
+
+      await page.evaluate(() => window.__reFluxBrowserTest.setDocumentVisibility(true));
+      await page.waitForFunction(() => {
+        const state = window.__reFluxBrowserTest.motionAnimationState();
+        return state.preferences?.visible === true && state.state === 'running' && state.callbacks.resumes === 1;
+      });
+      const resumed = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
+      assert.equal(resumed.callbacks.pauses, 1);
+      assert.equal(resumed.callbacks.resumes, 1);
+      assert.ok(paused.progress !== null && resumed.progress !== null);
+      assert.ok(resumed.progress >= paused.progress, 'Resumed playback must not rewind its playhead.');
+    } finally {
+      await page.evaluate(() => window.__reFluxBrowserTest.stopMotionAnimations());
+    }
+  });
+
+  await runCase('explicit pause while hidden prevents automatic resume when the document becomes visible', async (page) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.evaluate(() => window.__reFluxBrowserTest.startMotionAnimations({ pauseWhenHidden: true }));
+    await page.waitForFunction(() => {
+      const state = window.__reFluxBrowserTest.motionAnimationState();
+      return state.state === 'running' && state.progress !== null && state.progress > 0;
+    });
+
+    try {
+      await page.evaluate(() => window.__reFluxBrowserTest.setDocumentVisibility(false));
+      await page.waitForFunction(() => {
+        const state = window.__reFluxBrowserTest.motionAnimationState();
+        return state.preferences?.visible === false && state.state === 'paused';
+      });
+      await page.evaluate(() => window.__reFluxBrowserTest.explicitlyPauseMotionAnimation());
+      const explicitlyPaused = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
+
+      await page.evaluate(() => window.__reFluxBrowserTest.setDocumentVisibility(true));
+      await page.waitForFunction(() => window.__reFluxBrowserTest.motionAnimationState().preferences?.visible === true);
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      const afterVisibility = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
+      assert.equal(afterVisibility.state, 'paused', 'An explicit user pause must not be overridden by visibility recovery.');
+      assert.equal(afterVisibility.callbacks.resumes, 0);
+      assert.equal(afterVisibility.progress, explicitlyPaused.progress);
+    } finally {
+      await page.evaluate(() => window.__reFluxBrowserTest.stopMotionAnimations());
+    }
+  });
+
+  process.stdout.write('Browser integration checks passed (10 cases).\n');
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) => {
