@@ -67,8 +67,6 @@
 .docs-section-heading p:not(.docs-section-eyebrow) { margin: var(--rx-space-1) 0 0; color: var(--rx-color-text-muted); font-size: var(--rx-font-size-ui); line-height: var(--rx-line-height-normal); }
 .docs-lead { max-width: 80ch; font-size: var(--rx-font-size-ui-large); line-height: var(--rx-line-height-readable); }
 .docs-visual-example { min-width: 0; overflow: hidden; border-radius: var(--rx-radius-md) !important; }
-.docs-visual-example .ui-expansion-panel__title { min-height: var(--rx-space-10); padding: var(--rx-space-2-5) var(--rx-space-3-5); font-size: var(--rx-font-size-ui); }
-.docs-visual-example .ui-expansion-panel__content { padding: 0 var(--rx-space-3) var(--rx-space-3); }
 .docs-api-table { max-width: 100%; }
 .docs-api-table th { white-space: normal; }
 .docs-prompt-copy { min-width: 0; overflow-wrap: anywhere; }

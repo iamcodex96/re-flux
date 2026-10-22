@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Documentation
+
+- Rebuild the SVG, Canvas, DOM interaction, and Scroll Visual Lab panels around selectable scene tabs, one active preview, and a matching copyable TypeScript example.
+
 ### Release readiness
 
 - Run the public package-consumer and full documentation contract checks in CI.

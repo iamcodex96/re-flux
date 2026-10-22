@@ -689,7 +689,6 @@
           "awaitPendingKind": "pending",
           "awaitResolvedKind": "resolved",
           "awaitRejectedKind": "rejected",
-          "viewExampleCode": "View TypeScript",
           "canvasDemoAriaLabel": "An animated circle drawn to Canvas 2D using the shared frame coordinator",
           "liveExample": "Live example",
           "visualExampleAriaLabel": "Animated demonstration of this API",

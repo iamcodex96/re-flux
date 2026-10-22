@@ -12,6 +12,8 @@ const publicExports = await read('src/index.ts');
 const mainScss = await read('apps/docs/src/styles/main.scss');
 const docsResponsive = await read('apps/docs/src/styles/views/docs/_responsive.scss');
 const docsShell = await read('apps/docs/src/styles/views/docs/_shell.scss');
+const visualExample = await read('apps/docs/src/components/DocsComponents/DocsVisualExample.vue');
+const visualExampleStyles = await read('apps/docs/src/styles/components/docs-visual-example.scss');
 
 const requiredComponents = [
   'apps/docs/src/components/DocsComponents/DocsSpringSimulator.vue',
@@ -37,6 +39,12 @@ for (const link of navigationPages) {
 }
 assert.ok(docs.pageNavigation.some((group) => group.links.some((link) => link.page === 'api-reference')), 'API reference is not present in the docs navigation.');
 assert.ok(router.includes("name: 'docs-api-reference'"), 'API reference route is missing.');
+
+assert.ok(visualExample.includes('docs-visual-example__workspace--with-code'), 'Documentation examples must render a split preview/source workspace.');
+assert.ok(visualExample.includes('class="docs-visual-example__code"'), 'Documentation examples must show source beside the live preview.');
+assert.ok(!visualExample.includes('<UiExpansionPanels'), 'Documentation example source should not be hidden behind an accordion.');
+assert.match(visualExampleStyles, /&--with-code\s*\{\s*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/s, 'Documentation preview and source must use a two-column desktop layout.');
+assert.match(visualExampleStyles, /@media \(max-width: breakpoints\.\$rx-breakpoint-desktop-compact\)[\s\S]*?\.docs-visual-example__workspace--with-code\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\);/s, 'Documentation example panels must stack at compact widths.');
 
 // Mobile docs must use the browser's page scroll, not retain the desktop
 // article's fixed-height overflow scroller after the responsive cascade.

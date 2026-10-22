@@ -67,30 +67,6 @@
   }
 }
 
-.visual-card {
-  min-height: 100%;
-  overflow: hidden;
-  border-radius: var(--rx-radius-lg);
-  background: rgba(var(--rx-theme-surface), 0.82);
-
-  &__heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--rx-space-3);
-  }
-
-  h3 {
-    letter-spacing: -0.02em;
-  }
-
-  p {
-    max-width: 62ch;
-    min-height: 3.4em;
-    line-height: var(--rx-line-height-relaxed);
-  }
-}
-
 .visual-stage {
   position: relative;
   display: flex;

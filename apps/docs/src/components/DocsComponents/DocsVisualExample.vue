@@ -403,78 +403,85 @@ onBeforeUnmount(() => {
 <template>
   <UiCard variant="outlined" rounded="lg" class="docs-visual-example my-4">
     <UiCardText class="pa-3 pa-sm-4">
-      <div ref="stage" role="group" class="docs-visual-stage" :class="`docs-visual-stage--${variant}`" :aria-label="ui.visualExampleAriaLabel">
-        <div class="docs-visual-grid" aria-hidden="true" />
+      <div class="docs-visual-example__workspace" :class="{ 'docs-visual-example__workspace--with-code': Boolean(code) }">
+        <div class="docs-visual-example__preview">
+          <div class="docs-visual-example__pane-header">
+            <span class="docs-visual-example__pane-title"><i aria-hidden="true" />{{ ui.liveExample }}</span>
+            <span class="docs-visual-example__pane-meta">LIVE PREVIEW</span>
+          </div>
+          <div ref="stage" role="group" class="docs-visual-stage" :class="`docs-visual-stage--${variant}`" :aria-label="ui.visualExampleAriaLabel">
+            <div class="docs-visual-grid" aria-hidden="true" />
 
-        <template v-if="['basic', 'timing', 'callbacks', 'await', 'keyframes'].includes(variant)">
-          <div class="docs-visual-rail" aria-hidden="true" />
-          <div class="docs-demo-orb"><span>re;</span></div>
-          <div v-if="variant === 'callbacks' || variant === 'await'" class="docs-demo-status" aria-live="polite">{{ demoMessage }}</div>
-          <div v-if="variant === 'keyframes'" class="docs-demo-keyframe-markers" aria-hidden="true"><span>0%</span><span>38%</span><span>68%</span><span>100%</span></div>
-        </template>
+            <template v-if="['basic', 'timing', 'callbacks', 'await', 'keyframes'].includes(variant)">
+              <div class="docs-visual-rail" aria-hidden="true" />
+              <div class="docs-demo-orb"><span>re;</span></div>
+              <div v-if="variant === 'callbacks' || variant === 'await'" class="docs-demo-status" aria-live="polite">{{ demoMessage }}</div>
+              <div v-if="variant === 'keyframes'" class="docs-demo-keyframe-markers" aria-hidden="true"><span>0%</span><span>38%</span><span>68%</span><span>100%</span></div>
+            </template>
 
-        <div v-else-if="variant === 'repeat-yoyo'" class="docs-demo-pulse-stage">
-          <div class="docs-demo-pulse-halo" aria-hidden="true" />
-          <div class="docs-demo-pulse">re;</div>
-          <span class="docs-demo-pulse-caption">{{ ui.repeatYoyoDemoCaption }}</span>
-        </div>
+            <div v-else-if="variant === 'repeat-yoyo'" class="docs-demo-pulse-stage">
+              <div class="docs-demo-pulse-halo" aria-hidden="true" />
+              <div class="docs-demo-pulse">re;</div>
+              <span class="docs-demo-pulse-caption">{{ ui.repeatYoyoDemoCaption }}</span>
+            </div>
 
-        <div v-else-if="['offsets', 'nested', 'keyframes-dom'].includes(variant)" class="docs-demo-lanes">
-          <div v-for="index in 4" :key="index" class="docs-demo-lane">
-            <span class="docs-demo-lane-label">{{ String(index).padStart(2, '0') }}</span>
-            <div class="docs-demo-lane-track"><div class="docs-demo-item">{{ ['A', 'B', 'C', 'D'][index - 1] }}</div></div>
+            <div v-else-if="['offsets', 'nested', 'keyframes-dom'].includes(variant)" class="docs-demo-lanes">
+              <div v-for="index in 4" :key="index" class="docs-demo-lane">
+                <span class="docs-demo-lane-label">{{ String(index).padStart(2, '0') }}</span>
+                <div class="docs-demo-lane-track"><div class="docs-demo-item">{{ ['A', 'B', 'C', 'D'][index - 1] }}</div></div>
+              </div>
+            </div>
+
+            <div v-else-if="variant === 'easing'" class="docs-demo-easing-focus">
+              <div class="docs-demo-easing-focus-track"><div class="docs-demo-easing-focus-dot">B</div></div>
+              <div class="docs-demo-easing-focus-labels"><span>0</span><strong>easeOutBounce</strong><span>1</span></div>
+            </div>
+
+            <div v-else-if="variant === 'easing-gallery'" class="docs-demo-easing-list">
+              <div v-for="curve in ['linear', 'elastic', 'bounce']" :key="curve" class="docs-demo-easing-row">
+                <span>{{ curve }}</span><div class="docs-demo-easing-track"><div class="docs-demo-easing-dot">{{ curve === 'linear' ? 'L' : curve === 'elastic' ? 'E' : 'B' }}</div></div>
+              </div>
+            </div>
+
+            <div v-else-if="variant === 'reactivity'" class="docs-demo-meters">
+              <div v-for="label in ['progress$', 'state$', 'value$']" :key="label" class="docs-demo-meter">
+                <span>{{ label }}</span><div class="docs-demo-meter-track"><div class="docs-demo-meter-fill" /></div>
+              </div>
+            </div>
+
+            <div v-else-if="variant === 'retarget-motion'" class="docs-demo-target-track">
+              <span class="docs-demo-target docs-demo-target--a">A</span><span class="docs-demo-target docs-demo-target--b">B</span><span class="docs-demo-target docs-demo-target--c">C</span>
+              <div class="docs-demo-retarget-dot">re;</div>
+              <span class="docs-demo-target-caption">{{ ui.retargetDemoCaption }}</span>
+            </div>
+
+            <div v-else-if="variant === 'smooth-stream' || variant === 'adaptive-tween'" class="docs-demo-stream-stage">
+              <div class="docs-demo-stream-y-axis" /><div class="docs-demo-stream-x-axis" />
+              <div class="docs-demo-stream-sample docs-demo-stream-sample--1" /><div class="docs-demo-stream-sample docs-demo-stream-sample--2" /><div class="docs-demo-stream-sample docs-demo-stream-sample--3" /><div class="docs-demo-stream-sample docs-demo-stream-sample--4" /><div class="docs-demo-stream-sample docs-demo-stream-sample--5" />
+              <div class="docs-demo-stream-dot" />
+              <span class="docs-demo-stream-caption">{{ variant === 'smooth-stream' ? ui.smoothStreamDemoCaption : ui.adaptiveTweenDemoCaption }}</span>
+            </div>
+
+            <div v-else-if="variant === 'render-adapters'" class="docs-demo-canvas-wrap">
+              <canvas ref="canvas" width="720" height="190" :aria-label="ui.canvasDemoAriaLabel" />
+              <div class="docs-demo-adapter-tags"><span>DOM</span><span>SVG</span><span>Canvas 2D</span></div>
+            </div>
+          </div>
+
+          <div class="docs-visual-example__controls">
+            <UiButton color="primary" variant="flat" size="small" prepend-icon="mdi-play" @click="playDemo()">{{ ui.play }}</UiButton>
+            <UiButton color="primary" variant="outlined" size="small" prepend-icon="mdi-pause" @click="pauseDemo()">{{ ui.pause }}</UiButton>
           </div>
         </div>
 
-        <div v-else-if="variant === 'easing'" class="docs-demo-easing-focus">
-          <div class="docs-demo-easing-focus-track"><div class="docs-demo-easing-focus-dot">B</div></div>
-          <div class="docs-demo-easing-focus-labels"><span>0</span><strong>easeOutBounce</strong><span>1</span></div>
-        </div>
-
-        <div v-else-if="variant === 'easing-gallery'" class="docs-demo-easing-list">
-          <div v-for="curve in ['linear', 'elastic', 'bounce']" :key="curve" class="docs-demo-easing-row">
-            <span>{{ curve }}</span><div class="docs-demo-easing-track"><div class="docs-demo-easing-dot">{{ curve === 'linear' ? 'L' : curve === 'elastic' ? 'E' : 'B' }}</div></div>
+        <section v-if="code" class="docs-visual-example__code" :aria-label="`${codeTitle} TypeScript source`">
+          <div class="docs-visual-example__pane-header">
+            <span class="docs-visual-example__pane-title"><i aria-hidden="true" />{{ codeTitle }}</span>
+            <span class="docs-visual-example__pane-meta">TypeScript</span>
           </div>
-        </div>
-
-        <div v-else-if="variant === 'reactivity'" class="docs-demo-meters">
-          <div v-for="label in ['progress$', 'state$', 'value$']" :key="label" class="docs-demo-meter">
-            <span>{{ label }}</span><div class="docs-demo-meter-track"><div class="docs-demo-meter-fill" /></div>
-          </div>
-        </div>
-
-        <div v-else-if="variant === 'retarget-motion'" class="docs-demo-target-track">
-          <span class="docs-demo-target docs-demo-target--a">A</span><span class="docs-demo-target docs-demo-target--b">B</span><span class="docs-demo-target docs-demo-target--c">C</span>
-          <div class="docs-demo-retarget-dot">re;</div>
-          <span class="docs-demo-target-caption">{{ ui.retargetDemoCaption }}</span>
-        </div>
-
-        <div v-else-if="variant === 'smooth-stream' || variant === 'adaptive-tween'" class="docs-demo-stream-stage">
-          <div class="docs-demo-stream-y-axis" /><div class="docs-demo-stream-x-axis" />
-          <div class="docs-demo-stream-sample docs-demo-stream-sample--1" /><div class="docs-demo-stream-sample docs-demo-stream-sample--2" /><div class="docs-demo-stream-sample docs-demo-stream-sample--3" /><div class="docs-demo-stream-sample docs-demo-stream-sample--4" /><div class="docs-demo-stream-sample docs-demo-stream-sample--5" />
-          <div class="docs-demo-stream-dot" />
-          <span class="docs-demo-stream-caption">{{ variant === 'smooth-stream' ? ui.smoothStreamDemoCaption : ui.adaptiveTweenDemoCaption }}</span>
-        </div>
-
-        <div v-else-if="variant === 'render-adapters'" class="docs-demo-canvas-wrap">
-          <canvas ref="canvas" width="720" height="190" :aria-label="ui.canvasDemoAriaLabel" />
-          <div class="docs-demo-adapter-tags"><span>DOM</span><span>SVG</span><span>Canvas 2D</span></div>
-        </div>
+          <pre class="docs-code-block" tabindex="0" :aria-label="`${codeTitle} TypeScript source code`"><code>{{ code }}</code></pre>
+        </section>
       </div>
-
-      <div class="d-flex flex-wrap ga-2 mt-3">
-        <UiButton color="primary" variant="flat" size="small" prepend-icon="mdi-play" @click="playDemo()">{{ ui.play }}</UiButton>
-        <UiButton color="primary" variant="outlined" size="small" prepend-icon="mdi-pause" @click="pauseDemo()">{{ ui.pause }}</UiButton>
-      </div>
-
-      <UiExpansionPanels v-if="code" variant="accordion" class="mt-3 docs-visual-code">
-        <UiExpansionPanel :title="ui.viewExampleCode">
-          <UiExpansionPanelText>
-            <div class="text-overline text-medium-emphasis mb-2">{{ codeTitle }}</div>
-            <pre class="docs-code-block"><code>{{ code }}</code></pre>
-          </UiExpansionPanelText>
-        </UiExpansionPanel>
-      </UiExpansionPanels>
     </UiCardText>
   </UiCard>
 </template>

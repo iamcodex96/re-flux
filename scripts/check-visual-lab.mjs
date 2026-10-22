@@ -72,16 +72,36 @@ for (const { file, cards } of checks) {
   const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
   assert(duplicateIds.length === 0, `${file}: duplicate template IDs: ${[...new Set(duplicateIds)].join(', ')}.`);
 
-  console.log(`✓ ${file}: ${cards.length} unique scene card(s), balanced markup, full-width layout, unique refs and IDs`);
+  console.log(`✓ ${file}: ${cards.length} scene(s), balanced markup, full-width stage contract, unique refs and IDs`);
 }
 
 
 const showcase = await readFile(resolve(root, 'apps/docs/src/views/VisualShowcase.vue'), 'utf8');
-const [layoutStyles, navigationStyles] = await Promise.all([
+const [layoutStyles, navigationStyles, scrollPanel, explorerStyles, explorerComponent] = await Promise.all([
   readFile(resolve(root, 'apps/docs/src/styles/views/visual-lab/_layout.scss'), 'utf8'),
   readFile(resolve(root, 'apps/docs/src/styles/views/visual-lab/_navigation.scss'), 'utf8'),
+  readFile(resolve(panelsDirectory, 'VisualScrollPanel.vue'), 'utf8'),
+  readFile(resolve(root, 'apps/docs/src/styles/views/visual-lab/_scene-explorer.scss'), 'utf8'),
+  readFile(resolve(panelsDirectory, 'VisualLabSceneExplorer.vue'), 'utf8'),
 ]);
 const styles = `${layoutStyles}\n${navigationStyles}`;
+assert(/&__stage\s*\{[^}]*min-width:\s*0[^}]*overflow:\s*hidden/s.test(explorerStyles), '_scene-explorer.scss: the active stage must fill and clip within the available content width.');
+assert(/&__preview\s*\{[^}]*min-width:\s*0/s.test(explorerStyles), '_scene-explorer.scss: active scene preview must be allowed to use the full content width.');
+assert(/>\s*\*\s*\{\s*width:\s*100%/.test(explorerStyles), '_scene-explorer.scss: active scene content must fill the preview panel.');
+assert(/role="tablist"[\s\S]*?role="tab"[\s\S]*?aria-selected=/.test(explorerComponent), 'VisualLabSceneExplorer.vue: scene switching must use accessible tabs.');
+assert(/@keydown="onTabKeydown/.test(explorerComponent), 'VisualLabSceneExplorer.vue: scene tabs must support keyboard navigation.');
+assert(/Copy snippet/.test(explorerComponent) && /navigator\.clipboard/.test(explorerComponent), 'VisualLabSceneExplorer.vue: code panel must expose a working copy action.');
+for (const file of ['VisualSvgPanel.vue', 'VisualCanvasPanel.vue', 'VisualInteractionsPanel.vue', 'VisualScrollPanel.vue']) {
+  const source = await readFile(resolve(panelsDirectory, file), 'utf8');
+  assert(/<VisualLabSceneExplorer\b/.test(source), `${file}: scenes must use the shared stage and source viewer.`);
+  assert(/v-model="activeScene"/.test(source) && /:scenes="scenes"/.test(source), `${file}: selected scene state must be connected to the shared tab/code viewer.`);
+}
+for (const file of ['VisualSvgPanel.vue', 'VisualCanvasPanel.vue', 'VisualInteractionsPanel.vue']) {
+  const source = await readFile(resolve(panelsDirectory, file), 'utf8');
+  assert(/watch\(activeScene[\s\S]*?cleanupActiveScene\(\)/.test(source), `${file}: changing tabs must dispose the previous scene before mounting another.`);
+  assert(/if \(kind !== activeScene.value\) return/.test(source), `${file}: stale asynchronous tab activation must be ignored.`);
+}
+assert(/:show-selector="false"/.test(scrollPanel), 'VisualScrollPanel.vue: a single scene should omit a redundant one-item tab bar.');
 assert(!/<UiRow\s+align="start"\s+class="visual-lab__layout"/.test(showcase), 'VisualShowcase.vue: remove align="start" because it prevents the sidebar column from stretching alongside the scenes.');
 assert(/\.visual-lab\s*\{[\s\S]*?&__layout\s*\{[^}]*align-items:\s*stretch/s.test(styles), '_visual-lab.scss: the layout row must stretch the sidebar column to the content height.');
 assert(/\.visual-lab-nav\s*\{[^}]*position:\s*sticky/s.test(styles), '_visual-lab.scss: the desktop category panel must be sticky.');

@@ -1,28 +1,63 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { MotionPreferences, Tween } from '@lib';
 import { drawFrequencyBars } from '@lib/effects/canvas';
 import { drawParticleConstellation, drawWaveField, drawWireframeSphere, drawRadialSpectrum, drawFireworks } from '@demos/canvas';
 import { bindCanvas, resizeCanvas } from '@lib/canvas';
+import VisualLabSceneExplorer from './VisualLabSceneExplorer.vue';
+import type { VisualLabSceneDefinition } from './visualLabSceneTypes';
 
-const particleCanvas = ref<HTMLCanvasElement | null>(null);
-const waveCanvas = ref<HTMLCanvasElement | null>(null);
-const wireframeCanvas = ref<HTMLCanvasElement | null>(null);
-const radialCanvas = ref<HTMLCanvasElement | null>(null);
-const frequencyCanvas = ref<HTMLCanvasElement | null>(null);
-const fireworksCanvas = ref<HTMLCanvasElement | null>(null);
+type CanvasKind = 'particles' | 'wave' | 'wireframe' | 'radial' | 'frequency' | 'fireworks';
+
+const activeScene = ref<string>('frequency');
+const activeCanvas = ref<HTMLCanvasElement | null>(null);
 const preferences = new MotionPreferences();
-const cleanups: Array<() => void> = [];
+const activeCleanups: Array<() => void> = [];
 const canvasResizeCallbacks = new Map<HTMLCanvasElement, () => void>();
 let resizeHandler: (() => void) | null = null;
 let resizeObserver: ResizeObserver | null = null;
 
-type CanvasKind = 'particles' | 'wave' | 'wireframe' | 'radial' | 'frequency' | 'fireworks';
+const scenes: readonly VisualLabSceneDefinition[] = [
+  {
+    id: 'frequency', category: '07 / DATA VISUALIZATION', title: 'Animate data, not only coordinates.',
+    description: 'The drawing helper consumes normalized samples. This example synthesizes frequency bins; in a real scene, feed values from Web Audio or application telemetry.',
+    stageLabel: 'LIVE CANVAS STAGE', fileLabel: 'frequency-bins.ts', stageTag: 'NORMALIZED SAMPLES', ariaLabel: 'Animated cyan and violet frequency bar visualization',
+    snippet: `import { Tween } from '@re-code/flux';\nimport { drawFrequencyBars } from '@re-code/flux/effects/canvas';\nimport { bindCanvas } from '@re-code/flux/canvas';\n\nconst phase = new Tween({\n  from: 0,\n  to: Math.PI * 2,\n  duration: 7200,\n  easing: 'linear',\n  repeat: Infinity,\n});\n\nconst binding = bindCanvas(context, phase.value$, (ctx, angle) => {\n  const bins = createFrequencyBins(angle);\n  drawFrequencyBars(ctx, bins, size, { barCount: 72, gap: 3 });\n});\n\nvoid phase.play().catch(() => undefined);\nreturn () => {\n  binding.unsubscribe();\n  phase.stop();\n};`,
+  },
+  {
+    id: 'fireworks', category: '08 / CANVAS', title: 'Burst, trail and fade — without a mutable particle engine.',
+    description: 'Firework trails are derived from a single phase. The drawing function is deterministic for a given frame, so it can be paused, scrubbed or driven by any Observable.',
+    stageLabel: 'LIVE CANVAS STAGE', fileLabel: 'fireworks.ts', stageTag: 'DETERMINISTIC DRAWING', ariaLabel: 'Procedural coral and gold fireworks with glowing trails',
+    snippet: `import { Tween } from '@re-code/flux';\nimport { bindCanvas } from '@re-code/flux/canvas';\n\nconst phase = new Tween({\n  from: 0,\n  to: Math.PI * 2,\n  duration: 7600,\n  easing: 'linear',\n  repeat: Infinity,\n});\n\nconst binding = bindCanvas(context, phase.value$, (ctx, angle) => {\n  drawFireworks(ctx, angle, size, {\n    burstCount: 5,\n    particlesPerBurst: 26,\n    color: '#fda4af',\n    accentColor: '#fef08a',\n  });\n});\n\nvoid phase.play().catch(() => undefined);\nreturn () => { binding.unsubscribe(); phase.stop(); };`,
+  },
+  {
+    id: 'particles', category: '09 / CANVAS', title: 'Emergent motion from simple rules.',
+    description: 'A time stream drives a field of particles and proximity links. Rendering is batched through the shared frame coordinator.',
+    stageLabel: 'LIVE CANVAS STAGE', fileLabel: 'particle-field.ts', stageTag: 'SHARED FRAME COORDINATOR', ariaLabel: 'Animated constellation of connected cyan and violet particles',
+    snippet: `import { Tween } from '@re-code/flux';\nimport { bindCanvas } from '@re-code/flux/canvas';\n\nconst phase = new Tween({\n  from: 0, to: Math.PI * 2, duration: 8500,\n  easing: 'linear', repeat: Infinity,\n});\nconst binding = bindCanvas(context, phase.value$, (ctx, angle) => {\n  drawParticleConstellation(ctx, angle, size, {\n    count: 82, connectionDistance: 51,\n  });\n});\n\nvoid phase.play().catch(() => undefined);\nreturn () => { binding.unsubscribe(); phase.stop(); };`,
+  },
+  {
+    id: 'wave', category: '10 / CANVAS', title: 'Waveforms as live data.',
+    description: 'Several harmonic layers update from one phase value, with no animation loop inside the drawing callback.',
+    stageLabel: 'LIVE CANVAS STAGE', fileLabel: 'wave-field.ts', stageTag: 'ONE PHASE · FOUR LAYERS', ariaLabel: 'Four layered animated sine wave curves',
+    snippet: `import { Tween } from '@re-code/flux';\nimport { bindCanvas } from '@re-code/flux/canvas';\n\nconst phase = new Tween({\n  from: 0, to: Math.PI * 2, duration: 6000,\n  easing: 'linear', repeat: Infinity,\n});\nconst binding = bindCanvas(context, phase.value$, (ctx, angle) => {\n  drawWaveField(ctx, angle, size, {\n    layers: 4, amplitude: 0.11, lineWidth: 2,\n  });\n});\n\nvoid phase.play().catch(() => undefined);\nreturn () => { binding.unsubscribe(); phase.stop(); };`,
+  },
+  {
+    id: 'wireframe', category: '11 / CANVAS 3D', title: 'Animate geometry in three dimensions.',
+    description: 'Latitude and longitude curves are projected from a rotating 3D sphere into Canvas 2D. Depth changes opacity and line weight, producing a light-weight scientific visualization.',
+    stageLabel: 'LIVE CANVAS STAGE', fileLabel: 'wireframe-sphere.ts', stageTag: 'PROJECTED 3D GEOMETRY', ariaLabel: 'A rotating cyan and violet wireframe sphere',
+    snippet: `import { Tween } from '@re-code/flux';\nimport { bindCanvas } from '@re-code/flux/canvas';\n\nconst rotation = new Tween({\n  from: 0, to: Math.PI * 2, duration: 9200,\n  easing: 'linear', repeat: Infinity,\n});\nconst binding = bindCanvas(context, rotation.value$, (ctx, angle) => {\n  drawWireframeSphere(ctx, angle, size, {\n    latitudeLines: 9, longitudeLines: 15, rotationSpeed: 0.8,\n  });\n});\n\nvoid rotation.play().catch(() => undefined);\nreturn () => { binding.unsubscribe(); rotation.stop(); };`,
+  },
+  {
+    id: 'radial', category: '12 / CANVAS', title: 'Procedural data becomes an instrument.',
+    description: 'A radial spectrum pattern changes its bars, accent rhythm and rings from a single stream. It can later consume audio amplitudes or application metrics instead of a procedural phase.',
+    stageLabel: 'LIVE CANVAS STAGE', fileLabel: 'radial-spectrum.ts', stageTag: 'DATA SHAPES IN SPACE', ariaLabel: 'An animated circular spectrum made of cyan and violet radial bars',
+    snippet: `import { Tween } from '@re-code/flux';\nimport { bindCanvas } from '@re-code/flux/canvas';\n\nconst phase = new Tween({\n  from: 0, to: Math.PI * 2, duration: 7200,\n  easing: 'linear', repeat: Infinity,\n});\nconst binding = bindCanvas(context, phase.value$, (ctx, angle) => {\n  drawRadialSpectrum(ctx, angle, size, { bars: 92 });\n});\n\nvoid phase.play().catch(() => undefined);\nreturn () => { binding.unsubscribe(); phase.stop(); };`,
+  },
+];
 
-function trackTween<T>(tween: Tween<T>): Tween<T> {
-  cleanups.push(() => tween.stop());
-  tween.play();
-  return tween;
+function cleanupActiveScene(): void {
+  for (const cleanup of activeCleanups.splice(0).reverse()) cleanup();
 }
 
 function setupCanvas(canvas: HTMLCanvasElement | null, kind: CanvasKind): void {
@@ -49,15 +84,21 @@ function setupCanvas(canvas: HTMLCanvasElement | null, kind: CanvasKind): void {
     resizeHandler = () => canvasResizeCallbacks.forEach((callback) => callback());
     window.addEventListener('resize', resizeHandler, { passive: true });
   }
+  activeCleanups.push(() => {
+    resizeObserver?.unobserve(canvas);
+    canvasResizeCallbacks.delete(canvas);
+  });
 
-  const phase = trackTween(new Tween({
+  const phase = new Tween({
     from: 0,
     to: Math.PI * 2,
     duration: kind === 'particles' ? 8500 : kind === 'wave' ? 6000 : kind === 'wireframe' ? 9200 : kind === 'fireworks' ? 7600 : 7200,
     easing: 'linear',
     repeat: Infinity,
     motion: { preferences, pauseWhenHidden: true, reducedMotion: 'finish' },
-  }));
+  });
+  void phase.play().catch(() => undefined);
+  activeCleanups.push(() => phase.stop());
 
   const binding = bindCanvas(context, phase.value$, (ctx, angle) => {
     const size = { width, height };
@@ -79,21 +120,24 @@ function setupCanvas(canvas: HTMLCanvasElement | null, kind: CanvasKind): void {
       }
     }
   });
-  cleanups.push(() => binding.unsubscribe());
+  activeCleanups.push(() => binding.unsubscribe());
 }
 
-onMounted(async () => {
+async function mountActiveScene(kind: string): Promise<void> {
   await nextTick();
-  setupCanvas(particleCanvas.value, 'particles');
-  setupCanvas(waveCanvas.value, 'wave');
-  setupCanvas(wireframeCanvas.value, 'wireframe');
-  setupCanvas(radialCanvas.value, 'radial');
-  setupCanvas(frequencyCanvas.value, 'frequency');
-  setupCanvas(fireworksCanvas.value, 'fireworks');
+  if (kind !== activeScene.value) return;
+  setupCanvas(activeCanvas.value, kind as CanvasKind);
+}
+
+watch(activeScene, async (kind) => {
+  cleanupActiveScene();
+  await mountActiveScene(kind);
 });
 
+onMounted(async () => mountActiveScene(activeScene.value));
+
 onBeforeUnmount(() => {
-  for (const cleanup of cleanups.splice(0).reverse()) cleanup();
+  cleanupActiveScene();
   if (resizeHandler) window.removeEventListener('resize', resizeHandler);
   resizeHandler = null;
   resizeObserver?.disconnect();
@@ -104,77 +148,18 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <UiRow class="visual-demo-grid">
-    <UiCol cols="12">
-        <UiCard class="visual-card visual-card--frequency" variant="outlined">
-          <UiCardText class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="secondary">07 / Data visualization</UiChip><span class="text-caption text-medium-emphasis">Frequency bins</span></div>
-            <h3 class="text-h6 font-weight-bold mt-4 mb-2">Animate data, not only coordinates.</h3>
-            <p class="text-body-2 text-medium-emphasis">The drawing helper consumes normalized samples. This example synthesizes frequency bins; in a real scene, feed values from Web Audio or application telemetry.</p>
-            <div class="canvas-stage canvas-stage--frequency"><canvas ref="frequencyCanvas" aria-label="Animated cyan and violet frequency bar visualization" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawFrequencyBars(context, values, size)</span><UiIcon color="secondary">mdi-waveform</UiIcon></div>
-          </UiCardText>
-        </UiCard>
-      </UiCol>
-
-<UiCol cols="12">
-        <UiCard class="visual-card visual-card--fireworks" variant="outlined">
-          <UiCardText class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="warning">08 / Canvas</UiChip><span class="text-caption text-medium-emphasis">Procedural particles</span></div>
-            <h3 class="text-h6 font-weight-bold mt-4 mb-2">Burst, trail and fade — without a mutable particle engine.</h3>
-            <p class="text-body-2 text-medium-emphasis">Firework trails are derived from a single phase. The drawing function is deterministic for a given frame, so it can be paused, scrubbed or driven by any Observable.</p>
-            <div class="canvas-stage canvas-stage--fireworks"><canvas ref="fireworksCanvas" aria-label="Procedural coral and gold fireworks with glowing trails" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawFireworks(context, phase, size)</span><UiIcon color="warning">mdi-firework</UiIcon></div>
-          </UiCardText>
-        </UiCard>
-      </UiCol>
-
-<UiCol cols="12">
-        <UiCard class="visual-card visual-card--canvas" variant="outlined">
-          <UiCardText class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="info">09 / Canvas</UiChip><span class="text-caption text-medium-emphasis">Particle field</span></div>
-            <h3 class="text-h6 font-weight-bold mt-4 mb-2">Emergent motion from simple rules.</h3>
-            <p class="text-body-2 text-medium-emphasis">A time stream drives a field of particles and proximity links. Rendering is batched through the shared frame coordinator.</p>
-            <div class="canvas-stage"><canvas ref="particleCanvas" aria-label="Animated constellation of connected cyan and violet particles" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">resizeCanvas() + bindCanvas()</span><UiIcon color="info">mdi-creation</UiIcon></div>
-          </UiCardText>
-        </UiCard>
-      </UiCol>
-
-<UiCol cols="12">
-        <UiCard class="visual-card visual-card--wave" variant="outlined" height="100%">
-          <UiCardText class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="purple">10 / Canvas</UiChip><span class="text-caption text-medium-emphasis">Procedural curves</span></div>
-            <h3 class="text-h6 font-weight-bold mt-4 mb-2">Waveforms as live data.</h3>
-            <p class="text-body-2 text-medium-emphasis">Several harmonic layers update from one phase value, with no animation loop inside the drawing callback.</p>
-            <div class="canvas-stage canvas-stage--wave"><canvas ref="waveCanvas" aria-label="Four layered animated sine wave curves" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">One phase stream · four layers</span><UiIcon color="purple">mdi-sine-wave</UiIcon></div>
-          </UiCardText>
-        </UiCard>
-      </UiCol>
-
-<UiCol cols="12">
-        <UiCard class="visual-card visual-card--wireframe" variant="outlined">
-          <UiCardText class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="info">11 / Canvas 3D</UiChip><span class="text-caption text-medium-emphasis">Projected wireframe</span></div>
-            <h3 class="text-h6 font-weight-bold mt-4 mb-2">Animate geometry in three dimensions.</h3>
-            <p class="text-body-2 text-medium-emphasis">Latitude and longitude curves are projected from a rotating 3D sphere into Canvas 2D. Depth changes opacity and line weight, producing a light-weight scientific visualization.</p>
-            <div class="canvas-stage canvas-stage--wireframe"><canvas ref="wireframeCanvas" aria-label="A rotating cyan and violet wireframe sphere" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawWireframeSphere(context, phase, size)</span><UiIcon color="info">mdi-orbit</UiIcon></div>
-          </UiCardText>
-        </UiCard>
-      </UiCol>
-
-<UiCol cols="12">
-        <UiCard class="visual-card visual-card--radial" variant="outlined">
-          <UiCardText class="pa-5 pa-md-6">
-            <div class="visual-card__heading"><UiChip size="small" variant="tonal" color="secondary">12 / Canvas</UiChip><span class="text-caption text-medium-emphasis">Radial spectrum</span></div>
-            <h3 class="text-h6 font-weight-bold mt-4 mb-2">Procedural data becomes an instrument.</h3>
-            <p class="text-body-2 text-medium-emphasis">A radial spectrum pattern changes its bars, accent rhythm and rings from a single stream. It can later consume audio amplitudes or application metrics instead of a procedural phase.</p>
-            <div class="canvas-stage canvas-stage--radial"><canvas ref="radialCanvas" aria-label="An animated circular spectrum made of cyan and violet radial bars" /></div>
-            <div class="d-flex justify-space-between align-center mt-4"><span class="text-caption text-medium-emphasis">drawRadialSpectrum(context, phase, size)</span><UiIcon color="secondary">mdi-chart-donut</UiIcon></div>
-          </UiCardText>
-        </UiCard>
-      </UiCol>
-  </UiRow>
+  <VisualLabSceneExplorer
+    v-model="activeScene"
+    id-prefix="canvas-scene"
+    eyebrow="CANVAS / DATA"
+    heading="Data into pixels"
+    description="Select one live Canvas experiment at a time. A re;Flux value stream drives each draw pass, while the rendering callback stays deterministic for its input."
+    :scenes="scenes"
+  >
+    <template #stage="{ scene }">
+      <div class="canvas-stage" :class="`canvas-stage--${scene.id}`">
+        <canvas :key="scene.id" ref="activeCanvas" :aria-label="scene.ariaLabel" />
+      </div>
+    </template>
+  </VisualLabSceneExplorer>
 </template>
