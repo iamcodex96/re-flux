@@ -18,11 +18,14 @@ type IdleWindow = Window & {
 
 const store = useAppStore();
 const copy = computed(() => store.app.view.home);
+const hasScrolled = ref(false);
 const heroSection = ref<HTMLElement | null>(null);
 const heroFluidActive = ref(false);
 const heroShaderRequested = ref(false);
 const heroMotionPreferences = new MotionPreferences();
 const storyRunway = ref<HTMLElement | null>(null);
+const storyVisible = ref(false);
+const storyMotionEnabled = computed(() => hasScrolled.value && storyVisible.value);
 const storyProgress = ref(0);
 const activeStep = ref(0);
 const springFactor = ref(0.72);
@@ -43,6 +46,7 @@ function getPrincipleVisualKind(index: string): LandingPrincipleVisualKind {
 }
 const stepElements: HTMLElement[] = [];
 let heroVisibilityObserver: IntersectionObserver | null = null;
+let storyVisibilityObserver: IntersectionObserver | null = null;
 let heroShaderIdleHandle: number | null = null;
 let heroShaderTimeout: number | null = null;
 let heroMotionSubscription: Subscription | null = null;
@@ -56,6 +60,12 @@ let springValueSubscription: Subscription | null = null;
 
 function setStepRef(element: unknown, index: number): void {
   if (element instanceof HTMLElement) stepElements[index] = element;
+}
+
+function activateLandingMotionAfterScroll(): void {
+  if (window.scrollY <= 0 || hasScrolled.value) return;
+  hasScrolled.value = true;
+  window.removeEventListener('scroll', activateLandingMotionAfterScroll);
 }
 
 function cancelDeferredHeroShader(): void {
@@ -108,7 +118,7 @@ function disconnectScrollTrigger(): void {
 
 function handleSpringMotionPreference(): void {
   if (!springMotion) return;
-  if (springMotionQuery?.matches) {
+  if (springMotionQuery?.matches && storyMotionEnabled.value) {
     springMotion.to(springTargetFactor.value);
   } else {
     springMotion.pause();
@@ -121,16 +131,26 @@ watch(springTargetFactor, (target) => {
     springFactor.value = target;
     return;
   }
-  if (springMotionQuery?.matches) springMotion.to(target);
+  if (springMotionQuery?.matches && storyMotionEnabled.value) springMotion.to(target);
   else {
-    springMotion.stop();
+    springMotion.pause();
     springFactor.value = target;
+  }
+});
+
+watch(storyMotionEnabled, (enabled) => {
+  if (enabled) {
+    handleSpringMotionPreference();
+    syncScrollTrigger();
+  } else {
+    springMotion?.pause();
+    disconnectScrollTrigger();
   }
 });
 
 function syncScrollTrigger(): void {
   disconnectScrollTrigger();
-  if (!storyMediaQuery?.matches || !storyRunway.value) return;
+  if (!storyMotionEnabled.value || !storyMediaQuery?.matches || !storyRunway.value) return;
 
   try {
     storyTrigger = createScrollTrigger(storyRunway.value, {
@@ -158,6 +178,9 @@ async function copyInstallCommand(): Promise<void> {
 
 onMounted(async () => {
   await nextTick();
+  if (window.scrollY > 0) hasScrolled.value = true;
+  else window.addEventListener('scroll', activateLandingMotionAfterScroll, { passive: true });
+
   if (heroSection.value && typeof IntersectionObserver !== 'undefined') {
     heroVisibilityObserver = new IntersectionObserver((entries) => {
       heroFluidActive.value = Boolean(entries[0]?.isIntersecting);
@@ -169,6 +192,15 @@ onMounted(async () => {
 
   heroMotionSubscription = heroMotionPreferences.state$.subscribe(() => syncDeferredHeroShaderPreference());
   syncDeferredHeroShaderPreference();
+
+  if (storyRunway.value && typeof IntersectionObserver !== 'undefined') {
+    storyVisibilityObserver = new IntersectionObserver((entries) => {
+      storyVisible.value = entries.some((entry) => entry.isIntersecting);
+    }, { rootMargin: '140px 0px', threshold: 0 });
+    storyVisibilityObserver.observe(storyRunway.value);
+  } else {
+    storyVisible.value = true;
+  }
 
   storyMediaQuery = window.matchMedia('(min-width: 800px) and (prefers-reduced-motion: no-preference)');
   springMotionQuery = window.matchMedia('(prefers-reduced-motion: no-preference)');
@@ -197,8 +229,11 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener('scroll', activateLandingMotionAfterScroll);
   heroVisibilityObserver?.disconnect();
   heroVisibilityObserver = null;
+  storyVisibilityObserver?.disconnect();
+  storyVisibilityObserver = null;
   cancelDeferredHeroShader();
   heroMotionSubscription?.unsubscribe();
   heroMotionSubscription = null;
@@ -255,7 +290,7 @@ onBeforeUnmount(() => {
           </p>
         </div>
 
-        <LandingTelemetryStage />
+        <LandingTelemetryStage :motion-enabled="hasScrolled" />
 
         <div class="home-hero__footnotes" :aria-label="copy.staticText.libraryCapabilities">
           <span><i aria-hidden="true" /> {{ copy.staticText.rxjsNative }}</span>
@@ -279,7 +314,7 @@ onBeforeUnmount(() => {
       <p class="home-story-intro__description">{{ copy.story.description }}</p>
     </section>
 
-    <section ref="storyRunway" class="home-story-runway" :aria-label="copy.staticText.howReFluxWorks">
+    <section ref="storyRunway" class="home-story-runway" :class="{ 'home-story-runway--motion-enabled': storyMotionEnabled }" :aria-label="copy.staticText.howReFluxWorks">
       <div class="home-story-runway__inner rx-content-rail rx-content-rail--wide">
         <div class="home-story-runway__visual-column">
           <div class="home-story-visual-sticky">
@@ -356,7 +391,7 @@ onBeforeUnmount(() => {
 
         <div class="home-lab__rail">
           <article v-for="item in copy.visualLab.items.slice(0, 3)" :key="item.index" class="home-lab-card" :class="`home-lab-card--${item.art}`">
-            <LandingLabPreview :kind="getPreviewKind(item.art)" :title="item.title" />
+            <LandingLabPreview :kind="getPreviewKind(item.art)" :title="item.title" :motion-enabled="hasScrolled" />
             <div class="home-lab-card__info">
               <div class="home-lab-card__meta"><span>{{ item.index }}</span><span>{{ item.tag }}</span></div>
               <h3><RouterLink class="home-lab-card__title" :to="item.to">{{ item.title }}</RouterLink></h3>
@@ -370,7 +405,7 @@ onBeforeUnmount(() => {
     </section>
 
     <div class="rx-content-rail rx-content-rail--wide home-code-motion-wrap">
-      <LandingCodeMotion />
+      <LandingCodeMotion :motion-enabled="hasScrolled" />
     </div>
 
     <section class="home-principles rx-content-rail rx-content-rail--wide" aria-labelledby="home-principles-title">
@@ -387,7 +422,7 @@ onBeforeUnmount(() => {
           <div class="home-principle-card__top"><span>{{ item.index }} / {{ item.tag }}</span><span class="home-principle-card__glyph" aria-hidden="true">{{ ['✳', '↗', '⌘', '▱'][Number(item.index) - 1] }}</span></div>
           <h3>{{ item.title }}</h3>
           <p>{{ item.description }}</p>
-          <LandingPrincipleVisual :kind="getPrincipleVisualKind(item.index)" :title="item.title" />
+          <LandingPrincipleVisual :kind="getPrincipleVisualKind(item.index)" :title="item.title" :motion-enabled="hasScrolled" />
           <span class="home-principle-card__bottom"><span class="home-principle-card__line" /><span>{{ copy.staticText.reFlux }} {{ item.index }}</span></span>
         </article>
       </div>

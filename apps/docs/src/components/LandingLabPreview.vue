@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useAppStore } from '../stores/app';
-import { onBeforeUnmount, onMounted, ref, useId , computed} from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';
 import { MotionPreferences, Tween } from '@lib';
 import { bindCanvas, resizeCanvas } from '@lib/canvas';
 import { draggable, type DraggableHandle } from '@lib/dom';
@@ -12,10 +12,11 @@ const appStore = useAppStore();
 const copy = computed(() => appStore.app.view.landingLabPreview);
 export type LandingLabPreviewKind = 'svg' | 'canvas' | 'interaction';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   kind: LandingLabPreviewKind;
   title: string;
-}>();
+  motionEnabled?: boolean;
+}>(), { motionEnabled: true });
 
 const root = ref<HTMLElement | null>(null);
 const morphPath = ref<SVGPathElement | null>(null);
@@ -30,7 +31,8 @@ const shapeStart = 'M 140 37 L 206 139 L 91 151 Z';
 const shapeEnd = 'M 135 51 C 174 24 220 56 202 91 C 225 121 184 163 149 147 C 116 168 74 135 94 101 C 79 71 106 43 135 51 Z';
 const preferences = new MotionPreferences();
 const cleanups: Array<() => void> = [];
-let visible = false;
+const visible = ref(false);
+let motionInitialized = false;
 let intersectionObserver: IntersectionObserver | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let preferencesSubscription: { unsubscribe(): void } | null = null;
@@ -43,11 +45,19 @@ let currentCanvasPhase = 0;
 let dragReducedMotion: boolean | null = null;
 
 function shouldAnimate(): boolean {
-  return visible && !preferences.snapshot.reducedMotion && preferences.snapshot.visible;
+  return props.motionEnabled && visible.value && !preferences.snapshot.reducedMotion && preferences.snapshot.visible;
+}
+
+function initializeMotion(): void {
+  if (motionInitialized || !shouldAnimate()) return;
+  motionInitialized = true;
+  if (props.kind === 'svg') setupMorph();
+  else if (props.kind === 'canvas') setupCanvas();
 }
 
 function syncPlayback(): void {
   const active = shouldAnimate();
+  if (active) initializeMotion();
   for (const tween of [morphTween, canvasTween]) {
     if (!tween) continue;
     const state = tween.state$.value;
@@ -182,23 +192,23 @@ onMounted(() => {
   });
 
   if (props.kind === 'interaction') syncDraggableMotionPolicy();
-  if (props.kind === 'svg') setupMorph();
-  if (props.kind === 'canvas') setupCanvas();
 
   const element = root.value;
   if (!element) return;
 
   if (typeof IntersectionObserver !== 'undefined') {
     intersectionObserver = new IntersectionObserver((entries) => {
-      visible = entries.some((entry) => entry.isIntersecting);
+      visible.value = entries.some((entry) => entry.isIntersecting);
       syncPlayback();
-    }, { threshold: 0.08 });
+    }, { rootMargin: '120px 0px', threshold: 0.08 });
     intersectionObserver.observe(element);
   } else {
-    visible = true;
+    visible.value = true;
   }
   syncPlayback();
 });
+
+watch(() => props.motionEnabled, syncPlayback);
 
 onBeforeUnmount(() => {
   intersectionObserver?.disconnect();

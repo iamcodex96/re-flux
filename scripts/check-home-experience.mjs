@@ -11,6 +11,9 @@ const home = await source('apps/docs/src/views/Home.vue');
 const codeMotion = await source('apps/docs/src/components/LandingCodeMotion.vue');
 const docsTimeline = await source('apps/docs/src/components/DocsComponents/DocsTimelineSections.vue');
 const principleVisual = await source('apps/docs/src/components/LandingPrincipleVisual.vue');
+const telemetryStage = await source('apps/docs/src/components/LandingTelemetryStage.vue');
+const telemetryStyles = await source('apps/docs/src/styles/components/landing-telemetry-stage.scss');
+const storyStyles = await source('apps/docs/src/styles/views/home/_story.scss');
 const labPreview = await source('apps/docs/src/components/LandingLabPreview.vue');
 const app = await source('apps/docs/src/App.vue');
 
@@ -21,6 +24,11 @@ assert.ok(home.includes('<LandingTelemetryStage'), 'Home must render the telemet
 assert.match(home, /<VisualLabShaderPreview[\s\S]*?kind="shader-fluid"[\s\S]*?:active="heroFluidActive"/, 'The Fluid Noise shader should be mounted as the Home hero background.');
 assert.ok(home.includes('defineAsyncComponent(() => import('), 'The heavy Home shader component must be code-split and loaded asynchronously.');
 assert.ok(home.includes('scheduleHeroShader') && home.includes('requestIdleCallback'), 'The Home shader should be requested during idle time, not during initial rendering.');
+const shaderSchedule = home.match(/function scheduleHeroShader\(\): void \{([\s\S]*?)\n\}/)?.[1] ?? '';
+assert.ok(shaderSchedule.length > 0, 'Home must define a deferred shader scheduler.');
+assert.ok(!shaderSchedule.includes('hasScrolled') && !shaderSchedule.includes('heroFluidActive'), 'The Home hero shader must not wait for scroll or intersection to begin loading.');
+const shaderPreferenceSync = home.match(/function syncDeferredHeroShaderPreference\(\): void \{([\s\S]*?)\n\}/)?.[1] ?? '';
+assert.ok(shaderPreferenceSync.length > 0 && !shaderPreferenceSync.includes('hasScrolled') && !shaderPreferenceSync.includes('heroFluidActive'), 'Hero shader loading may defer for motion preferences or hidden tabs, but not for scroll position.');
 assert.ok(home.includes('!heroMotionPreferences.snapshot.visible'), 'The Home shader must stay deferred while the document is hidden.');
 assert.ok(home.includes('v-if="!heroShaderRequested"'), 'The Home hero must show a static visual while the shader chunk is deferred.');
 assert.ok(home.includes('new MotionPreferences()'), 'Home shader background must use shared motion preferences.');
@@ -33,6 +41,17 @@ assert.ok(codeMotion.includes('initialDemo?: DemoMode; embedded?: boolean'), 'Co
 assert.ok(codeMotion.includes('landing-code-motion--embedded') && codeMotion.includes('!props.embedded'), 'Embedded Code in Motion should hide the Home-only heading and mode selector.');
 assert.ok(home.includes('<LandingPrincipleVisual'), 'Home must render animated principle illustrations.');
 assert.ok(home.includes('springMotion?.dispose()'), 'The story spring must be disposed on unmount.');
+assert.ok(home.includes('activateLandingMotionAfterScroll') && home.includes("window.addEventListener('scroll', activateLandingMotionAfterScroll"), 'Landing motion must remain disabled until the user scrolls.');
+for (const component of ['LandingTelemetryStage', 'LandingLabPreview', 'LandingPrincipleVisual', 'LandingCodeMotion']) {
+  assert.match(home, new RegExp(`<${component}[^>]*:motion-enabled=\"hasScrolled\"`), `${component} must receive the first-scroll motion gate from Home.`);
+}
+assert.ok(home.includes('storyMotionEnabled') && home.includes('storyVisibilityObserver'), 'Scroll-linked story motion must wait until the story section approaches the viewport.');
+assert.ok(telemetryStage.includes('initializeAnimations()') && telemetryStage.includes('props.motionEnabled && visible.value'), 'Telemetry animation controllers must be created only after motion is enabled and the stage is near the viewport.');
+assert.ok(telemetryStyles.includes('animation-name: none') && telemetryStyles.includes('.is-motion-active &__trace { animation-name: telemetry-trace-drift; }'), 'Telemetry SVG traces must remain static until their stage is activated.');
+assert.ok(storyStyles.includes('animation-name: none') && storyStyles.includes('.home-story-runway--motion-enabled .home-story-visual__trace { animation-name: home-story-trace; }'), 'Story SVG traces must remain static until their section is activated.');
+assert.ok(labPreview.includes('motionInitialized') && labPreview.includes('props.motionEnabled && visible.value'), 'Landing Canvas/SVG previews must defer their animation setup until activated in view.');
+assert.ok(principleVisual.includes('initializeTween()') && principleVisual.includes('props.motionEnabled && visible.value'), 'Principle motion controllers must be created only when activated in view.');
+assert.ok(codeMotion.includes('motionEnabled?: boolean') && codeMotion.includes('canSetUpDemo()'), 'The code workbench must defer demo setup until activated.');
 
 for (const concept of ['RetargetableMotion', 'new Timeline()', 'bindSvgPathMorph', 'prefers-reduced-motion', 'IntersectionObserver', 'onBeforeUnmount']) {
   assert.ok(codeMotion.includes(concept), `Code in Motion is missing ${concept}.`);

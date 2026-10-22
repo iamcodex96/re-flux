@@ -13,7 +13,7 @@ type PlaybackActions = {
   stop: () => void;
 };
 
-const props = withDefaults(defineProps<{ initialDemo?: DemoMode; embedded?: boolean }>(), { initialDemo: 'spring', embedded: false });
+const props = withDefaults(defineProps<{ initialDemo?: DemoMode; embedded?: boolean; motionEnabled?: boolean }>(), { initialDemo: 'spring', embedded: false, motionEnabled: true });
 const appStore = useAppStore();
 const copy = computed(() => appStore.app.view.landingCodeMotion);
 
@@ -153,15 +153,20 @@ let currentSubscriptions = new (class {
 })();
 let observer: IntersectionObserver | null = null;
 let motionQuery: MediaQueryList | null = null;
-let visible = false;
+const visible = ref(false);
 let documentVisible = true;
 let manuallyPaused = false;
 const springTarget = ref(1);
 let springRetargetTimer: number | null = null;
 let demoGeneration = 0;
+let demoSetupPending = false;
 
 function canAnimate(): boolean {
-  return visible && documentVisible && !prefersReducedMotion.value && !manuallyPaused;
+  return props.motionEnabled && visible.value && documentVisible && !prefersReducedMotion.value && !manuallyPaused;
+}
+
+function canSetUpDemo(): boolean {
+  return props.motionEnabled && visible.value && documentVisible && !prefersReducedMotion.value;
 }
 
 function stopSpringTimer(): void {
@@ -183,6 +188,14 @@ function syncPlayback(): void {
   }
 }
 
+function syncDemoActivation(): void {
+  if (canSetUpDemo() && !currentActions && !demoSetupPending) {
+    void setupDemo();
+    return;
+  }
+  syncPlayback();
+}
+
 function disposeDemo(): void {
   demoGeneration += 1;
   stopSpringTimer();
@@ -200,113 +213,133 @@ function registerState(state$: { subscribe: (observer: (state: AnimationState) =
 }
 
 async function setupDemo(): Promise<void> {
-  disposeDemo();
-  const generation = demoGeneration;
-  await nextTick();
-  if (generation !== demoGeneration || !root.value) return;
+  if (demoSetupPending || !canSetUpDemo()) return;
+  demoSetupPending = true;
 
-  if (activeDemo.value === 'spring') {
-    const motion = new RetargetableMotion({ initialValue: 0, stiffness: 240, damping: 28, mass: 1, restDelta: 0.001, restSpeed: 0.01 });
-    currentSubscriptions.addCleanup(() => motion.dispose());
-    springTarget.value = 1;
-    const target = root.value.querySelector<HTMLElement>('[data-motion-target]');
-    if (!target) { motion.dispose(); return; }
-    currentSubscriptions.add(motion.value$.subscribe((value) => {
-      progress.value = value;
-      target.style.left = `${9 + value * 82}%`;
-    }));
-    registerState(motion.state$);
-    currentActions = {
-      play: () => {
-        if (motion.state$.value === 'paused') motion.resume();
-        else motion.to(springTarget.value);
-        if (springRetargetTimer === null) {
+  try {
+    disposeDemo();
+    const generation = demoGeneration;
+    await nextTick();
+    if (generation !== demoGeneration || !root.value || !canSetUpDemo()) return;
+
+    if (activeDemo.value === 'spring') {
+      const motion = new RetargetableMotion({
+        initialValue: 0,
+        stiffness: 240,
+        damping: 28,
+        mass: 1,
+        restDelta: 0.001,
+        restSpeed: 0.01,
+      });
+      currentSubscriptions.addCleanup(() => motion.dispose());
+      springTarget.value = 1;
+      const target = root.value.querySelector<HTMLElement>('[data-motion-target]');
+      if (!target) {
+        motion.dispose();
+        return;
+      }
+
+      currentSubscriptions.add(motion.value$.subscribe((value) => {
+        progress.value = value;
+        target.style.left = `${9 + value * 82}%`;
+      }));
+      registerState(motion.state$);
+      currentActions = {
+        play: () => {
+          if (motion.state$.value === 'paused') motion.resume();
+          else motion.to(springTarget.value);
+          if (springRetargetTimer === null) {
+            springRetargetTimer = window.setInterval(() => {
+              springTarget.value = springTarget.value === 1 ? 0 : 1;
+              motion.to(springTarget.value);
+            }, 1700);
+          }
+        },
+        pause: () => { stopSpringTimer(); motion.pause(); },
+        restart: () => {
+          stopSpringTimer();
+          motion.stop();
+          springTarget.value = 1;
+          motion.to(springTarget.value);
           springRetargetTimer = window.setInterval(() => {
             springTarget.value = springTarget.value === 1 ? 0 : 1;
             motion.to(springTarget.value);
           }, 1700);
-        }
-      },
-      pause: () => { stopSpringTimer(); motion.pause(); },
-      restart: () => {
-        stopSpringTimer();
-        motion.stop();
-        springTarget.value = 1;
-        motion.to(springTarget.value);
-        springRetargetTimer = window.setInterval(() => {
-          springTarget.value = springTarget.value === 1 ? 0 : 1;
-          motion.to(springTarget.value);
-        }, 1700);
-      },
-      stop: () => { stopSpringTimer(); motion.stop(); },
-    };
-  } else if (activeDemo.value === 'timeline') {
-    const entranceTarget = root.value.querySelector<HTMLElement>('[data-entrance-target]');
-    const settleTarget = root.value.querySelector<HTMLElement>('[data-settle-target]');
-    const stageObject = root.value.querySelector<HTMLElement>('[data-scene-object]');
-    if (!entranceTarget || !settleTarget || !stageObject) return;
-    let entranceProgress = 0;
-    let settleProgress = 0;
-    const updateStageObject = (): void => {
-      stageObject.style.transform = `translate(-50%, -50%) rotate(${entranceProgress * 140 - 35}deg) scale(${0.75 + settleProgress * 0.25})`;
-    };
-    const enter = new Animation({
-      duration: 900,
-      easing: 'easeOutCubic',
-      onUpdate: (_raw, eased) => {
-        entranceProgress = eased;
-        secondaryProgress.value = eased;
-        entranceTarget.style.opacity = String(eased);
-        entranceTarget.style.transform = `translateY(${(1 - eased) * 10}px)`;
-        updateStageObject();
-      },
-    });
-    const settle = new Animation({
-      duration: 820,
-      easing: 'easeInOutCubic',
-      onUpdate: (_raw, eased) => {
-        settleProgress = eased;
-        progress.value = eased;
-        settleTarget.style.opacity = String(eased);
-        settleTarget.style.transform = `translateX(${eased * 8}px)`;
-        updateStageObject();
-      },
-    });
-    const scene = new Timeline().add(enter).add(settle, '-=260');
-    currentActions = {
-      play: () => { scene.play(); },
-      pause: () => { scene.pause(); },
-      restart: () => { scene.restart(); },
-      stop: () => { scene.stop(); },
-    };
-    currentSubscriptions.add(scene.progress$.subscribe((value) => {
-      timelineProgress.value = value;
-      stageObject.style.left = `${10 + value * 80}%`;
-    }));
-    registerState(scene.state$);
-  } else {
-    const path = morphPath.value;
-    if (!path) return;
-    const tween = new Tween({
-      from: 0,
-      to: 1,
-      duration: 2200,
-      easing: 'easeInOutCubic',
-      repeat: Infinity,
-      yoyo: true,
-    });
-    currentSubscriptions.add(bindSvgPathMorph(path, tween.value$, shapeStart, shapeEnd));
-    currentSubscriptions.add(tween.value$.subscribe((value) => { progress.value = value; }));
-    registerState(tween.state$);
-    currentActions = {
-      play: () => { tween.play(); },
-      pause: () => { tween.pause(); },
-      restart: () => { tween.restart(); },
-      stop: () => { tween.stop(); },
-    };
-    currentSubscriptions.addCleanup(() => tween.stop());
+        },
+        stop: () => { stopSpringTimer(); motion.stop(); },
+      };
+    } else if (activeDemo.value === 'timeline') {
+      const entranceTarget = root.value.querySelector<HTMLElement>('[data-entrance-target]');
+      const settleTarget = root.value.querySelector<HTMLElement>('[data-settle-target]');
+      const stageObject = root.value.querySelector<HTMLElement>('[data-scene-object]');
+      if (!entranceTarget || !settleTarget || !stageObject) return;
+
+      let entranceProgress = 0;
+      let settleProgress = 0;
+      const updateStageObject = (): void => {
+        stageObject.style.transform = `translate(-50%, -50%) rotate(${entranceProgress * 140 - 35}deg) scale(${0.75 + settleProgress * 0.25})`;
+      };
+      const enter = new Animation({
+        duration: 900,
+        easing: 'easeOutCubic',
+        onUpdate: (_raw, eased) => {
+          entranceProgress = eased;
+          secondaryProgress.value = eased;
+          entranceTarget.style.opacity = String(eased);
+          entranceTarget.style.transform = `translateY(${(1 - eased) * 10}px)`;
+          updateStageObject();
+        },
+      });
+      const settle = new Animation({
+        duration: 820,
+        easing: 'easeInOutCubic',
+        onUpdate: (_raw, eased) => {
+          settleProgress = eased;
+          progress.value = eased;
+          settleTarget.style.opacity = String(eased);
+          settleTarget.style.transform = `translateX(${eased * 8}px)`;
+          updateStageObject();
+        },
+      });
+      const scene = new Timeline().add(enter).add(settle, '-=260');
+      currentActions = {
+        play: () => { scene.play(); },
+        pause: () => { scene.pause(); },
+        restart: () => { scene.restart(); },
+        stop: () => { scene.stop(); },
+      };
+      currentSubscriptions.add(scene.progress$.subscribe((value) => {
+        timelineProgress.value = value;
+        stageObject.style.left = `${10 + value * 80}%`;
+      }));
+      registerState(scene.state$);
+    } else {
+      const path = morphPath.value;
+      if (!path) return;
+      const tween = new Tween({
+        from: 0,
+        to: 1,
+        duration: 2200,
+        easing: 'easeInOutCubic',
+        repeat: Infinity,
+        yoyo: true,
+      });
+      currentSubscriptions.add(bindSvgPathMorph(path, tween.value$, shapeStart, shapeEnd));
+      currentSubscriptions.add(tween.value$.subscribe((value) => { progress.value = value; }));
+      registerState(tween.state$);
+      currentActions = {
+        play: () => { tween.play(); },
+        pause: () => { tween.pause(); },
+        restart: () => { tween.restart(); },
+        stop: () => { tween.stop(); },
+      };
+      currentSubscriptions.addCleanup(() => tween.stop());
+    }
+
+    syncPlayback();
+  } finally {
+    demoSetupPending = false;
   }
-  syncPlayback();
 }
 
 function selectDemo(mode: DemoMode): void {
@@ -353,16 +386,20 @@ function handleMotionPreference(event: MediaQueryListEvent): void {
     currentActions?.pause();
   } else {
     manuallyPaused = false;
-    syncPlayback();
+    syncDemoActivation();
   }
 }
 
 function handleVisibilityChange(): void {
   documentVisible = document.visibilityState === 'visible';
-  syncPlayback();
+  syncDemoActivation();
 }
 
-watch(activeDemo, () => { void setupDemo(); });
+watch(activeDemo, () => {
+  if (canSetUpDemo()) void setupDemo();
+  else disposeDemo();
+});
+watch(() => props.motionEnabled, syncDemoActivation);
 
 onMounted(() => {
   motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -373,14 +410,14 @@ onMounted(() => {
 
   if (typeof IntersectionObserver !== 'undefined') {
     observer = new IntersectionObserver((entries) => {
-      visible = entries.some((entry) => entry.isIntersecting);
-      syncPlayback();
-    }, { threshold: 0.1 });
+      visible.value = entries.some((entry) => entry.isIntersecting);
+      syncDemoActivation();
+    }, { rootMargin: '120px 0px', threshold: 0.1 });
     if (root.value) observer.observe(root.value);
   } else {
-    visible = true;
+    visible.value = true;
   }
-  void setupDemo();
+  syncDemoActivation();
 });
 
 onBeforeUnmount(() => {

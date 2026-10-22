@@ -96,13 +96,18 @@
     stroke-width: 1.7;
     vector-effect: non-scaling-stroke;
     stroke-dasharray: 9 8;
-    animation: telemetry-trace-drift 18s linear infinite;
+    animation-name: none;
+    animation-duration: 18s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
 
     &--violet { stroke: url('#telemetry-violet'); }
     &--cyan { stroke: url('#telemetry-cyan'); stroke-width: 2; animation-duration: 23s; animation-direction: reverse; }
     &--ghost { stroke: rgba(var(--rx-color-glow-violet-soft-rgb), 0.28); stroke-width: 1; stroke-dasharray: 3 9; animation-duration: 28s; }
     &--dashed { stroke: rgba(var(--rx-theme-secondary), 0.3); stroke-width: 1; stroke-dasharray: 4 7; animation-duration: 34s; }
   }
+
+  &.is-motion-active &__trace { animation-name: telemetry-trace-drift; }
 
   &__node {
     position: absolute;

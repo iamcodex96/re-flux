@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useAppStore } from '../stores/app';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Tween } from '@lib';
 import type { Subscription } from 'rxjs';
 
@@ -9,19 +9,20 @@ const appStore = useAppStore();
 const copy = computed(() => appStore.app.view.landingPrincipleVisual);
 export type LandingPrincipleVisualKind = 'stream' | 'frames' | 'adapters' | 'lifecycle';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   kind: LandingPrincipleVisualKind;
   title: string;
-}>();
+  motionEnabled?: boolean;
+}>(), { motionEnabled: true });
 
 const root = ref<HTMLElement | null>(null);
 const progress = ref(0);
 const prefersReducedMotion = ref(false);
+const visible = ref(false);
 let tween: Tween<number> | null = null;
 let valueSubscription: Subscription | null = null;
 let observer: IntersectionObserver | null = null;
 let motionQuery: MediaQueryList | null = null;
-let visible = false;
 let documentVisible = true;
 
 const lifecycleStep = computed(() => Math.min(3, Math.floor(progress.value * 4)));
@@ -31,12 +32,28 @@ const frameWidths = computed(() => [
   `${32 + Math.sin(progress.value * Math.PI) * 44}%`,
 ]);
 
+function initializeTween(): void {
+  if (tween || !props.motionEnabled || !visible.value || !documentVisible || prefersReducedMotion.value) return;
+  tween = new Tween({
+    from: 0,
+    to: 1,
+    duration: 2100,
+    easing: 'easeInOutCubic',
+    repeat: Infinity,
+    yoyo: true,
+  });
+  valueSubscription = tween.value$.subscribe((value) => { progress.value = value; });
+}
+
 function syncPlayback(): void {
+  const canRun = props.motionEnabled && visible.value && documentVisible && !prefersReducedMotion.value;
+  if (canRun) initializeTween();
   if (!tween) return;
-  const canRun = visible && documentVisible && !prefersReducedMotion.value;
   if (canRun && tween.state$.value !== 'running') tween.play();
   else if (!canRun && tween.state$.value === 'running') tween.pause();
 }
+
+watch(() => props.motionEnabled, syncPlayback);
 
 function handleMotionPreference(event: MediaQueryListEvent): void {
   prefersReducedMotion.value = event.matches;
@@ -49,15 +66,6 @@ function handleDocumentVisibility(): void {
 }
 
 onMounted(() => {
-  tween = new Tween({
-    from: 0,
-    to: 1,
-    duration: 2100,
-    easing: 'easeInOutCubic',
-    repeat: Infinity,
-    yoyo: true,
-  });
-  valueSubscription = tween.value$.subscribe((value) => { progress.value = value; });
   motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   prefersReducedMotion.value = motionQuery.matches;
   documentVisible = document.visibilityState === 'visible';
@@ -66,12 +74,12 @@ onMounted(() => {
 
   if (typeof IntersectionObserver !== 'undefined') {
     observer = new IntersectionObserver((entries) => {
-      visible = entries.some((entry) => entry.isIntersecting);
+      visible.value = entries.some((entry) => entry.isIntersecting);
       syncPlayback();
-    }, { threshold: 0.12 });
+    }, { rootMargin: '120px 0px', threshold: 0.12 });
     if (root.value) observer.observe(root.value);
   } else {
-    visible = true;
+    visible.value = true;
   }
   syncPlayback();
 });

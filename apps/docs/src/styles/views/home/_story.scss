@@ -52,6 +52,8 @@
   &__visual-column { min-width: 0; align-self: stretch; }
 }
 
+.home-story-runway--motion-enabled .home-story-visual__trace { animation-name: home-story-trace; }
+
 .home-story-visual-sticky {
   position: sticky;
   top: calc(var(--rx-site-header-height) + 1.2rem);
@@ -126,7 +128,10 @@
     stroke-width: 1.5;
     stroke-dasharray: 6 7;
     vector-effect: non-scaling-stroke;
-    animation: home-story-trace 20s linear infinite;
+    animation-name: none;
+    animation-duration: 20s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
 
     &--cyan { stroke: rgba(var(--rx-theme-secondary), 0.55); }
     &--violet { stroke: rgba(var(--rx-theme-primary), 0.48); animation-duration: 27s; animation-direction: reverse; }

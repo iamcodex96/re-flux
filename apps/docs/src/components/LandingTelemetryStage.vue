@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useAppStore } from '../stores/app';
-import { onBeforeUnmount, onMounted, ref , computed} from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { animate, type DOMAnimation } from '@lib/dom';
 
 
+const props = withDefaults(defineProps<{ motionEnabled?: boolean }>(), { motionEnabled: true });
 const appStore = useAppStore();
 const copy = computed(() => appStore.app.view.landingTelemetryStage);
 const root = ref<HTMLElement | null>(null);
@@ -19,36 +20,13 @@ const nodePositions = [
 let animations: DOMAnimation[] = [];
 let observer: IntersectionObserver | null = null;
 let motionQuery: MediaQueryList | null = null;
-let visible = false;
-let prefersReducedMotion = false;
+const visible = ref(false);
+const prefersReducedMotion = ref(false);
+const documentVisible = ref(true);
 
-function syncPlayback(): void {
-  const canPlay = visible && !prefersReducedMotion && document.visibilityState === 'visible';
-  for (const animation of animations) {
-    if (canPlay && animation.state$.value !== 'running') animation.play();
-    else if (!canPlay && animation.state$.value === 'running') animation.pause();
-  }
-}
-
-function handleMotionPreference(event: MediaQueryListEvent): void {
-  prefersReducedMotion = event.matches;
-  syncPlayback();
-}
-
-function handleVisibilityChange(): void {
-  syncPlayback();
-}
-
-onMounted(() => {
-  const element = root.value;
-  if (!element) return;
-
-  motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-  prefersReducedMotion = motionQuery.matches;
-  motionQuery.addEventListener('change', handleMotionPreference);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-
-  const nodes = Array.from(element.querySelectorAll<HTMLElement>('[data-telemetry-node]'));
+function initializeAnimations(): void {
+  if (animations.length > 0 || !root.value) return;
+  const nodes = Array.from(root.value.querySelectorAll<HTMLElement>('[data-telemetry-node]'));
   animations = nodes.map((node, index) => animate(node, {
     properties: {
       transform: {
@@ -68,15 +46,46 @@ onMounted(() => {
     },
     delay: nodePositions[index]?.delay ?? 0,
   }));
+}
+
+function syncPlayback(): void {
+  const canPlay = props.motionEnabled && visible.value && !prefersReducedMotion.value && documentVisible.value;
+  if (canPlay) initializeAnimations();
+  for (const animation of animations) {
+    if (canPlay && animation.state$.value !== 'running') animation.play();
+    else if (!canPlay && animation.state$.value === 'running') animation.pause();
+  }
+}
+
+function handleMotionPreference(event: MediaQueryListEvent): void {
+  prefersReducedMotion.value = event.matches;
+  syncPlayback();
+}
+
+function handleVisibilityChange(): void {
+  documentVisible.value = document.visibilityState === 'visible';
+  syncPlayback();
+}
+
+watch(() => props.motionEnabled, syncPlayback);
+
+onMounted(() => {
+  const element = root.value;
+  if (!element) return;
+
+  motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  prefersReducedMotion.value = motionQuery.matches;
+  motionQuery.addEventListener('change', handleMotionPreference);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 
   if (typeof IntersectionObserver !== 'undefined') {
     observer = new IntersectionObserver((entries) => {
-      visible = entries.some((entry) => entry.isIntersecting);
+      visible.value = entries.some((entry) => entry.isIntersecting);
       syncPlayback();
-    }, { threshold: 0.08 });
+    }, { rootMargin: '120px 0px', threshold: 0.08 });
     observer.observe(element);
   } else {
-    visible = true;
+    visible.value = true;
     syncPlayback();
   }
 });
@@ -91,7 +100,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="root" class="telemetry-stage" aria-labelledby="telemetry-stage-title">
+  <section ref="root" class="telemetry-stage" :class="{ 'is-motion-active': props.motionEnabled && visible && !prefersReducedMotion && documentVisible }" aria-labelledby="telemetry-stage-title">
     <header class="telemetry-stage__header">
       <h2 id="telemetry-stage-title"><span class="telemetry-stage__live-dot" aria-hidden="true" /> {{ copy.staticText.telemetrySTAGE }} <span aria-hidden="true">//</span> {{ copy.staticText.reactiveVECTORGRAPH }}</h2>
       <div class="telemetry-stage__meta" :aria-label="copy.staticText.illustrativeMotionPipelineAriaLabel">
