@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { useAppStore } from '../stores/app';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Tween } from '@lib';
 import type { Subscription } from 'rxjs';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.landingPrincipleVisual);
 export type LandingPrincipleVisualKind = 'stream' | 'frames' | 'adapters' | 'lifecycle';
 
 const props = defineProps<{
@@ -84,24 +88,24 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="root" class="landing-principle-visual" :class="`landing-principle-visual--${kind}`" role="img" :aria-label="`${title}: animated technical illustration driven by a re;Flux value stream`">
+  <div ref="root" class="landing-principle-visual" :class="`landing-principle-visual--${kind}`" role="img" :aria-label="copy.staticText.animatedTechnicalIllustrationAriaLabel.replace('{title}', title)">
     <template v-if="kind === 'stream'">
       <svg viewBox="0 0 320 58" preserveAspectRatio="none" aria-hidden="true">
         <path class="landing-principle-visual__guide" d="M0 29 H320" />
         <path class="landing-principle-visual__wave" d="M0 33 C28 5 45 53 76 28 S123 5 157 31 S206 50 237 26 S284 8 320 30" />
         <circle v-for="(point, index) in [28, 76, 125, 173, 222, 270]" :key="point" :cx="point" :cy="29 + Math.sin((progress * 2 + index * 0.5) * Math.PI) * 8" :r="index === 2 ? 3.5 : 2.4" :class="index % 2 === 0 ? 'landing-principle-visual__point' : 'landing-principle-visual__point landing-principle-visual__point--violet'" />
       </svg>
-      <span class="landing-principle-visual__caption">input$ <i /> transform <i /> output$</span>
+      <span class="landing-principle-visual__caption">{{ copy.staticText.input }} <i /> {{ copy.staticText.transform }} <i /> {{ copy.staticText.output }}</span>
     </template>
 
     <template v-else-if="kind === 'frames'">
-      <div class="landing-principle-visual__frame-labels"><span>READ</span><span>UPDATE</span><span>RENDER</span></div>
+      <div class="landing-principle-visual__frame-labels"><span>{{ copy.staticText.read }}</span><span>{{ copy.staticText.update }}</span><span>{{ copy.staticText.render }}</span></div>
       <div v-for="(width, index) in frameWidths" :key="index" class="landing-principle-visual__frame-row">
         <span :class="`landing-principle-visual__frame-dot landing-principle-visual__frame-dot--${index}`" />
         <i><b :style="{ width }" /></i>
         <code>{{ ['INPUT', 'STATE', 'PAINT'][index] }}</code>
       </div>
-      <span class="landing-principle-visual__caption">shared frame coordination</span>
+      <span class="landing-principle-visual__caption">{{ copy.staticText.sharedFrameCoordination }}</span>
     </template>
 
     <template v-else-if="kind === 'adapters'">
@@ -110,7 +114,7 @@ onBeforeUnmount(() => {
         <span v-for="(name, index) in ['DOM', 'SVG', 'Canvas', 'Three']" :key="name" :class="{ 'is-active': Math.abs(progress * 3 - index) < 0.7 }">{{ name }}</span>
       </div>
       <span class="landing-principle-visual__adapter-pulse" :style="{ left: `${progress * 100}%` }" />
-      <span class="landing-principle-visual__caption">one motion model · multiple renderers</span>
+      <span class="landing-principle-visual__caption">{{ copy.staticText.oneMotionModelMultipleRenderers }}</span>
     </template>
 
     <template v-else>

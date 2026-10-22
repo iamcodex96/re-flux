@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { useAppStore } from '../stores/app';
 import { computed, useId } from 'vue';
 import type { EasingFunction } from '@lib';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.easingCurve);
 const props = withDefaults(defineProps<{
   easing: EasingFunction;
   label: string;
@@ -87,8 +91,8 @@ const outputRange = computed(() => `${outputExtent.value.min.toFixed(2)} to ${ou
       </g>
     </svg>
     <div v-if="!compact" class="easing-curve__legend">
-      <span>Progress: 0 → 1</span>
-      <span>Output range: {{ outputRange }}</span>
+      <span>{{ copy.staticText.progress01 }}</span>
+      <span>{{ copy.staticText.outputRange }} {{ outputRange }}</span>
     </div>
   </div>
 </template>

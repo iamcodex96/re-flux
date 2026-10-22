@@ -23,7 +23,7 @@ const springFactor = ref(0.72);
 const springTargetFactor = ref(0.72);
 const installCopied = ref(false);
 const installCopyError = ref(false);
-const activeStageName = computed(() => copy.value.story.steps[activeStep.value]?.stage ?? 'MOTION COMPOSITION');
+const activeStageName = computed(() => copy.value.story.steps[activeStep.value]?.stage ?? copy.value.staticText.motionComposition);
 const installCommand = 'npm install @re-code/flux';
 
 function getPreviewKind(kind: string): LandingLabPreviewKind {
@@ -171,7 +171,7 @@ onBeforeUnmount(() => {
 
       <div class="home-hero__inner rx-content-rail rx-content-rail--wide">
         <div class="home-hero__copy">
-          <p class="home-eyebrow"><span class="home-eyebrow__dot" aria-hidden="true" />{{ copy.heroBadge }} <span class="home-eyebrow__slash">/ TYPESCRIPT & RXJS</span></p>
+          <p class="home-eyebrow"><span class="home-eyebrow__dot" aria-hidden="true" />{{ copy.heroBadge }} <span class="home-eyebrow__slash">{{ copy.staticText.typescriptAndRxjs }}</span></p>
           <h1 id="home-title" class="home-hero__title">
             <span>{{ copy.titleLine }} <em>{{ copy.titleBridge }}</em></span>
             <span class="home-hero__title-accent">{{ copy.titleAccent }}</span>
@@ -194,17 +194,17 @@ onBeforeUnmount(() => {
             </button>
           </div>
           <p v-if="installCopied || installCopyError" class="home-hero__copy-feedback" role="status" aria-live="polite">
-            {{ installCopied ? 'Install command copied.' : 'Clipboard unavailable — select the command to copy it.' }}
+            {{ installCopied ? copy.staticText.installCopied : copy.staticText.installClipboardUnavailable }}
           </p>
         </div>
 
         <LandingTelemetryStage />
 
-        <div class="home-hero__footnotes" aria-label="Library capabilities">
-          <span><i aria-hidden="true" /> RxJS-native</span>
-          <span><i aria-hidden="true" /> Shared frame coordination</span>
-          <span><i aria-hidden="true" /> DOM · SVG · Canvas · Three.js</span>
-          <span><i aria-hidden="true" /> Tree-shakable modules</span>
+        <div class="home-hero__footnotes" :aria-label="copy.staticText.libraryCapabilities">
+          <span><i aria-hidden="true" /> {{ copy.staticText.rxjsNative }}</span>
+          <span><i aria-hidden="true" /> {{ copy.staticText.sharedFrameCoordination }}</span>
+          <span><i aria-hidden="true" /> {{ copy.staticText.domSvgCanvasThreeJs }}</span>
+          <span><i aria-hidden="true" /> {{ copy.staticText.treeShakableModules }}</span>
         </div>
       </div>
 
@@ -222,16 +222,16 @@ onBeforeUnmount(() => {
       <p class="home-story-intro__description">{{ copy.story.description }}</p>
     </section>
 
-    <section ref="storyRunway" class="home-story-runway" aria-label="How re;Flux works">
+    <section ref="storyRunway" class="home-story-runway" :aria-label="copy.staticText.howReFluxWorks">
       <div class="home-story-runway__inner rx-content-rail rx-content-rail--wide">
         <div class="home-story-runway__visual-column">
           <div class="home-story-visual-sticky">
             <div class="home-story-visual" :class="`home-story-visual--step-${activeStep}`" :style="{ '--spring-factor': springFactor }">
               <div class="home-story-visual__topline">
-                <span>STAGE NODE: {{ activeStageName }}</span>
-                <span class="home-story-visual__live"><i aria-hidden="true" />LIVE KERNEL</span>
+                <span>{{ copy.staticText.stageNODE }} {{ activeStageName }}</span>
+                <span class="home-story-visual__live"><i aria-hidden="true" />{{ copy.staticText.liveKernel }}</span>
               </div>
-              <div class="home-story-visual__canvas" aria-label="Illustrative motion pipeline visualization">
+              <div class="home-story-visual__canvas" :aria-label="copy.staticText.illustrativeMotionPipelineVisualization">
                 <div class="home-story-visual__grid" aria-hidden="true" />
                 <svg class="home-story-visual__traces" viewBox="0 0 680 330" preserveAspectRatio="none" aria-hidden="true">
                   <path class="home-story-visual__trace home-story-visual__trace--cyan" d="M0 180 C80 95 100 245 190 170 S310 105 365 175 S480 250 530 167 S625 105 680 173" />
@@ -243,20 +243,20 @@ onBeforeUnmount(() => {
                 </svg>
                 <div class="home-story-visual__kernel" :style="{ transform: `translate(-50%, -50%) scale(${0.78 + springFactor * 0.32})` }">
                   <span class="home-story-visual__kernel-mark" aria-hidden="true">✳</span>
-                  <strong>re;Flux kernel</strong>
+                  <strong>{{ copy.staticText.reFluxKernel }}</strong>
                   <code>value$ → frame$</code>
                 </div>
-                <span class="home-story-visual__node home-story-visual__node--one">{{ ['Tween', 'value$', 'Retarget', 'Adapter'][activeStep] }}</span>
-                <span class="home-story-visual__node home-story-visual__node--two">{{ ['play()', 'pipe()', 'spring()', 'render()'][activeStep] }}</span>
-                <span class="home-story-visual__coordinate home-story-visual__coordinate--one">SOURCE: value$</span>
-                <span class="home-story-visual__coordinate home-story-visual__coordinate--two">OUTPUT: render()</span>
+                <span class="home-story-visual__node home-story-visual__node--one">{{ copy.story.visualNodes[activeStep] }}</span>
+                <span class="home-story-visual__node home-story-visual__node--two">{{ copy.story.visualFlowNodes[activeStep] }}</span>
+                <span class="home-story-visual__coordinate home-story-visual__coordinate--one">{{ copy.staticText.sourceValue }}</span>
+                <span class="home-story-visual__coordinate home-story-visual__coordinate--two">{{ copy.staticText.outputRender }}</span>
               </div>
               <div class="home-story-visual__control">
-                <label for="home-spring-factor">SPRING TARGET <output>{{ springTargetFactor.toFixed(2) }}</output></label>
-                <input id="home-spring-factor" v-model.number="springTargetFactor" type="range" min="0.2" max="1" step="0.01" aria-label="Spring target position" />
+                <label for="home-spring-factor">{{ copy.staticText.springTarget }} <output>{{ springTargetFactor.toFixed(2) }}</output></label>
+                <input id="home-spring-factor" v-model.number="springTargetFactor" type="range" min="0.2" max="1" step="0.01" :aria-label="copy.staticText.springTargetPosition" />
               </div>
               <div class="home-story-visual__footer">
-                <span>SCROLL PROGRESS</span>
+                <span>{{ copy.staticText.scrollProgress }}</span>
                 <span class="home-story-visual__percent">{{ Math.round(storyProgress * 100) }}%</span>
                 <span class="home-story-visual__progress"><i :style="{ transform: `scaleX(${storyProgress})` }" /></span>
               </div>
@@ -304,7 +304,7 @@ onBeforeUnmount(() => {
               <div class="home-lab-card__meta"><span>{{ item.index }}</span><span>{{ item.tag }}</span></div>
               <h3><RouterLink class="home-lab-card__title" :to="item.to">{{ item.title }}</RouterLink></h3>
               <p>{{ item.description }}</p>
-              <RouterLink class="home-lab-card__inspect" :to="item.to">Inspect <span aria-hidden="true">↗</span></RouterLink>
+              <RouterLink class="home-lab-card__inspect" :to="item.to">{{ copy.staticText.inspect }} <span aria-hidden="true">↗</span></RouterLink>
             </div>
           </article>
         </div>
@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
           <h3>{{ item.title }}</h3>
           <p>{{ item.description }}</p>
           <LandingPrincipleVisual :kind="getPrincipleVisualKind(item.index)" :title="item.title" />
-          <span class="home-principle-card__bottom"><span class="home-principle-card__line" /><span>re;Flux / {{ item.index }}</span></span>
+          <span class="home-principle-card__bottom"><span class="home-principle-card__line" /><span>{{ copy.staticText.reFlux }} {{ item.index }}</span></span>
         </article>
       </div>
     </section>
@@ -340,7 +340,7 @@ onBeforeUnmount(() => {
       <div class="home-closing__glow" aria-hidden="true" />
       <div class="home-closing__copy rx-content-rail rx-content-rail--reading">
         <p class="home-eyebrow"><span class="home-eyebrow__dot" aria-hidden="true" />{{ copy.closing.eyebrow }}</p>
-        <h2 id="home-closing-title">Make your interfaces <span>move.</span></h2>
+        <h2 id="home-closing-title">{{ copy.staticText.makeYourInterfaces }} <span>{{ copy.staticText.move }}</span></h2>
         <p>{{ copy.closing.description }}</p>
         <div class="home-closing__actions">
           <RouterLink class="home-button home-button--primary" to="/playground">{{ copy.closing.secondary }} <span aria-hidden="true">↗</span></RouterLink>

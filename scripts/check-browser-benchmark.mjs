@@ -12,11 +12,13 @@ const app = await read('apps/docs/src/App.vue');
 const mainScss = await read('apps/docs/src/styles/main.scss');
 const page = await read('apps/docs/src/views/BrowserBenchmarks.vue');
 const styles = await read('apps/docs/src/styles/views/benchmarks.scss');
+const locale = JSON.parse(await read('apps/docs/src/locales/en.json'));
+const benchmarkCopy = locale.app.view.browserBenchmarks.staticText;
 
 assert.ok(router.includes("path: '/benchmarks'"), 'The public /benchmarks route is missing.');
 assert.ok(router.includes("import('../views/BrowserBenchmarks.vue')"), 'The benchmark page must be lazy-loaded as a route chunk.');
-assert.ok(app.includes("label: 'Benchmarks'") && app.includes("to: '/benchmarks'"), 'The benchmark route must be discoverable in global navigation.');
-assert.ok(app.includes('Benchmark Lab'), 'The public page must be linked from the site footer.');
+assert.ok(app.includes('copy.value.benchmarkLab') && app.includes("to: '/benchmarks'"), 'The benchmark route must be discoverable in global navigation through locale data.');
+assert.ok(app.includes('copy.benchmarkLab') && Object.values(locale.app.view.navigation).includes('Benchmark Lab'), 'The public page must be linked from the site footer using locale data.');
 assert.ok(mainScss.includes("@use './views/benchmarks'"), 'Benchmark styles must be part of the docs style entrypoint.');
 assert.ok(await exists('apps/docs/src/views/BrowserBenchmarks.vue'), 'Benchmark route component is missing.');
 
@@ -37,8 +39,11 @@ for (const fragment of [
   'schemaVersion: 2',
   'methodology',
   'createObjectURL',
-  'No benchmark results are uploaded',
+  'schemaVersion: 2',
+  'methodology',
+  'createObjectURL',
 ]) assert.ok(page.includes(fragment), `Browser benchmark is missing ${fragment}.`);
+assert.ok(Object.values(benchmarkCopy).some((value) => value.includes('No benchmark results are uploaded')), 'Benchmark privacy caveat must remain available in locale data.');
 
 assert.ok(page.includes("id: 'dom'") && page.includes("id: 'svg'") && page.includes("id: 'canvas'"), 'DOM, SVG and Canvas scenarios must be available.');
 assert.ok(page.includes('runOrders'), 'The engine order must rotate across measured repetitions.');
@@ -59,7 +64,7 @@ const stagePanelPosition = page.indexOf('class=\"browser-benchmarks__panel brows
 const callbackComparisonPosition = page.indexOf('class=\"browser-benchmarks__comparison-bars\"');
 const resultsPanelPosition = page.indexOf('class=\"browser-benchmarks__panel browser-benchmarks__results-panel\"');
 assert.ok(stagePanelPosition >= 0 && callbackComparisonPosition > stagePanelPosition && callbackComparisonPosition < resultsPanelPosition, 'Renderer callback comparison must sit beneath the live scene and above the results cards.');
-assert.ok(page.includes('Estimated rAF cadence:'), 'The calibrated callback cadence must be visible beside measured results.');
+assert.ok(Object.values(benchmarkCopy).some((value) => value.includes('Estimated rAF cadence:')), 'The calibrated callback cadence must be visible through locale data.');
 
 // Keep third-party animation engines runtime-loaded instead of pulling them into the main application entrypoint.
 assert.doesNotMatch(page, /from\s+['"](?:gsap|animejs)['"]/,

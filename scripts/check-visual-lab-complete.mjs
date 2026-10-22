@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const read = (path) => readFile(resolve(root, path), 'utf8');
-const [overview, stage, card, shaderPreview, shadersPanel, router, showcase, styles, cardStyles, shadersStyles, home] = await Promise.all([
+const [overview, stage, card, shaderPreview, shadersPanel, router, showcase, styles, cardStyles, shadersStyles, home, localeSource] = await Promise.all([
   read('apps/docs/src/views/VisualLabOverview.vue'),
   read('apps/docs/src/components/VisualLab/VisualLabFeaturedStage.vue'),
   read('apps/docs/src/components/VisualLab/VisualExperimentCard.vue'),
@@ -17,7 +17,10 @@ const [overview, stage, card, shaderPreview, shadersPanel, router, showcase, sty
   read('apps/docs/src/styles/components/_visual-experiment-card.scss'),
   read('apps/docs/src/styles/views/visual-lab/_shaders.scss'),
   read('apps/docs/src/views/Home.vue'),
+  read('apps/docs/src/locales/en.json'),
 ]);
+const locale = JSON.parse(localeSource);
+const shaderCopy = locale.app.view.visualLabShaderPreview.staticText;
 
 const experimentStart = overview.indexOf('const experiments: VisualLabExperiment[] = [');
 const experimentEnd = overview.indexOf('\n];', experimentStart);
@@ -55,7 +58,10 @@ assert.match(shaderPreview, /getContext\('webgl'/, 'Shader previews must use a r
 assert.match(shaderPreview, /function syncAnimation\(\)[\s\S]*?initializeWebGL\(\)/, 'WebGL previews must initialize lazily on activation.');
 assert.match(shaderPreview, /new IntersectionObserver[\s\S]*?initializeWebGL\(\)[\s\S]*?intersectionObserver\?\.disconnect\(\)/, 'Inactive shader previews should initialize near the viewport, not all at startup.');
 assert.match(shaderPreview, /gl\.uniform1f\(uniforms\.time, time\)/, 'The animated stream must update the shader time uniform.');
-assert.match(shaderPreview, /WEBGL UNAVAILABLE[\s\S]*FALLBACK ACTIVE/, 'A visible fallback is required when WebGL is unavailable.');
+assert.match(shaderPreview, /copy\.staticText\.webglUnavailableFallbackActive/, 'A locale-backed fallback is required when WebGL is unavailable.');
+assert.equal(shaderCopy.webglUnavailableFallbackActive, 'WEBGL UNAVAILABLE · FALLBACK ACTIVE', 'The WebGL unavailable fallback label must remain available in locale data.');
+assert.match(shaderPreview, /copy\.staticText\.fallbackActive/, 'The fallback state label must be locale-backed.');
+assert.equal(shaderCopy.fallbackActive, 'FALLBACK ACTIVE', 'The fallback state label must remain available in locale data.');
 assert.match(shaderPreview, /timeSubscription\?\.unsubscribe\(\)/, 'WebGL uniform subscription must be released.');
 assert.match(shaderPreview, /gl\.deleteProgram\(program\)/, 'WebGL program must be released at teardown.');
 assert.doesNotMatch(shaderPreview, /smoothstep\(\s*1\.1\s*,\s*0\.15\s*,|smoothstep\(\s*0\.22\s*,\s*0\.0\s*,|smoothstep\(\s*0\.16\s*,\s*0\.0\s*,/, 'GLSL smoothstep edges must be ordered.');

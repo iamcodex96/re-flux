@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { useAppStore } from '../../stores/app';
 import { computed, onBeforeUnmount, ref } from 'vue';
 import type { VisualLabSceneDefinition } from './visualLabSceneTypes';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.visualLabSceneExplorer);
 const props = withDefaults(defineProps<{
   modelValue: string;
   idPrefix: string;
@@ -13,8 +17,8 @@ const props = withDefaults(defineProps<{
   codeNote?: string;
 }>(), {
   showSelector: true,
-  codeNote: 'This snippet highlights the public API used by the selected scene. The rendered preview may include additional demo-only drawing code.',
 });
+const codeNoteText = computed(() => props.codeNote ?? copy.value.staticText.snippetHighlightsPublicApi);
 
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>();
 const copied = ref(false);
@@ -79,10 +83,10 @@ onBeforeUnmount(() => {
         <h1>{{ heading }}</h1>
         <p>{{ description }}</p>
       </div>
-      <span class="visual-scene-explorer__status"><i /> SCENE {{ scenePosition }}</span>
+      <span class="visual-scene-explorer__status"><i /> {{ copy.staticText.scene }} {{ scenePosition }}</span>
     </header>
 
-    <div v-if="showSelector && scenes.length > 1" class="visual-scene-explorer__selector" role="tablist" :aria-label="`Choose ${heading.toLowerCase()} example`">
+    <div v-if="showSelector && scenes.length > 1" class="visual-scene-explorer__selector" role="tablist" :aria-label="copy.staticText.chooseExample.replace('{heading}', heading.toLowerCase())">
       <button
         v-for="(scene, index) in scenes"
         :id="`${idPrefix}-tab-${scene.id}`"
@@ -111,7 +115,7 @@ onBeforeUnmount(() => {
     >
       <h2 :id="`${idPrefix}-panel-title`" class="visual-scene-explorer__sr-only">{{ selected.title }}</h2>
       <div class="visual-scene-explorer__stage-meta">
-        <span><i /> {{ selected.stageLabel ?? 'LIVE SCENE' }}</span>
+        <span><i /> {{ selected.stageLabel ?? copy.staticText.liveScene }}</span>
         <span>{{ selected.fileLabel ?? `${selected.id}.ts` }}</span>
       </div>
       <div class="visual-scene-explorer__preview">
@@ -123,20 +127,20 @@ onBeforeUnmount(() => {
           <h2>{{ selected.title }}</h2>
           <p>{{ selected.description }}</p>
         </div>
-        <span class="visual-scene-explorer__stage-tag">{{ selected.stageTag ?? 'REACTIVE VALUE STREAM' }}</span>
+        <span class="visual-scene-explorer__stage-tag">{{ selected.stageTag ?? copy.staticText.reactiveValueStream }}</span>
       </div>
     </section>
 
     <section class="visual-scene-explorer__code" :aria-labelledby="`${idPrefix}-code-title`">
       <div class="visual-scene-explorer__code-header">
         <div>
-          <span class="visual-scene-explorer__eyebrow">TYPESCRIPT BINDING</span>
+          <span class="visual-scene-explorer__eyebrow">{{ copy.staticText.typescriptBINDING }}</span>
           <h2 :id="`${idPrefix}-code-title`">{{ selected.codeTitle ?? selected.title }}</h2>
         </div>
-        <button type="button" @click="copySnippet">{{ copied ? 'Copied' : copyFailed ? 'Clipboard unavailable' : 'Copy snippet' }}</button>
+        <button type="button" @click="copySnippet">{{ copied ? copy.staticText.copied : copyFailed ? copy.staticText.clipboardUnavailable : copy.staticText.copySnippet }}</button>
       </div>
       <pre><code>{{ selected.snippet }}</code></pre>
-      <p>{{ selected.codeNote ?? codeNote }}</p>
+      <p>{{ codeNoteText }}</p>
     </section>
   </main>
 </template>

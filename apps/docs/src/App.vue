@@ -16,12 +16,12 @@ const isPlaygroundRoute = computed(() => route.path.startsWith('/playground'));
 const mobileMenuOpen = ref(false);
 const currentYear = new Date().getFullYear();
 
-const navigation = [
-  { label: 'Visual Lab', icon: 'mdi-flask-outline', to: '/visuals' },
-  { label: 'Playground', icon: 'mdi-play-circle-outline', to: '/playground' },
-  { label: 'Benchmarks', icon: 'mdi-chart-box-outline', to: '/benchmarks' },
-  { label: 'Docs', icon: 'mdi-book-open-page-variant-outline', to: '/docs' },
-];
+const navigation = computed(() => [
+  { label: copy.value.visualLab, icon: 'mdi-flask-outline', to: '/visuals' },
+  { label: copy.value.playground, icon: 'mdi-play-circle-outline', to: '/playground' },
+  { label: copy.value.benchmarkLab, icon: 'mdi-chart-box-outline', to: '/benchmarks' },
+  { label: copy.value.documentation, icon: 'mdi-book-open-page-variant-outline', to: '/docs' },
+]);
 
 function isActive(to: string): boolean {
   if (to === '/visuals') return isVisualRoute.value;
@@ -103,8 +103,8 @@ watch(() => route.fullPath, async () => {
     <header class="site-header" :class="{ 'site-header--menu-open': mobileMenuOpen }">
       <div class="site-header__inner">
         <RouterLink to="/" class="site-brand" :aria-label="copy.homeAriaLabel">
-          <span class="site-brand__mark" aria-hidden="true"><span>re;</span></span>
-          <span class="site-brand__word">re;Flux<span class="site-brand__period">.</span></span>
+          <span class="site-brand__mark" aria-hidden="true"><span>{{ copy.re }}</span></span>
+          <span class="site-brand__word">{{ copy.reFlux }}<span class="site-brand__period">.</span></span>
         </RouterLink>
 
         <nav id="primary-navigation" class="site-navigation" :class="{ 'site-navigation--open': mobileMenuOpen }" :aria-label="copy.mainNavigationAriaLabel">
@@ -123,7 +123,7 @@ watch(() => route.fullPath, async () => {
         </nav>
 
         <div class="site-header__actions">
-          <a class="site-github-link" href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener" aria-label="re;Flux on GitHub" title="GitHub">
+          <a class="site-github-link" href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener" :aria-label="copy.githubAriaLabel" :title="copy.githubSource">
             <UiIcon icon="mdi-github" />
           </a>
           <button
@@ -142,7 +142,7 @@ watch(() => route.fullPath, async () => {
             type="button"
             :aria-expanded="mobileMenuOpen"
             aria-controls="primary-navigation"
-            :aria-label="mobileMenuOpen ? 'Close navigation' : 'Open navigation'"
+            :aria-label="mobileMenuOpen ? copy.closeNavigation : copy.openNavigation"
             @click="mobileMenuOpen = !mobileMenuOpen"
           >
             <UiIcon :icon="mobileMenuOpen ? 'mdi-close' : 'mdi-menu'" />
@@ -160,39 +160,39 @@ watch(() => route.fullPath, async () => {
         <div class="site-footer__top">
           <div class="site-footer__brand-column">
             <RouterLink to="/" class="site-brand site-footer__brand" :aria-label="copy.homeAriaLabel">
-              <span class="site-brand__mark" aria-hidden="true"><span>re;</span></span>
-              <span class="site-brand__word">re;Flux<span class="site-brand__period">.</span></span>
+              <span class="site-brand__mark" aria-hidden="true"><span>{{ copy.re }}</span></span>
+              <span class="site-brand__word">{{ copy.reFlux }}<span class="site-brand__period">.</span></span>
             </RouterLink>
-            <p>Reactive motion architecture for interfaces, graphics, and interactive experiences.</p>
-            <div class="site-footer__badges"><span>TypeScript 5.4+</span><span>RxJS 7.8+</span><span>MIT License</span></div>
+            <p>{{ copy.reactiveMotionArchitectureForInterfacesGraphicsAndd28742 }}</p>
+            <div class="site-footer__badges"><span>{{ copy.typescript54 }}</span><span>{{ copy.rxjs78 }}</span><span>{{ copy.mitLicense }}</span></div>
           </div>
 
           <div class="site-footer__group">
-            <h2>Engine</h2>
-            <RouterLink to="/visuals">Visual Lab</RouterLink>
-            <RouterLink to="/playground">Playground</RouterLink>
-            <RouterLink to="/benchmarks">Benchmark Lab</RouterLink>
-            <RouterLink to="/docs/rendering">Render adapters</RouterLink>
+            <h2>{{ copy.engine }}</h2>
+            <RouterLink to="/visuals">{{ copy.visualLab }}</RouterLink>
+            <RouterLink to="/playground">{{ copy.playground }}</RouterLink>
+            <RouterLink to="/benchmarks">{{ copy.benchmarkLab }}</RouterLink>
+            <RouterLink to="/docs/rendering">{{ copy.renderAdapters }}</RouterLink>
           </div>
 
           <div class="site-footer__group">
-            <h2>Resources</h2>
-            <RouterLink to="/docs/introduction">Documentation</RouterLink>
-            <RouterLink to="/docs/streams">Reactive streams</RouterLink>
-            <RouterLink to="/docs/interactions">Spring dynamics</RouterLink>
+            <h2>{{ copy.resources }}</h2>
+            <RouterLink to="/docs/introduction">{{ copy.documentation }}</RouterLink>
+            <RouterLink to="/docs/streams">{{ copy.reactiveStreams }}</RouterLink>
+            <RouterLink to="/docs/interactions">{{ copy.springDynamics }}</RouterLink>
           </div>
 
           <div class="site-footer__group">
-            <h2>Connect</h2>
-            <a href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener">GitHub source <span aria-hidden="true">↗</span></a>
-            <a href="https://www.npmjs.com/package/@re-code/flux" target="_blank" rel="noreferrer noopener">npm registry <span aria-hidden="true">↗</span></a>
-            <a href="https://github.com/iamcodex96/re-flux/issues" target="_blank" rel="noreferrer noopener">Report an issue <span aria-hidden="true">↗</span></a>
+            <h2>{{ copy.connect }}</h2>
+            <a href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener">{{ copy.githubSource }} <span aria-hidden="true">↗</span></a>
+            <a href="https://www.npmjs.com/package/@re-code/flux" target="_blank" rel="noreferrer noopener">{{ copy.npmRegistry }} <span aria-hidden="true">↗</span></a>
+            <a href="https://github.com/iamcodex96/re-flux/issues" target="_blank" rel="noreferrer noopener">{{ copy.reportAnIssue }} <span aria-hidden="true">↗</span></a>
           </div>
         </div>
 
         <div class="site-footer__bottom">
-          <span>© {{ currentYear }} re;Flux. Released under MIT.</span>
-          <span>Built with TypeScript · RxJS · Vue</span>
+          <span>© {{ currentYear }} {{ copy.reFluxReleasedUnderMIT }}</span>
+          <span>{{ copy.builtWithTypeScriptRxJSVue }}</span>
         </div>
       </div>
     </footer>

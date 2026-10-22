@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useAppStore } from '../stores/app';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Animation, RetargetableMotion, Timeline, Tween, type AnimationState } from '@lib';
 import { bindSvgPathMorph } from '@lib/svg';
@@ -13,6 +14,8 @@ type PlaybackActions = {
 };
 
 const props = withDefaults(defineProps<{ initialDemo?: DemoMode; embedded?: boolean }>(), { initialDemo: 'spring', embedded: false });
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.landingCodeMotion);
 
 const root = ref<HTMLElement | null>(null);
 const morphPath = ref<SVGPathElement | null>(null);
@@ -25,19 +28,22 @@ const copied = ref(false);
 const copyFailed = ref(false);
 const prefersReducedMotion = ref(false);
 const modeOptions: ReadonlyArray<{ value: DemoMode; label: string }> = [
-  { value: 'spring', label: 'Spring Physics' },
-  { value: 'timeline', label: 'Timeline Orchestration' },
-  { value: 'svg', label: 'SVG Morph Stream' },
+  { value: 'spring', label: copy.value.staticText.springPhysics },
+  { value: 'timeline', label: copy.value.staticText.timelineOrchestration },
+  { value: 'svg', label: copy.value.staticText.svgMorphStream },
 ];
 
 const secondaryObjectStyle = computed(() => ({ left: `${10 + secondaryProgress.value * 80}%` }));
 const displayProgress = computed(() => activeDemo.value === 'timeline' ? timelineProgress.value : progress.value);
 const progressLabel = computed(() => `${Math.round(displayProgress.value * 100)}%`);
-const visibleStateLabel = computed(() => prefersReducedMotion.value ? 'reduced motion' : playbackState.value);
+const visibleStateLabel = computed(() => {
+  if (prefersReducedMotion.value || playbackState.value === 'reduced-motion') return copy.value.staticText.reducedMotion;
+  return copy.value.staticText[playbackState.value];
+});
 const currentMode = computed(() => ({
-  spring: { duration: 'RETARGETED', easing: 'spring · k 240 / d 28' },
-  timeline: { duration: '1,460 ms', easing: 'easeOutCubic + easeInOutCubic' },
-  svg: { duration: '2,200 ms', easing: 'easeInOutCubic · yoyo' },
+  spring: { duration: copy.value.staticText.retargeted, easing: copy.value.staticText.springConfiguration },
+  timeline: { duration: copy.value.staticText.timelineDuration, easing: copy.value.staticText.timelineEasing },
+  svg: { duration: copy.value.staticText.svgDuration, easing: copy.value.staticText.svgEasing },
 }[activeDemo.value]));
 
 const shapeStart = 'M 140 34 L 201 67 L 192 137 L 119 157 L 76 99 Z';
@@ -391,17 +397,17 @@ onBeforeUnmount(() => {
     class="landing-code-motion"
     :class="{ 'landing-code-motion--embedded': props.embedded }"
     :aria-labelledby="props.embedded ? undefined : 'landing-code-title'"
-    :aria-label="props.embedded ? 'Timeline animation workbench' : undefined"
+    :aria-label="props.embedded ? copy.staticText.timelineAnimationWorkbench : undefined"
   >
     <header v-if="!props.embedded" class="landing-code-motion__heading">
       <div>
-        <p class="landing-code-motion__eyebrow"><span aria-hidden="true" /> LIVE WORKBENCH</p>
-        <h2 id="landing-code-title">Code in Motion</h2>
+        <p class="landing-code-motion__eyebrow"><span aria-hidden="true" /> {{ copy.staticText.liveWORKBENCH }}</p>
+        <h2 id="landing-code-title">{{ copy.staticText.codeInMotion }}</h2>
       </div>
-      <p class="landing-code-motion__caption">A working example, its source, and the motion model that drives it.</p>
+      <p class="landing-code-motion__caption">{{ copy.staticText.aWorkingExampleItsSourceAndTheMotionModelThatDrivesIt }}</p>
     </header>
 
-    <div v-if="!props.embedded" class="landing-code-motion__modes" aria-label="Choose an animation example">
+    <div v-if="!props.embedded" class="landing-code-motion__modes" :aria-label="copy.staticText.chooseAnAnimationExample">
       <button
         v-for="mode in modeOptions"
         :key="mode.value"
@@ -416,34 +422,34 @@ onBeforeUnmount(() => {
     <div class="landing-code-motion__workspace">
       <div class="landing-code-motion__preview">
         <div class="landing-code-motion__preview-header">
-          <span><i aria-hidden="true" /> {{ activeDemo === 'spring' ? 'RETARGETABLE MOTION' : activeDemo === 'timeline' ? 'COMPOSED TIMELINE' : 'SVG PATH INTERPOLATION' }}</span>
+          <span><i aria-hidden="true" /> {{ activeDemo === 'spring' ? copy.staticText.retargetableMotion : activeDemo === 'timeline' ? copy.staticText.composedTimeline : copy.staticText.svgPathInterpolation }}</span>
           <div class="landing-code-motion__controls">
-            <button type="button" aria-label="Play animation" title="Play" :disabled="prefersReducedMotion" @click="play"><UiIcon icon="mdi-play" /></button>
-            <button type="button" aria-label="Pause animation" title="Pause" @click="pause"><UiIcon icon="mdi-pause" /></button>
-            <button type="button" aria-label="Replay animation" title="Replay" :disabled="prefersReducedMotion" @click="replay"><UiIcon icon="mdi-replay" /></button>
+            <button type="button" :aria-label="copy.staticText.playAnimation" :title="copy.staticText.play" :disabled="prefersReducedMotion" @click="play"><UiIcon icon="mdi-play" /></button>
+            <button type="button" :aria-label="copy.staticText.pauseAnimation" :title="copy.staticText.pause" @click="pause"><UiIcon icon="mdi-pause" /></button>
+            <button type="button" :aria-label="copy.staticText.replayAnimation" :title="copy.staticText.replay" :disabled="prefersReducedMotion" @click="replay"><UiIcon icon="mdi-replay" /></button>
           </div>
         </div>
 
-        <div class="landing-code-motion__stage" :class="`landing-code-motion__stage--${activeDemo}`" :aria-label="`${modeOptions.find((mode) => mode.value === activeDemo)?.label}. Current progress ${progressLabel}.`" role="img">
+        <div class="landing-code-motion__stage" :class="`landing-code-motion__stage--${activeDemo}`" :aria-label="`${modeOptions.find((mode) => mode.value === activeDemo)?.label}. ${copy.staticText.currentProgress.replace('{progress}', progressLabel)}`" role="img">
           <template v-if="activeDemo === 'spring'">
             <svg class="landing-code-motion__wave" viewBox="0 0 620 180" preserveAspectRatio="none" aria-hidden="true">
               <path d="M0 93 C62 25 94 151 157 91 S251 34 310 92 S409 151 467 91 S554 33 620 92" />
               <path d="M0 107 C69 165 108 47 172 104 S260 160 320 103 S421 43 477 102 S566 157 620 103" />
             </svg>
             <div class="landing-code-motion__track" />
-            <div class="landing-code-motion__object" data-motion-target><span>re;</span></div>
-            <div class="landing-code-motion__stage-label landing-code-motion__stage-label--left">TARGET <b>{{ springTarget.toFixed(2) }}</b></div>
-            <div class="landing-code-motion__stage-label landing-code-motion__stage-label--right">VALUE <b>{{ progressLabel }}</b></div>
+            <div class="landing-code-motion__object" data-motion-target><span>{{ copy.staticText.re }}</span></div>
+            <div class="landing-code-motion__stage-label landing-code-motion__stage-label--left">{{ copy.staticText.target }} <b>{{ springTarget.toFixed(2) }}</b></div>
+            <div class="landing-code-motion__stage-label landing-code-motion__stage-label--right">{{ copy.staticText.value }} <b>{{ progressLabel }}</b></div>
           </template>
           <template v-else-if="activeDemo === 'timeline'">
             <div class="landing-code-motion__timeline-rows" aria-hidden="true">
-              <div class="landing-code-motion__timeline-row"><span>enter</span><i><b :style="{ width: `${Math.max(4, secondaryProgress * 100)}%` }" /></i><code>{{ Math.round(secondaryProgress * 100) }}%</code></div>
-              <div class="landing-code-motion__timeline-row"><span>settle</span><i><b :style="{ width: `${Math.max(4, progress * 100)}%` }" /></i><code>{{ Math.round(progress * 100) }}%</code></div>
+              <div class="landing-code-motion__timeline-row"><span>{{ copy.staticText.enter }}</span><i><b :style="{ width: `${Math.max(4, secondaryProgress * 100)}%` }" /></i><code>{{ Math.round(secondaryProgress * 100) }}%</code></div>
+              <div class="landing-code-motion__timeline-row"><span>{{ copy.staticText.settle }}</span><i><b :style="{ width: `${Math.max(4, progress * 100)}%` }" /></i><code>{{ Math.round(progress * 100) }}%</code></div>
               <div class="landing-code-motion__timeline-playhead" :style="{ left: `${timelineProgress * 78 + 18}%` }" />
             </div>
-            <div class="landing-code-motion__object landing-code-motion__object--timeline" data-scene-object><span>re;</span></div>
-            <span class="landing-code-motion__timeline-target landing-code-motion__timeline-target--entrance" data-entrance-target>fade + lift</span>
-            <span class="landing-code-motion__timeline-target landing-code-motion__timeline-target--settle" data-settle-target>settle</span>
+            <div class="landing-code-motion__object landing-code-motion__object--timeline" data-scene-object><span>{{ copy.staticText.re }}</span></div>
+            <span class="landing-code-motion__timeline-target landing-code-motion__timeline-target--entrance" data-entrance-target>{{ copy.staticText.fadeLift }}</span>
+            <span class="landing-code-motion__timeline-target landing-code-motion__timeline-target--settle" data-settle-target>{{ copy.staticText.settle }}</span>
           </template>
           <template v-else>
             <svg class="landing-code-motion__morph" viewBox="0 0 280 190" aria-hidden="true">
@@ -458,18 +464,18 @@ onBeforeUnmount(() => {
               <circle cx="140" cy="95" r="4" class="landing-code-motion__morph-node" />
             </svg>
           </template>
-          <div class="landing-code-motion__stage-footer"><span>{{ activeDemo === 'spring' ? 'target changes preserve velocity' : activeDemo === 'timeline' ? 'two tracks · one clock' : 'compatible path commands interpolated' }}</span><span>state: {{ visibleStateLabel }}</span></div>
+          <div class="landing-code-motion__stage-footer"><span>{{ activeDemo === 'spring' ? copy.staticText.targetChangesPreserveVelocity : activeDemo === 'timeline' ? copy.staticText.twoTracksOneClock : copy.staticText.compatiblePathCommandsInterpolated }}</span><span>{{ copy.staticText.state }} {{ visibleStateLabel }}</span></div>
         </div>
 
-        <div class="landing-code-motion__preview-footer"><span>DURATION <b>{{ currentMode.duration }}</b></span><span>MODEL <b>{{ currentMode.easing }}</b></span><span>PROGRESS <b>{{ progressLabel }}</b></span></div>
-        <p v-if="prefersReducedMotion" class="landing-code-motion__motion-note" role="status">Reduced motion is enabled. Live playback is paused.</p>
+        <div class="landing-code-motion__preview-footer"><span>{{ copy.staticText.duration }} <b>{{ currentMode.duration }}</b></span><span>{{ copy.staticText.model }} <b>{{ currentMode.easing }}</b></span><span>{{ copy.staticText.progress }} <b>{{ progressLabel }}</b></span></div>
+        <p v-if="prefersReducedMotion" class="landing-code-motion__motion-note" role="status">{{ copy.staticText.reducedMotionIsEnabledLivePlaybackIsPaused }}</p>
       </div>
 
       <div class="landing-code-motion__code">
-        <div class="landing-code-motion__code-header"><span><i aria-hidden="true" /> {{ activeDemo === 'spring' ? 'spring-follower.ts' : activeDemo === 'timeline' ? 'timeline-scene.ts' : 'svg-morph.ts' }}</span><span>TypeScript</span></div>
+        <div class="landing-code-motion__code-header"><span><i aria-hidden="true" /> {{ activeDemo === 'spring' ? copy.staticText.springCodeFilename : activeDemo === 'timeline' ? copy.staticText.timelineCodeFilename : copy.staticText.svgCodeFilename }}</span><span>{{ copy.staticText.typescript }}</span></div>
         <pre tabindex="0"><code>{{ sourceCode }}</code></pre>
-        <div class="landing-code-motion__code-footer"><span>Composable motion, explicit cleanup.</span><button type="button" @click="copySnippet"><UiIcon :icon="copied ? 'mdi-check' : 'mdi-content-copy'" /> {{ copied ? 'Copied' : 'Copy snippet' }}</button></div>
-        <p v-if="copyFailed" class="landing-code-motion__feedback" role="status">Clipboard access is unavailable. Select the code to copy it manually.</p>
+        <div class="landing-code-motion__code-footer"><span>{{ copy.staticText.composableMotionExplicitCleanup }}</span><button type="button" @click="copySnippet"><UiIcon :icon="copied ? 'mdi-check' : 'mdi-content-copy'" /> {{ copied ? copy.staticText.copied : copy.staticText.copySnippet }}</button></div>
+        <p v-if="copyFailed" class="landing-code-motion__feedback" role="status">{{ copy.staticText.clipboardAccessIsUnavailableSelectTheCodeToCopyItManually }}</p>
       </div>
     </div>
   </section>

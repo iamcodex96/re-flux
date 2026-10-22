@@ -407,21 +407,21 @@ onBeforeUnmount(() => {
         <div class="docs-visual-example__preview">
           <div class="docs-visual-example__pane-header">
             <span class="docs-visual-example__pane-title"><i aria-hidden="true" />{{ ui.liveExample }}</span>
-            <span class="docs-visual-example__pane-meta">LIVE PREVIEW</span>
+            <span class="docs-visual-example__pane-meta">{{ ui.livePREVIEW }}</span>
           </div>
           <div ref="stage" role="group" class="docs-visual-stage" :class="`docs-visual-stage--${variant}`" :aria-label="ui.visualExampleAriaLabel">
             <div class="docs-visual-grid" aria-hidden="true" />
 
             <template v-if="['basic', 'timing', 'callbacks', 'await', 'keyframes'].includes(variant)">
               <div class="docs-visual-rail" aria-hidden="true" />
-              <div class="docs-demo-orb"><span>re;</span></div>
+              <div class="docs-demo-orb"><span>{{ ui.re }}</span></div>
               <div v-if="variant === 'callbacks' || variant === 'await'" class="docs-demo-status" aria-live="polite">{{ demoMessage }}</div>
               <div v-if="variant === 'keyframes'" class="docs-demo-keyframe-markers" aria-hidden="true"><span>0%</span><span>38%</span><span>68%</span><span>100%</span></div>
             </template>
 
             <div v-else-if="variant === 'repeat-yoyo'" class="docs-demo-pulse-stage">
               <div class="docs-demo-pulse-halo" aria-hidden="true" />
-              <div class="docs-demo-pulse">re;</div>
+              <div class="docs-demo-pulse">{{ ui.re }}</div>
               <span class="docs-demo-pulse-caption">{{ ui.repeatYoyoDemoCaption }}</span>
             </div>
 
@@ -433,8 +433,8 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-else-if="variant === 'easing'" class="docs-demo-easing-focus">
-              <div class="docs-demo-easing-focus-track"><div class="docs-demo-easing-focus-dot">B</div></div>
-              <div class="docs-demo-easing-focus-labels"><span>0</span><strong>easeOutBounce</strong><span>1</span></div>
+              <div class="docs-demo-easing-focus-track"><div class="docs-demo-easing-focus-dot">{{ ui.b }}</div></div>
+              <div class="docs-demo-easing-focus-labels"><span>0</span><strong>{{ ui.easeoutbounce }}</strong><span>1</span></div>
             </div>
 
             <div v-else-if="variant === 'easing-gallery'" class="docs-demo-easing-list">
@@ -450,8 +450,8 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-else-if="variant === 'retarget-motion'" class="docs-demo-target-track">
-              <span class="docs-demo-target docs-demo-target--a">A</span><span class="docs-demo-target docs-demo-target--b">B</span><span class="docs-demo-target docs-demo-target--c">C</span>
-              <div class="docs-demo-retarget-dot">re;</div>
+              <span class="docs-demo-target docs-demo-target--a">{{ ui.a }}</span><span class="docs-demo-target docs-demo-target--b">{{ ui.b }}</span><span class="docs-demo-target docs-demo-target--c">{{ ui.c }}</span>
+              <div class="docs-demo-retarget-dot">{{ ui.re }}</div>
               <span class="docs-demo-target-caption">{{ ui.retargetDemoCaption }}</span>
             </div>
 
@@ -464,7 +464,7 @@ onBeforeUnmount(() => {
 
             <div v-else-if="variant === 'render-adapters'" class="docs-demo-canvas-wrap">
               <canvas ref="canvas" width="720" height="190" :aria-label="ui.canvasDemoAriaLabel" />
-              <div class="docs-demo-adapter-tags"><span>DOM</span><span>SVG</span><span>Canvas 2D</span></div>
+              <div class="docs-demo-adapter-tags"><span>{{ ui.dom }}</span><span>{{ ui.svg }}</span><span>{{ ui.canvas2D }}</span></div>
             </div>
           </div>
 
@@ -474,12 +474,12 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <section v-if="code" class="docs-visual-example__code" :aria-label="`${codeTitle} TypeScript source`">
+        <section v-if="code" class="docs-visual-example__code" :aria-label="ui.typescriptSourceAriaLabel.replace('{title}', codeTitle)">
           <div class="docs-visual-example__pane-header">
             <span class="docs-visual-example__pane-title"><i aria-hidden="true" />{{ codeTitle }}</span>
-            <span class="docs-visual-example__pane-meta">TypeScript</span>
+            <span class="docs-visual-example__pane-meta">{{ ui.typescript }}</span>
           </div>
-          <pre class="docs-code-block" tabindex="0" :aria-label="`${codeTitle} TypeScript source code`"><code>{{ code }}</code></pre>
+          <pre class="docs-code-block" tabindex="0" :aria-label="ui.typescriptSourceCodeAriaLabel.replace('{title}', codeTitle)"><code>{{ code }}</code></pre>
         </section>
       </div>
     </UiCardText>

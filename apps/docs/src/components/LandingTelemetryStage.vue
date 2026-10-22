@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { useAppStore } from '../stores/app';
+import { onBeforeUnmount, onMounted, ref , computed} from 'vue';
 import { animate, type DOMAnimation } from '@lib/dom';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.landingTelemetryStage);
 const root = ref<HTMLElement | null>(null);
 const nodePositions = [
   { x: '12%', y: '49%', delay: 0 },
@@ -89,16 +93,16 @@ onBeforeUnmount(() => {
 <template>
   <section ref="root" class="telemetry-stage" aria-labelledby="telemetry-stage-title">
     <header class="telemetry-stage__header">
-      <h2 id="telemetry-stage-title"><span class="telemetry-stage__live-dot" aria-hidden="true" /> TELEMETRY STAGE <span aria-hidden="true">//</span> REACTIVE VECTOR GRAPH</h2>
-      <div class="telemetry-stage__meta" aria-label="Illustrative motion pipeline">
-        <span><b>INPUT</b> value$</span>
-        <span><b>MODEL</b> spring</span>
-        <span><b>OUTPUT</b> render()</span>
-        <span class="telemetry-stage__node-count">NODES: 06</span>
+      <h2 id="telemetry-stage-title"><span class="telemetry-stage__live-dot" aria-hidden="true" /> {{ copy.staticText.telemetrySTAGE }} <span aria-hidden="true">//</span> {{ copy.staticText.reactiveVECTORGRAPH }}</h2>
+      <div class="telemetry-stage__meta" :aria-label="copy.staticText.illustrativeMotionPipelineAriaLabel">
+        <span><b>{{ copy.staticText.input }}</b> {{ copy.staticText.value }}</span>
+        <span><b>{{ copy.staticText.model }}</b> {{ copy.staticText.spring }}</span>
+        <span><b>{{ copy.staticText.output }}</b> {{ copy.staticText.render }}</span>
+        <span class="telemetry-stage__node-count">{{ copy.staticText.nodes06 }}</span>
       </div>
     </header>
 
-    <div class="telemetry-stage__canvas" role="img" aria-label="Animated vector paths and nodes illustrate values moving through a reactive animation pipeline.">
+    <div class="telemetry-stage__canvas" role="img" :aria-label="copy.staticText.animatedVectorPipelineAriaLabel">
       <div class="telemetry-stage__grid" aria-hidden="true" />
       <svg class="telemetry-stage__traces" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true">
         <defs>
@@ -130,16 +134,16 @@ onBeforeUnmount(() => {
       />
 
       <div class="telemetry-stage__pipeline" aria-hidden="true">
-        <span class="telemetry-stage__pipeline-step">value$</span>
+        <span class="telemetry-stage__pipeline-step">{{ copy.staticText.value }}</span>
         <i />
-        <span class="telemetry-stage__pipeline-step">spring()</span>
+        <span class="telemetry-stage__pipeline-step">{{ copy.staticText.spring2 }}</span>
         <i />
-        <span class="telemetry-stage__pipeline-step">frame coordination</span>
+        <span class="telemetry-stage__pipeline-step">{{ copy.staticText.frameCoordination }}</span>
         <i />
-        <span class="telemetry-stage__pipeline-step telemetry-stage__pipeline-step--active">render()</span>
+        <span class="telemetry-stage__pipeline-step telemetry-stage__pipeline-step--active">{{ copy.staticText.render }}</span>
       </div>
 
-      <p class="telemetry-stage__readout"><span>FLOW</span> observable → motion → output</p>
+      <p class="telemetry-stage__readout"><span>{{ copy.staticText.flow }}</span> {{ copy.staticText.observableMotionOutput }}</p>
     </div>
   </section>
 </template>

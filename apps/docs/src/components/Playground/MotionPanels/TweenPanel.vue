@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { ref, shallowRef, watchEffect, onBeforeUnmount } from 'vue';
+import { useAppStore } from '../../../stores/app';
+import { ref, shallowRef, watchEffect, onBeforeUnmount , computed} from 'vue';
 import { Tween, type AnimationState } from '@lib';
 import LabeledSlider from '../../LabeledSlider.vue';
 import MetricTile from '../../MetricTile.vue';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.motionPanelTween);
 const tweenFrom = ref(0);
 const tweenTo = ref(100);
 const tweenDuration = ref(1000);
@@ -53,18 +57,18 @@ onBeforeUnmount(() => {
 <template>
   <UiCard variant="outlined" class="motion-playground-card">
     <UiCardTitle class="pa-4">
-      <div class="text-overline text-primary">01 / VALUE STREAM</div>
-      <h2 class="text-h6 ma-0">Tween&lt;number&gt;</h2>
-      <p class="text-body-2 text-medium-emphasis mt-2 mb-0">A typed value animation can feed a DOM style, Canvas draw call, chart, or any other renderer.</p>
+      <div class="text-overline text-primary">{{ copy.staticText.text01VALUESTREAM }}</div>
+      <h2 class="text-h6 ma-0">{{ copy.staticText.tweenNumber }}</h2>
+      <p class="text-body-2 text-medium-emphasis mt-2 mb-0">{{ copy.staticText.aTypedValueAnimationCanFeedAec8ffb }}</p>
     </UiCardTitle>
     <UiDivider />
     <UiCardText class="pa-4 pa-md-5">
       <UiRow dense>
-        <UiCol cols="4"><UiTextField v-model.number="tweenFrom" type="number" label="From" density="compact" /></UiCol>
-        <UiCol cols="4"><UiTextField v-model.number="tweenTo" type="number" label="To" density="compact" /></UiCol>
-        <UiCol cols="4"><UiTextField v-model.number="tweenDuration" type="number" label="Duration (ms)" density="compact" /></UiCol>
+        <UiCol cols="4"><UiTextField v-model.number="tweenFrom" type="number" :label="copy.staticText.from" density="compact" /></UiCol>
+        <UiCol cols="4"><UiTextField v-model.number="tweenTo" type="number" :label="copy.staticText.to" density="compact" /></UiCol>
+        <UiCol cols="4"><UiTextField v-model.number="tweenDuration" type="number" :label="copy.staticText.durationMs" density="compact" /></UiCol>
       </UiRow>
-      <UiButton class="mt-4 mb-5" color="secondary" variant="tonal" prepend-icon="mdi-check" @click="applyTweenOptions">Apply values</UiButton>
+      <UiButton class="mt-4 mb-5" color="secondary" variant="tonal" prepend-icon="mdi-check" @click="applyTweenOptions">{{ copy.staticText.applyValues }}</UiButton>
 
       <div class="value-stage mb-5">
         <div class="value-stage__track">
@@ -74,20 +78,20 @@ onBeforeUnmount(() => {
       </div>
 
       <UiRow dense class="mb-4">
-        <UiCol cols="4"><MetricTile label="Value" :value="tweenValue.toFixed(2)" /></UiCol>
-        <UiCol cols="4"><MetricTile label="Progress" :value="`${Math.round(tweenProgress * 100)}%`" /></UiCol>
-        <UiCol cols="4"><MetricTile label="State" :value="tweenState" /></UiCol>
+        <UiCol cols="4"><MetricTile :label="copy.staticText.value" :value="tweenValue.toFixed(2)" /></UiCol>
+        <UiCol cols="4"><MetricTile :label="copy.staticText.progress" :value="`${Math.round(tweenProgress * 100)}%`" /></UiCol>
+        <UiCol cols="4"><MetricTile :label="copy.staticText.state" :value="tweenState" /></UiCol>
       </UiRow>
-      <UiProgressLinear :model-value="tweenProgress * 100" aria-label="Tween progress" :aria-valuetext="`${Math.round(tweenProgress * 100)} percent`" color="primary" rounded height="6" class="mb-4" />
-      <LabeledSlider :model-value="tweenProgress" label="Seek tween progress" :min="0" :max="1" :step="0.01" class="mb-4" @update:model-value="seekTween" />
+      <UiProgressLinear :model-value="tweenProgress * 100" :aria-label="copy.staticText.tweenProgress" :aria-valuetext="copy.staticText.percentAriaValueText.replace('{percent}', String(Math.round(tweenProgress * 100)))" color="primary" rounded height="6" class="mb-4" />
+      <LabeledSlider :model-value="tweenProgress" :label="copy.staticText.seekTweenProgress" :min="0" :max="1" :step="0.01" class="mb-4" @update:model-value="seekTween" />
       <div class="d-flex flex-wrap ga-2">
-        <UiButton color="primary" prepend-icon="mdi-play" @click="playTween">Play</UiButton>
-        <UiButton variant="tonal" prepend-icon="mdi-pause" @click="pauseTween">Pause</UiButton>
-        <UiButton variant="tonal" prepend-icon="mdi-restart" @click="restartTween">Restart</UiButton>
-        <UiButton variant="tonal" prepend-icon="mdi-stop" @click="stopTween">Stop</UiButton>
+        <UiButton color="primary" prepend-icon="mdi-play" @click="playTween">{{ copy.staticText.play }}</UiButton>
+        <UiButton variant="tonal" prepend-icon="mdi-pause" @click="pauseTween">{{ copy.staticText.pause }}</UiButton>
+        <UiButton variant="tonal" prepend-icon="mdi-restart" @click="restartTween">{{ copy.staticText.restart }}</UiButton>
+        <UiButton variant="tonal" prepend-icon="mdi-stop" @click="stopTween">{{ copy.staticText.stop }}</UiButton>
       </div>
       <UiExpansionPanels variant="accordion" class="mt-5">
-        <UiExpansionPanel title="View the TypeScript">
+        <UiExpansionPanel :title="copy.staticText.viewTheTypeScript">
           <UiExpansionPanelText><pre class="motion-code"><code>{{ tweenCode }}</code></pre></UiExpansionPanelText>
         </UiExpansionPanel>
       </UiExpansionPanels>

@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const panelsDirectory = resolve(root, 'apps/docs/src/components/VisualLab');
+const locale = JSON.parse(await readFile(resolve(root, 'apps/docs/src/locales/en.json'), 'utf8'));
 const checks = [
   {
     file: 'VisualSvgPanel.vue',
@@ -46,10 +47,12 @@ function assert(condition, message) {
 
 for (const { file, cards } of checks) {
   const source = await readFile(resolve(panelsDirectory, file), 'utf8');
+  const localeSection = file.replace(/\.vue$/, '').replace(/^./, (letter) => letter.toLowerCase());
+  const localizedValues = Object.values(locale.app.view[localeSection]?.staticText ?? {});
 
   for (const card of cards) {
-    const occurrences = source.split(card).length - 1;
-    assert(occurrences === 1, `${file}: expected one occurrence of "${card}", found ${occurrences}.`);
+    const occurrences = localizedValues.filter((value) => value === card).length;
+    assert(occurrences === 1, `${file}: expected one locale entry for "${card}", found ${occurrences}.`);
   }
 
   for (const [tag, closingTag] of [['UiRow', '</UiRow>'], ['UiCol', '</UiCol>']]) {
@@ -90,7 +93,7 @@ assert(/&__preview\s*\{[^}]*min-width:\s*0/s.test(explorerStyles), '_scene-explo
 assert(/>\s*\*\s*\{\s*width:\s*100%/.test(explorerStyles), '_scene-explorer.scss: active scene content must fill the preview panel.');
 assert(/role="tablist"[\s\S]*?role="tab"[\s\S]*?aria-selected=/.test(explorerComponent), 'VisualLabSceneExplorer.vue: scene switching must use accessible tabs.');
 assert(/@keydown="onTabKeydown/.test(explorerComponent), 'VisualLabSceneExplorer.vue: scene tabs must support keyboard navigation.');
-assert(/Copy snippet/.test(explorerComponent) && /navigator\.clipboard/.test(explorerComponent), 'VisualLabSceneExplorer.vue: code panel must expose a working copy action.');
+assert(/copy\.staticText\.copySnippet/.test(explorerComponent) && /navigator\.clipboard/.test(explorerComponent), 'VisualLabSceneExplorer.vue: code panel must expose a localized, working copy action.');
 for (const file of ['VisualSvgPanel.vue', 'VisualCanvasPanel.vue', 'VisualInteractionsPanel.vue', 'VisualScrollPanel.vue']) {
   const source = await readFile(resolve(panelsDirectory, file), 'utf8');
   assert(/<VisualLabSceneExplorer\b/.test(source), `${file}: scenes must use the shared stage and source viewer.`);

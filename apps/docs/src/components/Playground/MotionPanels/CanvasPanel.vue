@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, shallowRef } from 'vue';
+import { computed, onBeforeUnmount, ref, shallowRef } from 'vue';
 import { Tween } from '@lib';
 import { bindCanvas } from '@lib/canvas';
 import type { Subscription } from 'rxjs';
+import { useAppStore } from '../../../stores/app';
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.motionPanelCanvas);
 
 const canvasElement = ref<HTMLCanvasElement | null>(null);
 const canvasPosition = ref(20);
 const canvasStatus = ref<'idle' | 'running'>('idle');
+const canvasStatusLabel = computed(() => copy.value.staticText[canvasStatus.value]);
 const canvasMotion = shallowRef<Tween<number> | null>(null);
 let canvasBinding: Subscription | null = null;
 function startCanvasDemo(): void {
@@ -53,19 +58,19 @@ onBeforeUnmount(stopCanvasDemo);
 <template>
   <UiCard variant="outlined" class="motion-playground-card">
   <UiCardTitle class="pa-4">
-    <div class="text-overline text-secondary">08 / RENDERING ADAPTER</div>
-    <h2 class="text-h6 ma-0">Canvas 2D adapter</h2>
-    <p class="text-body-2 text-medium-emphasis mt-2 mb-0">The same headless Tween value stream drives a Canvas draw callback. Multiple values in one frame are coalesced and drawn in the shared coordinator's write phase.</p>
+    <div class="text-overline text-secondary">{{ copy.staticText.text08RENDERINGADAPTER }}</div>
+    <h2 class="text-h6 ma-0">{{ copy.staticText.canvas2DAdapter }}</h2>
+    <p class="text-body-2 text-medium-emphasis mt-2 mb-0">{{ copy.staticText.theSameHeadlessTweenValueStreamDrivesc5ffb6 }}</p>
   </UiCardTitle>
   <UiDivider />
   <UiCardText class="pa-4 pa-md-5">
-    <canvas ref="canvasElement" class="canvas-adapter-stage mb-4" width="640" height="160" role="img" :aria-label="`Canvas animation preview. Current horizontal position ${canvasPosition.toFixed(1)} pixels.`"></canvas>
+    <canvas ref="canvasElement" class="canvas-adapter-stage mb-4" width="640" height="160" role="img" :aria-label="copy.staticText.canvasAnimationPreview.replace('{position}', canvasPosition.toFixed(1))"></canvas>
     <div class="d-flex flex-wrap align-center ga-2 mb-4">
-      <UiButton color="primary" prepend-icon="mdi-play" :disabled="canvasStatus === 'running'" @click="startCanvasDemo">Start Canvas animation</UiButton>
-      <UiButton variant="outlined" color="primary" prepend-icon="mdi-stop" :disabled="canvasStatus === 'idle'" @click="stopCanvasDemo">Stop and clear</UiButton>
-      <UiChip :color="canvasStatus === 'running' ? 'success' : 'default'" variant="tonal">{{ canvasStatus }}</UiChip>
+      <UiButton color="primary" prepend-icon="mdi-play" :disabled="canvasStatus === 'running'" @click="startCanvasDemo">{{ copy.staticText.startCanvasAnimation }}</UiButton>
+      <UiButton variant="outlined" color="primary" prepend-icon="mdi-stop" :disabled="canvasStatus === 'idle'" @click="stopCanvasDemo">{{ copy.staticText.stopAndClear }}</UiButton>
+      <UiChip :color="canvasStatus === 'running' ? 'success' : 'default'" variant="tonal">{{ canvasStatusLabel }}</UiChip>
     </div>
-    <UiAlert density="compact" variant="tonal" type="info" class="mb-4">The adapter clears the bitmap before each draw by default. Canvas pixels are not restored on unsubscribe; this demo opts into clearing on teardown.</UiAlert>
+    <UiAlert density="compact" variant="tonal" type="info" class="mb-4">{{ copy.staticText.theAdapterClearsTheBitmapBeforeEach8ae4be }}</UiAlert>
     <pre class="motion-code"><code>{{ canvasAdapterCode }}</code></pre>
   </UiCardText>
 </UiCard>

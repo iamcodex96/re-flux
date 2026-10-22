@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useAppStore } from '../../stores/app';
+import { onBeforeUnmount, onMounted, ref, watch , computed} from 'vue';
 import { Tween, type MotionPreferences } from '@lib';
 import type { ShaderPreviewKind } from './visualLabTypes';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.visualLabShaderPreview);
 type UniformLocationSet = {
   time: WebGLUniformLocation | null;
   resolution: WebGLUniformLocation | null;
@@ -374,8 +378,8 @@ onBeforeUnmount(() => {
     <div v-else class="lab-shader-preview__fallback" :class="`lab-shader-preview__fallback--${kind}`">
       <span class="lab-shader-preview__fallback-orb" />
       <span class="lab-shader-preview__fallback-ring" />
-      <span class="lab-shader-preview__fallback-label">CSS fallback</span>
+      <span class="lab-shader-preview__fallback-label">{{ copy.staticText.cssFallback }}</span>
     </div>
-    <span v-if="webglUnavailable" class="lab-shader-preview__hint">{{ fallbackReason ? 'WEBGL UNAVAILABLE · FALLBACK ACTIVE' : 'FALLBACK ACTIVE' }}</span>
+    <span v-if="webglUnavailable" class="lab-shader-preview__hint">{{ fallbackReason ? copy.staticText.webglUnavailableFallbackActive : copy.staticText.fallbackActive }}</span>
   </div>
 </template>

@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useAppStore } from '../../stores/app';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch, computed } from 'vue';
 import { MotionPreferences, cubicBezier } from '@lib';
 import { animateNumber, animateText, draggable, flip, type DraggableHandle } from '@lib/dom';
 import VisualLabSceneExplorer from './VisualLabSceneExplorer.vue';
 import type { VisualLabSceneDefinition } from './visualLabSceneTypes';
 
 type InteractionKind = 'counters' | 'drag' | 'typography' | 'layout';
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.visualInteractionsPanel);
 
 const activeScene = ref<string>('drag');
 const draggableStage = ref<HTMLElement | null>(null);
@@ -28,28 +32,30 @@ const layoutReversed = ref(false);
 
 const scenes: readonly VisualLabSceneDefinition[] = [
   {
-    id: 'drag', category: '06 / INTERACTION', title: 'Drag it. Release it. Let physics finish.',
-    description: 'This interaction combines pointer capture, filtered velocity, dynamic bounds, inertial release, eased snap-to-grid and keyboard arrows. Try dragging quickly, then use the arrow keys.',
-    stageLabel: 'INTERACTIVE DOM STAGE', fileLabel: 'draggable.ts', stageTag: 'POINTER + VELOCITY + BOUNDS', ariaLabel: 'Drag the reactive orb or use the arrow keys',
+    id: 'drag', category: '06 / INTERACTION', title: copy.value.staticText.dragItReleaseItLetPhysicsFinish,
+    description: copy.value.staticText.thisInteractionCombinesPointerCaptureFilteredVelocityc24aab,
+    stageLabel: copy.value.staticText.interactiveDOMSTAGE, fileLabel: copy.value.staticText.draggableTs, stageTag: copy.value.staticText.pointerVELOCITYBOUNDS, ariaLabel: copy.value.staticText.dragTheReactiveOrbOrUseTheArrowKeys,
     snippet: `import { draggable } from '@re-code/flux/dom';\n\nconst handle = draggable(element, {\n  axis: 'both',\n  friction: 5.5,\n  velocitySmoothing: 0.72,\n  snapTo: 12,\n  snapDuration: 320,\n  getBounds: () => ({\n    minX: 0, minY: 0,\n    maxX: stage.clientWidth - element.offsetWidth,\n    maxY: stage.clientHeight - element.offsetHeight,\n  }),\n});\n\n// Dispose pointer listeners and motion state on teardown.\nreturn () => handle.destroy();`,
   },
   {
-    id: 'counters', category: '05 / DATA', title: 'Values can be the animation.',
-    description: 'Count-ups and metric transitions are driven by the same timeline engine. This scene starts when it enters the viewport, then cleans up its text bindings on teardown.',
-    stageLabel: 'LIVE DOM STAGE', fileLabel: 'number-interpolation.ts', stageTag: 'NUMBER + FORMAT STREAMS', ariaLabel: 'Three animated performance metric counters',
+    id: 'counters', category: '05 / DATA', title: copy.value.staticText.valuesCanBeTheAnimation,
+    description: copy.value.staticText.countUpsAndMetricTransitionsAreDriven572888,
+    stageLabel: copy.value.staticText.liveDOMSTAGE, fileLabel: copy.value.staticText.numberInterpolationTs, stageTag: copy.value.staticText.numberFORMATSTREAMS, ariaLabel: copy.value.staticText.threeAnimatedPerformanceMetricCounters,
     snippet: `import { animateNumber } from '@re-code/flux/dom';\n\nconst samples = animateNumber(sampleNode, {\n  from: 0, to: 12840, duration: 2200,\n  easing: 'easeOutExpo',\n  format: (value) => Math.round(value).toLocaleString('en-US'),\n});\nconst latency = animateNumber(latencyNode, {\n  from: 980, to: 16, duration: 1900,\n  format: (value) => \`\${Math.round(value)} ms\`,\n});\n\nvoid samples.play().catch(() => undefined);\nvoid latency.play().catch(() => undefined);\nreturn () => { samples.dispose(); latency.dispose(); };`,
   },
   {
-    id: 'typography', category: '13 / TYPOGRAPHY', title: 'Let type become a visual element.',
-    description: 'Character-level timing, rotation and opacity produce a reveal that feels more tactile than a single translation.',
-    stageLabel: 'KINETIC TYPE STAGE', fileLabel: 'staggered-text.ts', stageTag: 'GRAPHEME-LEVEL TIMING', ariaLabel: 'Animated kinetic typography reading Reactive motion',
+    id: 'typography', category: '13 / TYPOGRAPHY', title: copy.value.staticText.letTypeBecomeAVisualElement,
+    description: copy.value.staticText.characterLevelTimingRotationAndOpacityProduceb687bb,
+    stageLabel: copy.value.staticText.kineticTYPESTAGE, fileLabel: copy.value.staticText.staggeredTextTs, stageTag: copy.value.staticText.graphemeLEVELTIMING, ariaLabel: copy.value.staticText.animatedKineticTypographyReadingReactiveMotion,
     snippet: `import { cubicBezier } from '@re-code/flux';
-import { animateText } from '@re-code/flux/dom';\n\nconst text = animateText(element, {\n  duration: 720,\n  stagger: 26,\n  splitBy: 'graphemes',\n  fromOpacity: 0.08,\n  fromTransform: 'translateY(0.7em) rotate(5deg)',\n  easing: cubicBezier(0.16, 1, 0.3, 1),\n});\n\nvoid text.play().catch(() => undefined);\n// Replaying restarts the same character sequence.\ntext.restart();\nreturn () => text.dispose();`,
+import { animateText } from '@re-code/flux/dom';
+
+const text = animateText(element, {\n  duration: 720,\n  stagger: 26,\n  splitBy: 'graphemes',\n  fromOpacity: 0.08,\n  fromTransform: 'translateY(0.7em) rotate(5deg)',\n  easing: cubicBezier(0.16, 1, 0.3, 1),\n});\n\nvoid text.play().catch(() => undefined);\n// Replaying restarts the same character sequence.\ntext.restart();\nreturn () => text.dispose();`,
   },
   {
-    id: 'layout', category: '14 / LAYOUT', title: 'Animate layout changes, not just transforms.',
-    description: 'Reorder these tiles. FLIP measures their old and new geometry, then animates the inverse transform back to identity.',
-    stageLabel: 'FLIP LAYOUT STAGE', fileLabel: 'layout-transition.ts', stageTag: 'FIRST · LAST · INVERT · PLAY', ariaLabel: 'Four tiles whose visual order can be changed with a FLIP animation',
+    id: 'layout', category: '14 / LAYOUT', title: copy.value.staticText.animateLayoutChangesNotJustTransforms,
+    description: copy.value.staticText.reorderTheseTilesFLIPMeasuresTheirOldfd3e11,
+    stageLabel: copy.value.staticText.flipLAYOUTSTAGE, fileLabel: copy.value.staticText.layoutTransitionTs, stageTag: copy.value.staticText.firstLASTINVERTPLAY, ariaLabel: copy.value.staticText.fourTilesWhoseVisualOrderCanBeChangedWithAFLIPAnimation,
     snippet: `import { flip } from '@re-code/flux/dom';\n\nconst transition = flip(container.querySelectorAll('.tile'), () => {\n  // Apply the state change first; FLIP measures the result.\n  reorderTiles();\n}, {\n  duration: 640,\n  easing: 'easeOutCubic',\n  stagger: 35,\n});\n\nvoid transition.play().catch(() => undefined);\nreturn () => transition.dispose();`,
   },
 ];
@@ -218,30 +224,30 @@ onBeforeUnmount(() => {
   <VisualLabSceneExplorer
     v-model="activeScene"
     id-prefix="interaction-scene"
-    eyebrow="DOM / INTERACTION"
+    :eyebrow="copy.staticText.domINTERACTION"
     heading="Motion beyond transforms"
-    description="Explore the same animation engine through numbers, pointer physics, typography and layout. Each tab mounts one live interaction and shows its public API pattern."
+    :description="copy.staticText.exploreTheSameAnimationEngineThroughNumbers921e90"
     :scenes="scenes"
   >
     <template #stage="{ scene }">
       <div v-if="scene.id === 'counters'" ref="counterPanel" class="counter-board visual-scene-explorer__counter-board">
-        <div class="counter-tile"><span>Reactive samples</span><strong ref="countSamples">0</strong><small>processed</small></div>
-        <div class="counter-tile"><span>Frame latency</span><strong ref="countLatency">980 ms</strong><small>to 16 ms</small></div>
-        <div class="counter-tile"><span>Availability</span><strong ref="countUptime">0.00%</strong><small>target reached</small></div>
-        <div class="visual-scene-explorer__scene-controls"><UiButton color="success" variant="tonal" size="small" aria-label="Replay metric counters" @click="replayCounters"><UiIcon start>mdi-replay</UiIcon>Replay counters</UiButton></div>
+        <div class="counter-tile"><span>{{ copy.staticText.reactiveSamples }}</span><strong ref="countSamples">0</strong><small>{{ copy.staticText.processed }}</small></div>
+        <div class="counter-tile"><span>{{ copy.staticText.frameLatency }}</span><strong ref="countLatency">{{ copy.staticText.text980Ms }}</strong><small>{{ copy.staticText.to16Ms }}</small></div>
+        <div class="counter-tile"><span>{{ copy.staticText.availability }}</span><strong ref="countUptime">0.00%</strong><small>{{ copy.staticText.targetReached }}</small></div>
+        <div class="visual-scene-explorer__scene-controls"><UiButton color="success" variant="tonal" size="small" :aria-label="copy.staticText.replayMetricCounters" @click="replayCounters"><UiIcon start>mdi-replay</UiIcon>{{ copy.staticText.replayCounters }}</UiButton></div>
       </div>
       <div v-else-if="scene.id === 'drag'" ref="draggableStage" class="draggable-stage visual-scene-explorer__drag-stage">
         <div class="draggable-stage__grid" aria-hidden="true"></div>
-        <div ref="draggableOrb" class="draggable-orb" role="group" aria-label="Draggable reactive orb. Use arrow keys to move it."><UiIcon size="28">mdi-atom-variant</UiIcon></div>
-        <span class="draggable-stage__hint">DRAG / ARROW KEYS</span>
-        <UiButton class="visual-scene-explorer__stage-action" size="small" variant="tonal" color="primary" @click="resetDraggable">Reset <UiIcon end>mdi-restore</UiIcon></UiButton>
+        <div ref="draggableOrb" class="draggable-orb" role="group" :aria-label="copy.staticText.draggableReactiveOrbUseArrowKeysToMoveIt"><UiIcon size="28">mdi-atom-variant</UiIcon></div>
+        <span class="draggable-stage__hint">{{ copy.staticText.dragARROWKEYS }}</span>
+        <UiButton class="visual-scene-explorer__stage-action" size="small" variant="tonal" color="primary" @click="resetDraggable">{{ copy.staticText.reset }} <UiIcon end>mdi-restore</UiIcon></UiButton>
       </div>
-      <div v-else-if="scene.id === 'typography'" ref="kineticTitle" class="kinetic-stage">Reactive motion.</div>
+      <div v-else-if="scene.id === 'typography'" ref="kineticTitle" class="kinetic-stage">{{ copy.staticText.reactiveMotion }}</div>
       <div v-else-if="scene.id === 'layout'" class="layout-stage visual-scene-explorer__layout-stage">
         <div ref="layoutTarget" class="visual-scene-explorer__layout-target">
           <div v-for="number in [1, 2, 3, 4]" :key="number" class="layout-tile" :data-tile="number"><span>0{{ number }}</span><UiIcon size="18">{{ ['mdi-shape-outline', 'mdi-hexagon-outline', 'mdi-circle-outline', 'mdi-triangle-outline'][number - 1] }}</UiIcon></div>
         </div>
-        <div class="visual-scene-explorer__scene-controls"><UiButton color="primary" variant="tonal" size="small" @click="toggleLayout">{{ layoutReversed ? 'Restore order' : 'Reorder tiles' }}<UiIcon end>mdi-swap-horizontal</UiIcon></UiButton></div>
+        <div class="visual-scene-explorer__scene-controls"><UiButton color="primary" variant="tonal" size="small" @click="toggleLayout">{{ layoutReversed ? copy.staticText.restoreOrder : copy.staticText.reorderTiles }}<UiIcon end>mdi-swap-horizontal</UiIcon></UiButton></div>
       </div>
     </template>
   </VisualLabSceneExplorer>

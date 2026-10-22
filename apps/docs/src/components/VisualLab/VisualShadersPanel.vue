@@ -1,17 +1,21 @@
 <script setup lang="ts">
+import { useAppStore } from '../../stores/app';
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { MotionPreferences } from '@lib';
 import VisualLabShaderPreview from './VisualLabShaderPreview.vue';
 import type { VisualLabShaderKind } from './visualLabTypes';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.visualShadersPanel);
 const preferences = new MotionPreferences();
 const activeShader = ref<VisualLabShaderKind>('dispersion');
 const reducedMotion = ref(preferences.snapshot.reducedMotion);
 const preferenceSubscription = preferences.state$.subscribe((state) => { reducedMotion.value = state.reducedMotion; });
 const shaders: readonly { id: VisualLabShaderKind; title: string; category: string; description: string }[] = [
-  { id: 'dispersion', title: 'Chromatic dispersion', category: 'COLOR SEPARATION', description: 'Independent spectral channels form a moving interference field. This is a WebGL fragment-shader demo rather than a published re;Flux GPU adapter.' },
-  { id: 'shader-aurora', title: 'Aurora interference', category: 'WAVE INTERFERENCE', description: 'Two moving bands blend cyan and violet light, reacting to the pointer position in the shader canvas.' },
-  { id: 'shader-spectrum', title: 'Spectral refraction', category: 'RADIAL SPECTRUM', description: 'Radial interference and pointer offset demonstrate a simple uniform-driven shader effect.' },
+  { id: 'dispersion', title: copy.value.staticText.chromaticDispersion, category: 'COLOR SEPARATION', description: copy.value.staticText.independentSpectralChannelsFormAMovingInterference4483fe },
+  { id: 'shader-aurora', title: copy.value.staticText.auroraInterference, category: 'WAVE INTERFERENCE', description: copy.value.staticText.twoMovingBandsBlendCyanAndViolet192ad4 },
+  { id: 'shader-spectrum', title: copy.value.staticText.spectralRefraction, category: 'RADIAL SPECTRUM', description: copy.value.staticText.radialInterferenceAndPointerOffsetDemonstrateA87b4ff },
 ];
 const selected = computed(() => shaders.find((shader) => shader.id === activeShader.value) ?? shaders[0]!);
 const snippet = computed(() => `import { Tween } from '@re-code/flux';
@@ -70,16 +74,16 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="visual-shaders-panel">
-    <div class="visual-shaders-panel__eyebrow">EXPERIMENTAL GPU / WEBGL</div>
+    <div class="visual-shaders-panel__eyebrow">{{ copy.staticText.experimentalGPUWEBGL }}</div>
     <div class="visual-shaders-panel__heading">
       <div>
-        <h1>Shaders &amp; uniforms</h1>
-        <p>re;Flux animates the data; WebGL renders the pixels. These standalone experiments use a Tween value stream to drive a fragment-shader time uniform.</p>
+        <h1>{{ copy.staticText.shadersUniforms }}</h1>
+        <p>{{ copy.staticText.reFluxAnimatesTheDataWebGLRendersd2228b }}</p>
       </div>
-      <span class="visual-shaders-panel__status"><i /> {{ reducedMotion ? 'STATIC MOTION PREFERENCE' : 'LIVE UNIFORM STREAM' }}</span>
+      <span class="visual-shaders-panel__status"><i /> {{ reducedMotion ? copy.staticText.staticMotionPreference : copy.staticText.liveUniformStream }}</span>
     </div>
 
-    <div class="visual-shaders-panel__selector" role="group" aria-label="Choose shader experiment">
+    <div class="visual-shaders-panel__selector" role="group" :aria-label="copy.staticText.chooseShaderExperiment">
       <button
         v-for="shader in shaders"
         :key="shader.id"
@@ -93,25 +97,25 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
-    <section class="visual-shaders-panel__stage" :aria-label="`${selected.title} live shader preview`">
+    <section class="visual-shaders-panel__stage" :aria-label="copy.staticText.liveShaderPreviewAriaLabel.replace('{title}', selected.title)">
       <div class="visual-shaders-panel__stage-meta">
-        <span><i /> WEBGL FRAGMENT STAGE</span>
-        <span>{{ selected.id }}.glsl</span>
+        <span><i /> {{ copy.staticText.webglFRAGMENTSTAGE }}</span>
+        <span>{{ selected.id }}{{ copy.staticText.glsl }}</span>
       </div>
       <VisualLabShaderPreview :key="activeShader" :kind="activeShader" :active="true" :preferences="preferences" />
       <div class="visual-shaders-panel__stage-caption">
         <div><span>{{ selected.category }}</span><h2>{{ selected.title }}</h2><p>{{ selected.description }}</p></div>
-        <span class="visual-shaders-panel__stage-tag">POINTER + TIME UNIFORMS</span>
+        <span class="visual-shaders-panel__stage-tag">{{ copy.staticText.pointerTIMEUNIFORMS }}</span>
       </div>
     </section>
 
     <section class="visual-shaders-panel__code" aria-labelledby="shader-code-title">
       <div class="visual-shaders-panel__code-header">
-        <div><span class="visual-shaders-panel__eyebrow">TYPESCRIPT BINDING</span><h2 id="shader-code-title">Animate a uniform with re;Flux</h2></div>
-        <button type="button" @click="copySnippet">{{ copied ? 'Copied' : copyFailed ? 'Clipboard unavailable' : 'Copy snippet' }}</button>
+        <div><span class="visual-shaders-panel__eyebrow">{{ copy.staticText.typescriptBINDING }}</span><h2 id="shader-code-title">{{ copy.staticText.animateAUniformWithReFlux }}</h2></div>
+        <button type="button" @click="copySnippet">{{ copied ? copy.staticText.copied : copyFailed ? copy.staticText.clipboardUnavailable : copy.staticText.copySnippet }}</button>
       </div>
       <pre><code>{{ snippet }}</code></pre>
-      <p>Example binding shown for explanation. Each preview in this lab is a standalone WebGL implementation; it does not add a GPU adapter dependency to the re;Flux core.</p>
+      <p>{{ copy.staticText.exampleBindingShownForExplanationEachPreviewdefc87 }}</p>
     </section>
   </main>
 </template>

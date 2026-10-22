@@ -1,13 +1,17 @@
 <script setup lang="ts">
-withDefaults(defineProps<{
+import { computed } from 'vue';
+import { useAppStore } from '../stores/app';
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.eventLog);
+const props = defineProps<{
   title?: string;
   eyebrow?: string;
   entries: readonly string[];
   emptyMessage: string;
-}>(), {
-  title: 'Event log',
-  eyebrow: 'Lifecycle',
-});
+}>();
+const titleText = computed(() => props.title ?? copy.value.staticText.eventLog);
+const eyebrowText = computed(() => props.eyebrow ?? copy.value.staticText.lifecycle);
 
 const emit = defineEmits<{
   clear: [];
@@ -18,8 +22,8 @@ const emit = defineEmits<{
   <UiCard variant="outlined" class="event-log-card">
     <UiCardTitle class="d-flex align-center justify-space-between pa-4 ga-3">
       <div>
-        <div class="text-overline text-primary">{{ eyebrow }}</div>
-        <h2 class="text-h6 font-weight-medium ma-0">{{ title }}</h2>
+        <div class="text-overline text-primary">{{ eyebrowText }}</div>
+        <h2 class="text-h6 font-weight-medium ma-0">{{ titleText }}</h2>
       </div>
       <UiButton
         variant="text"
@@ -29,7 +33,7 @@ const emit = defineEmits<{
         :disabled="entries.length === 0"
         @click="emit('clear')"
       >
-        Clear
+        {{ copy.staticText.clear }}
       </UiButton>
     </UiCardTitle>
     <UiDivider />
@@ -40,7 +44,7 @@ const emit = defineEmits<{
       role="log"
       aria-live="polite"
       aria-relevant="additions text"
-      :aria-label="`${title} updates`"
+      :aria-label="copy.staticText.updatesAriaLabel.replace('{title}', titleText)"
     >
       <UiListItem
         v-for="(entry, index) in entries"

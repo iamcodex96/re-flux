@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import LabeledSlider from '../components/LabeledSlider.vue';
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
+import { useAppStore } from '../stores/app';
 import { keyframes, stagger, sequence as composeSequence, parallel, staggered, type AnimationState, type Keyframes, type Timeline } from '@lib';
 import { animate, type DOMAnimation } from '@lib/dom';
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.apiPlayground);
 
 const sequenceCode = `import { keyframes } from '@re-code/flux';
 
@@ -64,6 +68,10 @@ const sequence: Keyframes<number> = keyframes({
 const sequenceValue = ref(sequence.value$.value);
 const sequenceProgress = ref(0);
 const sequenceState = ref<AnimationState>(sequence.state$.value);
+const sequenceStateLabel = computed(() => {
+  const labels: Record<string, string> = { idle: copy.value.staticText.idle, running: copy.value.staticText.running, paused: copy.value.staticText.paused, completed: copy.value.staticText.completed, stopped: copy.value.staticText.stopped };
+  return labels[sequenceState.value] ?? sequenceState.value;
+});
 const sequenceSubscription = sequence.value$.subscribe((value) => { sequenceValue.value = value; });
 const progressSubscription = sequence.progress$.subscribe((value) => { sequenceProgress.value = value; });
 const stateSubscription = sequence.state$.subscribe((state) => { sequenceState.value = state; });
@@ -72,6 +80,7 @@ const sequenceLeft = computed(() => `${8 + (Math.max(0, Math.min(200, sequenceVa
 
 const domAnimation = shallowRef<DOMAnimation | null>(null);
 const domState = ref<'ready' | 'playing' | 'completed'>('ready');
+const domStateLabel = computed(() => ({ ready: copy.value.staticText.ready, playing: copy.value.staticText.playing, completed: copy.value.staticText.completed }[domState.value]));
 const domDuration = ref(550);
 const domStagger = ref(85);
 const demoCount = 5;
@@ -205,9 +214,9 @@ onBeforeUnmount(() => {
       <UiCol cols="12" lg="5">
         <UiCard variant="outlined" rounded="lg" class="h-100">
           <div class="api-example-header">
-            <div class="api-example-eyebrow text-primary">01 / HEADLESS VALUES</div>
-            <h2 class="api-example-title">Typed keyframes</h2>
-            <p class="api-example-description">Offsets are normalized to 0–1. Each keyframe can override the easing used by its outgoing segment.</p>
+            <div class="api-example-eyebrow text-primary">{{ copy.staticText.text01HeadlessValues }}</div>
+            <h2 class="api-example-title">{{ copy.staticText.typedKeyframes }}</h2>
+            <p class="api-example-description">{{ copy.staticText.offsetsAreNormalizedTo01EachKeyframeCanOverrideTheEasingUsedByItsOutgoingSegment }}</p>
           </div>
           <UiDivider />
           <UiCardText class="pa-4 pa-md-5">
@@ -218,18 +227,18 @@ onBeforeUnmount(() => {
               <div class="api-keyframe-markers"><span>0</span><span>140</span><span>70</span><span>180</span></div>
             </div>
             <UiRow dense class="mb-3">
-              <UiCol cols="4"><UiSheet color="surface-variant" rounded="lg" class="pa-3"><div class="text-caption text-medium-emphasis">Value</div><div class="text-body-1 font-weight-bold">{{ sequenceValue.toFixed(1) }}</div></UiSheet></UiCol>
-              <UiCol cols="4"><UiSheet color="surface-variant" rounded="lg" class="pa-3"><div class="text-caption text-medium-emphasis">Progress</div><div class="text-body-1 font-weight-bold">{{ Math.round(sequenceProgress * 100) }}%</div></UiSheet></UiCol>
-              <UiCol cols="4"><UiSheet color="surface-variant" rounded="lg" class="pa-3"><div class="text-caption text-medium-emphasis">State</div><div class="text-body-1 font-weight-bold">{{ sequenceState }}</div></UiSheet></UiCol>
+              <UiCol cols="4"><UiSheet color="surface-variant" rounded="lg" class="pa-3"><div class="text-caption text-medium-emphasis">{{ copy.staticText.value }}</div><div class="text-body-1 font-weight-bold">{{ sequenceValue.toFixed(1) }}</div></UiSheet></UiCol>
+              <UiCol cols="4"><UiSheet color="surface-variant" rounded="lg" class="pa-3"><div class="text-caption text-medium-emphasis">{{ copy.staticText.progress }}</div><div class="text-body-1 font-weight-bold">{{ Math.round(sequenceProgress * 100) }}%</div></UiSheet></UiCol>
+              <UiCol cols="4"><UiSheet color="surface-variant" rounded="lg" class="pa-3"><div class="text-caption text-medium-emphasis">{{ copy.staticText.state }}</div><div class="text-body-1 font-weight-bold">{{ sequenceStateLabel }}</div></UiSheet></UiCol>
             </UiRow>
-            <LabeledSlider :model-value="sequenceProgress" label="Seek keyframe sequence" :min="0" :max="1" :step="0.01" class="mb-3" @update:model-value="seekSequence" />
+            <LabeledSlider :model-value="sequenceProgress" :label="copy.staticText.seekKeyframeSequence" :min="0" :max="1" :step="0.01" class="mb-3" @update:model-value="seekSequence" />
             <div class="d-flex flex-wrap ga-2">
-              <UiButton color="primary" prepend-icon="mdi-play" @click="playSequence">Play</UiButton>
-              <UiButton color="primary" variant="outlined" prepend-icon="mdi-restart" @click="restartSequence">Restart</UiButton>
-              <UiButton variant="outlined" prepend-icon="mdi-stop" @click="stopSequence">Stop</UiButton>
+              <UiButton color="primary" prepend-icon="mdi-play" @click="playSequence">{{ copy.staticText.play }}</UiButton>
+              <UiButton color="primary" variant="outlined" prepend-icon="mdi-restart" @click="restartSequence">{{ copy.staticText.restart }}</UiButton>
+              <UiButton variant="outlined" prepend-icon="mdi-stop" @click="stopSequence">{{ copy.staticText.stop }}</UiButton>
             </div>
             <UiExpansionPanels variant="accordion" class="mt-5">
-              <UiExpansionPanel title="View the TypeScript">
+              <UiExpansionPanel :title="copy.staticText.viewTheTypescript">
                 <UiExpansionPanelText><pre class="api-code"><code>{{ sequenceCode }}</code></pre></UiExpansionPanelText>
               </UiExpansionPanel>
             </UiExpansionPanels>
@@ -240,32 +249,32 @@ onBeforeUnmount(() => {
       <UiCol cols="12" lg="7">
         <UiCard variant="outlined" rounded="lg" class="h-100">
           <div class="api-example-header">
-            <div class="api-example-eyebrow text-secondary">02 / DOM TARGETS</div>
-            <h2 class="api-example-title">Selectors, arrays &amp; stagger</h2>
-            <p class="api-example-description">Pass a selector, an element, or an iterable such as a NodeList. Every target and property shares one Timeline.</p>
+            <div class="api-example-eyebrow text-secondary">{{ copy.staticText.text02DomTargets }}</div>
+            <h2 class="api-example-title">{{ copy.staticText.selectorsArraysAndStagger }}</h2>
+            <p class="api-example-description">{{ copy.staticText.passASelectorAnElementOrAnIterableSuchAsANodelistEveryTargetAndPropertySharesOneTimeline }}</p>
           </div>
           <UiDivider />
           <UiCardText class="pa-4 pa-md-5">
-            <div class="api-demo-stage mb-4" aria-label="Five elements animated by one selector">
+            <div class="api-demo-stage mb-4" :aria-label="copy.staticText.fiveElementsAnimatedByOneSelector">
               <div v-for="index in demoCount" :key="index" class="api-demo-item" :data-index="index">{{ String(index).padStart(2, '0') }}</div>
             </div>
             <div class="d-flex flex-wrap align-center ga-2 mb-4">
-              <UiChip size="small" variant="tonal" color="primary">selector: .api-demo-item</UiChip>
-              <UiChip size="small" variant="tonal" color="secondary">property-specific timing</UiChip>
-              <UiChip size="small" variant="tonal" :color="domState === 'playing' ? 'success' : 'default'" role="status" aria-live="polite">{{ domState }}</UiChip>
+              <UiChip size="small" variant="tonal" color="primary">{{ copy.staticText.selectorApiDemoItem }}</UiChip>
+              <UiChip size="small" variant="tonal" color="secondary">{{ copy.staticText.propertySpecificTiming }}</UiChip>
+              <UiChip size="small" variant="tonal" :color="domState === 'playing' ? 'success' : 'default'" role="status" aria-live="polite">{{ domStateLabel }}</UiChip>
             </div>
             <UiRow dense class="mb-2">
-              <UiCol cols="6"><LabeledSlider v-model="domDuration" label="Duration (ms)" :min="200" :max="1400" :step="50" /></UiCol>
-              <UiCol cols="6"><LabeledSlider v-model="domStagger" label="Stagger (ms)" :min="0" :max="180" :step="5" /></UiCol>
+              <UiCol cols="6"><LabeledSlider v-model="domDuration" :label="copy.staticText.durationMs" :min="200" :max="1400" :step="50" /></UiCol>
+              <UiCol cols="6"><LabeledSlider v-model="domStagger" :label="copy.staticText.staggerMs" :min="0" :max="180" :step="5" /></UiCol>
             </UiRow>
             <div class="d-flex flex-wrap ga-2 mb-4">
-              <UiButton color="primary" prepend-icon="mdi-play" @click="playDOMAnimation">Play</UiButton>
-              <UiButton variant="outlined" prepend-icon="mdi-restart" @click="resetDOMAnimation">Apply &amp; reset</UiButton>
-              <UiButton variant="outlined" prepend-icon="mdi-broom" @click="disposeDOMAnimation">Dispose</UiButton>
+              <UiButton color="primary" prepend-icon="mdi-play" @click="playDOMAnimation">{{ copy.staticText.play }}</UiButton>
+              <UiButton variant="outlined" prepend-icon="mdi-restart" @click="resetDOMAnimation">{{ copy.staticText.applyAndReset }}</UiButton>
+              <UiButton variant="outlined" prepend-icon="mdi-broom" @click="disposeDOMAnimation">{{ copy.staticText.dispose }}</UiButton>
             </div>
-            <p class="text-body-2 text-medium-emphasis mb-3">Each property can define its own values or explicit keyframes, duration, delay, easing, repeat and yoyo behavior. Global timing options are fallbacks. A stagger delay is added to each property's delay. Call <code>dispose()</code> to restore inline styles and release bindings.</p>
+            <p class="text-body-2 text-medium-emphasis mb-3">{{ copy.staticText.eachPropertyCanDefineItsOwnValuesOrExplicitKeyframesDurationDelayEasingRepeatAndYoyoBehaviorGlobalTimingOptionsAreFallbacksAStaggerDelayIsAddedToEachPropertySDelayCall }} <code>dispose()</code> {{ copy.staticText.toRestoreInlineStylesAndReleaseBindings }}</p>
             <UiExpansionPanels variant="accordion">
-              <UiExpansionPanel title="View the TypeScript">
+              <UiExpansionPanel :title="copy.staticText.viewTheTypescript">
                 <UiExpansionPanelText><pre class="api-code"><code>{{ domCode }}</code></pre></UiExpansionPanelText>
               </UiExpansionPanel>
             </UiExpansionPanels>
@@ -276,35 +285,35 @@ onBeforeUnmount(() => {
 
     <UiCard variant="outlined" rounded="lg" class="mt-6 composition-helper-card">
       <div class="api-example-header">
-        <div class="api-example-eyebrow text-secondary">03 / COMPOSITION HELPERS</div>
-        <h2 class="api-example-title">Sequence, parallel &amp; staggered timelines</h2>
-        <p class="api-example-description">Compose headless AnimatableItems without writing manual offsets. Switch modes to compare each timing model.</p>
+        <div class="api-example-eyebrow text-secondary">{{ copy.staticText.text03CompositionHelpers }}</div>
+        <h2 class="api-example-title">{{ copy.staticText.sequenceParallelAndStaggeredTimelines }}</h2>
+        <p class="api-example-description">{{ copy.staticText.composeHeadlessAnimatableitemsWithoutWritingManualOffsetsSwitchModesToCompareEachTimingModel }}</p>
       </div>
       <UiDivider />
       <UiCardText class="pa-4 pa-md-5">
-        <div class="composition-helper-stage mb-4" role="img" aria-label="Three animated tracks showing the selected timeline composition">
+        <div class="composition-helper-stage mb-4" role="img" :aria-label="copy.staticText.threeAnimatedTracksShowingTheSelectedTimelineComposition">
           <div v-for="(progress, index) in compositionProgress" :key="index" class="composition-helper-track">
             <span class="composition-helper-track__label">{{ ['A', 'B', 'C'][index] }}</span>
             <span class="composition-helper-track__rail">
               <span class="composition-helper-track__fill" :class="`composition-helper-track__fill--${index + 1}`" :style="{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }" />
             </span>
-            <span class="composition-helper-track__percent">{{ compositionSegments[index] ? compositionSegments[index].startTime + ' ms' : '—' }} · {{ Math.round(progress * 100) }}%</span>
+            <span class="composition-helper-track__percent">{{ compositionSegments[index] ? compositionSegments[index].startTime + ' ' + copy.staticText.millisecondsAbbreviation : '—' }} · {{ Math.round(progress * 100) }}%</span>
           </div>
         </div>
-        <p class="text-caption text-medium-emphasis mb-3">Total duration: {{ compositionDuration }} ms · The same items are composed sequentially, in parallel, or with a center-out stagger.</p>
-        <div class="d-flex flex-wrap ga-2 mb-4" role="group" aria-label="Choose timeline composition">
-          <UiButton :variant="compositionMode === 'sequence' ? 'flat' : 'outlined'" color="primary" @click="playComposition('sequence')">Sequence</UiButton>
-          <UiButton :variant="compositionMode === 'parallel' ? 'flat' : 'outlined'" color="primary" @click="playComposition('parallel')">Parallel</UiButton>
-          <UiButton :variant="compositionMode === 'staggered' ? 'flat' : 'outlined'" color="primary" @click="playComposition('staggered')">Staggered from center</UiButton>
+        <p class="text-caption text-medium-emphasis mb-3">{{ copy.staticText.compositionDurationSummary.replace('{duration}', String(compositionDuration)) }}</p>
+        <div class="d-flex flex-wrap ga-2 mb-4" role="group" :aria-label="copy.staticText.chooseTimelineComposition">
+          <UiButton :variant="compositionMode === 'sequence' ? 'flat' : 'outlined'" color="primary" @click="playComposition('sequence')">{{ copy.staticText.sequence }}</UiButton>
+          <UiButton :variant="compositionMode === 'parallel' ? 'flat' : 'outlined'" color="primary" @click="playComposition('parallel')">{{ copy.staticText.parallel }}</UiButton>
+          <UiButton :variant="compositionMode === 'staggered' ? 'flat' : 'outlined'" color="primary" @click="playComposition('staggered')">{{ copy.staticText.staggeredFromCenter }}</UiButton>
         </div>
         <UiExpansionPanels variant="accordion">
-          <UiExpansionPanel title="View the TypeScript"><UiExpansionPanelText><pre class="api-code"><code>{{ compositionCode }}</code></pre></UiExpansionPanelText></UiExpansionPanel>
+          <UiExpansionPanel :title="copy.staticText.viewTheTypescript"><UiExpansionPanelText><pre class="api-code"><code>{{ compositionCode }}</code></pre></UiExpansionPanelText></UiExpansionPanel>
         </UiExpansionPanels>
       </UiCardText>
     </UiCard>
 
     <UiAlert type="info" variant="tonal" density="comfortable" class="mt-6">
-      <strong>Headless by design:</strong> import <code>keyframes</code> from <code>@re-code/flux</code> for generic values. Import <code>animate</code> from <code>@re-code/flux/dom</code> only when you want selector resolution and CSS property binding.
+      <strong>{{ copy.staticText.headlessByDesign }}</strong> {{ copy.staticText.import }} <code>keyframes</code> {{ copy.staticText.from }} <code>@re-code/flux</code> {{ copy.staticText.forGenericValuesImport }} <code>animate</code> {{ copy.staticText.from }} <code>@re-code/flux/dom</code> {{ copy.staticText.onlyWhenYouWantSelectorResolutionAndCssPropertyBinding }}
     </UiAlert>
   </UiContainer>
 </template>

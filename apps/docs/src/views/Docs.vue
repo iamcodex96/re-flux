@@ -69,7 +69,7 @@ watch(() => route.fullPath, async () => {
           <div class="docs-sidebar__footer">
             <RouterLink to="/api" class="docs-sidebar__utility-link"><UiIcon size="16" icon="mdi-tune-variant" /> {{ ui.apiPlaygroundLink }}</RouterLink>
             <RouterLink to="/visuals" class="docs-sidebar__utility-link"><UiIcon size="16" icon="mdi-flask-outline" /> {{ ui.visualShowcaseLink }}</RouterLink>
-            <a class="docs-sidebar__utility-link" href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener"><UiIcon size="16" icon="mdi-github" /> GitHub source</a>
+            <a class="docs-sidebar__utility-link" href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener"><UiIcon size="16" icon="mdi-github" /> {{ ui.githubSource }}</a>
           </div>
         </div>
       </aside>
@@ -102,13 +102,13 @@ watch(() => route.fullPath, async () => {
               <UiIcon size="13" icon="mdi-chevron-right" />
               <span class="docs-breadcrumbs__current">{{ page.label }}</span>
             </div>
-            <div class="docs-meta-chips" aria-label="Package metadata">
+            <div class="docs-meta-chips" :aria-label="ui.packageMetadata">
               <span class="docs-meta-chip docs-meta-chip--release">{{ versionLabel }}</span>
-              <span class="docs-meta-chip">TypeScript 5.7</span>
-              <span class="docs-meta-chip">RxJS 7.8 peer</span>
-              <span class="docs-meta-chip docs-meta-chip--accent">Optional adapters</span>
+              <span class="docs-meta-chip">{{ ui.typescriptVersion }}</span>
+              <span class="docs-meta-chip">{{ ui.rxjsPeerLabel }}</span>
+              <span class="docs-meta-chip docs-meta-chip--accent">{{ ui.optionalAdapters }}</span>
             </div>
-            <h1 v-if="pageKey === 'streams'">Reactive Motion Streams &amp; <span class="docs-page-heading__gradient">Spring Physics</span></h1>
+            <h1 v-if="pageKey === 'streams'">{{ ui.streamsHeadingPrefix }}<span class="docs-page-heading__gradient">{{ ui.streamsHeadingSuffix }}</span></h1>
             <h1 v-else>{{ page.title }}</h1>
             <p>{{ page.description }}</p>
           </header>

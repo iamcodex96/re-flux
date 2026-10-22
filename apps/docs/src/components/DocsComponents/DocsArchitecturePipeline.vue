@@ -79,7 +79,7 @@ onBeforeUnmount(() => window.clearTimeout(copyFeedbackTimeout));
         <div class="docs-code-window__toolbar">
           <span class="docs-code-window__lights" aria-hidden="true"><i /><i /><i /></span>
           <span class="docs-code-window__filename">retarget-stream.ts</span>
-          <span class="docs-code-window__language">TypeScript</span>
+          <span class="docs-code-window__language">{{ copy.ui.typescriptLabel }}</span>
           <button type="button" class="docs-code-window__copy" @click="copyCode"><UiIcon :icon="copied ? 'mdi-check' : 'mdi-content-copy'" size="14" /> {{ copied ? copy.ui.copied : copy.ui.copyCode }}</button>
         </div>
         <pre><code>{{ code }}</code></pre>

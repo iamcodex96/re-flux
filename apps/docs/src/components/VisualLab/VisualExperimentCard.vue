@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useAppStore } from '../../stores/app';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { map } from 'rxjs';
 import { MotionPreferences, Tween } from '@lib';
@@ -9,6 +10,9 @@ import { drawParticleConstellation } from '@demos/canvas';
 import VisualLabShaderPreview from './VisualLabShaderPreview.vue';
 import type { VisualExperimentCategory, VisualExperimentKind, VisualLabShaderKind } from './visualLabTypes';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.visualExperimentCard);
 const props = defineProps<{
   code: string;
   title: string;
@@ -498,9 +502,9 @@ onBeforeUnmount(() => {
   >
     <div class="experiment-card__art" :class="{ 'is-ready': canvasReady }" aria-hidden="true">
       <div v-if="kind === 'typography'" class="experiment-art experiment-art--typography">
-        <span class="experiment-art__eyebrow">STREAM-DRIVEN GLYPHS</span>
-        <div ref="typographyTarget" class="experiment-art__kinetic-word">KINETIC</div>
-        <span class="experiment-art__metric">Δv · STAGGER</span>
+        <span class="experiment-art__eyebrow">{{ copy.staticText.streamDRIVENGLYPHS }}</span>
+        <div ref="typographyTarget" class="experiment-art__kinetic-word">{{ copy.staticText.kinetic }}</div>
+        <span class="experiment-art__metric">{{ copy.staticText.vSTAGGER }}</span>
       </div>
 
       <VisualLabShaderPreview
@@ -510,7 +514,7 @@ onBeforeUnmount(() => {
         :preferences="preferences"
       />
 
-      <svg v-else-if="isSvgKind" class="experiment-art experiment-art--svg" viewBox="0 0 310 170" role="img" :aria-label="`${title} SVG animation preview`">
+      <svg v-else-if="isSvgKind" class="experiment-art experiment-art--svg" viewBox="0 0 310 170" role="img" :aria-label="copy.staticText.svgAnimationPreviewAriaLabel.replace('{title}', title)">
         <defs>
           <linearGradient :id="`spline-gradient-${code}`" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stop-color="var(--rx-color-accent-cyan-bright)" />
@@ -561,13 +565,13 @@ onBeforeUnmount(() => {
           class="experiment-art__canvas"
           :class="{ 'is-ready': canvasReady }"
         />
-        <div v-else class="experiment-art__canvas-fallback" role="img" :aria-label="`${title} preview is unavailable because Canvas 2D is unsupported`">
-          <span>CANVAS 2D UNAVAILABLE</span>
+        <div v-else class="experiment-art__canvas-fallback" role="img" :aria-label="copy.staticText.canvasPreviewUnavailable.replace('{title}', title)">
+          <span>{{ copy.staticText.canvas2DUNAVAILABLE }}</span>
           <strong>{{ title }}</strong>
         </div>
       </template>
 
-      <span class="experiment-card__interaction-hint">{{ motionReduced ? 'REDUCED MOTION' : isActive ? 'PLAYING' : 'HOVER TO PLAY' }}</span>
+      <span class="experiment-card__interaction-hint">{{ motionReduced ? copy.staticText.reducedMotion : isActive ? copy.staticText.playing : copy.staticText.hoverToPlay }}</span>
     </div>
 
     <div class="experiment-card__body">
@@ -579,7 +583,7 @@ onBeforeUnmount(() => {
       <p>{{ description }}</p>
       <div class="experiment-card__footer">
         <div class="experiment-card__tags"><span v-for="tag in tags" :key="tag">{{ tag }}</span></div>
-        <RouterLink class="experiment-card__launch" :to="to">Launch view <span aria-hidden="true">↗</span></RouterLink>
+        <RouterLink class="experiment-card__launch" :to="to">{{ copy.staticText.launchView }} <span aria-hidden="true">↗</span></RouterLink>
       </div>
     </div>
   </article>

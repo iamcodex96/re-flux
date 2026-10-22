@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, useId } from 'vue';
+import { useAppStore } from '../stores/app';
+import { onBeforeUnmount, onMounted, ref, useId , computed} from 'vue';
 import { MotionPreferences, Tween } from '@lib';
 import { bindCanvas, resizeCanvas } from '@lib/canvas';
 import { draggable, type DraggableHandle } from '@lib/dom';
 import { bindSvgPathMorph } from '@lib/svg';
 import { drawParticleConstellation } from '@demos/canvas';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.landingLabPreview);
 export type LandingLabPreviewKind = 'svg' | 'canvas' | 'interaction';
 
 const props = defineProps<{
@@ -212,7 +216,7 @@ onBeforeUnmount(() => {
 <template>
   <div ref="root" class="landing-lab-preview" :class="[`landing-lab-preview--${kind}`, { 'is-dragging': isDragging }]">
     <template v-if="kind === 'svg'">
-      <svg class="landing-lab-preview__svg" viewBox="0 0 280 190" role="img" :aria-label="`${title}: an SVG path morphing between geometric and organic shapes`">
+      <svg class="landing-lab-preview__svg" viewBox="0 0 280 190" role="img" :aria-label="copy.staticText.svgPathMorphingPreviewAriaLabel.replace('{title}', title)">
         <defs>
           <linearGradient :id="`${uniqueId}-morph-fill`" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#a78bfa" stop-opacity=".42" />
@@ -223,18 +227,18 @@ onBeforeUnmount(() => {
         <path ref="morphPath" :d="shapeStart" :fill="`url(#${uniqueId}-morph-fill)`" class="landing-lab-preview__morph" />
         <circle cx="140" cy="95" r="4" class="landing-lab-preview__svg-node" />
       </svg>
-      <span class="landing-lab-preview__label">SVG / MORPH STREAM</span>
+      <span class="landing-lab-preview__label">{{ copy.staticText.svgMORPHSTREAM }}</span>
     </template>
 
     <template v-else-if="kind === 'canvas'">
       <div class="landing-lab-preview__canvas-wrap">
-        <canvas ref="canvas" class="landing-lab-preview__canvas" :class="{ 'is-ready': canvasReady }" :aria-label="`${title}: a Canvas 2D particle constellation driven by re;Flux`" />
+        <canvas ref="canvas" class="landing-lab-preview__canvas" :class="{ 'is-ready': canvasReady }" :aria-label="copy.staticText.canvasParticleConstellationPreviewAriaLabel.replace('{title}', title)" />
         <svg class="landing-lab-preview__canvas-fallback" viewBox="0 0 280 190" aria-hidden="true">
           <path d="M12 100 Q65 28 114 92 T210 75 T268 97" />
           <path d="M12 126 Q65 58 114 118 T210 101 T268 124" />
         </svg>
       </div>
-      <span class="landing-lab-preview__label">CANVAS / VALUE$</span>
+      <span class="landing-lab-preview__label">{{ copy.staticText.canvasVALUE }}</span>
     </template>
 
     <template v-else>
@@ -242,12 +246,12 @@ onBeforeUnmount(() => {
         <span class="landing-lab-preview__drag-ring landing-lab-preview__drag-ring--one" aria-hidden="true" />
         <span class="landing-lab-preview__drag-ring landing-lab-preview__drag-ring--two" aria-hidden="true" />
         <span class="landing-lab-preview__drag-trace" aria-hidden="true" />
-        <div ref="dragNode" class="landing-lab-preview__drag-node" role="group" aria-label="Draggable motion node. Use pointer or arrow keys to move it.">
-          <span aria-hidden="true">re;</span>
+        <div ref="dragNode" class="landing-lab-preview__drag-node" role="group" :aria-label="copy.staticText.draggableMotionNodeAriaLabel">
+          <span aria-hidden="true">{{ copy.staticText.re }}</span>
         </div>
       </div>
-      <span class="landing-lab-preview__label">GESTURE / SPRING</span>
-      <span class="landing-lab-preview__interaction-hint">Drag the node ↗</span>
+      <span class="landing-lab-preview__label">{{ copy.staticText.gestureSPRING }}</span>
+      <span class="landing-lab-preview__interaction-hint">{{ copy.staticText.dragTheNode }}</span>
     </template>
   </div>
 </template>

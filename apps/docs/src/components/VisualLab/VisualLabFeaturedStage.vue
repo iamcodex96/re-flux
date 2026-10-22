@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { useAppStore } from '../../stores/app';
 import { combineLatest, BehaviorSubject, map, type Subscription } from 'rxjs';
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch , computed} from 'vue';
 import { MotionPreferences, RetargetableMotion, Tween } from '@lib';
 import { bindCanvas, resizeCanvas } from '@lib/canvas';
 import type { VisualLabStageConfig, VisualLabTelemetry } from './visualLabTypes';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.visualLabFeaturedStage);
 interface PointerPosition { x: number; y: number }
 interface CanvasSize { width: number; height: number }
 interface StageFrame {
@@ -402,7 +406,7 @@ onBeforeUnmount(() => {
     class="lab-feature-stage"
     :class="{ 'is-active': isVisible && !prefersReducedMotion, 'is-pointer-active': isPointerActive, 'is-static': prefersReducedMotion }"
     role="group"
-    aria-label="Interactive Canvas lattice preview. Move the pointer or use arrow keys to displace the spring-smoothed mesh. Press Home or Escape to reset."
+    :aria-label="copy.staticText.interactiveCanvasLatticePreview"
     tabindex="0"
     @pointermove="onPointerMove"
     @pointerleave="clearPointer"
@@ -410,10 +414,10 @@ onBeforeUnmount(() => {
     @keydown="onKeydown"
   >
     <canvas v-if="!canvasUnavailable" ref="canvas" class="lab-feature-stage__canvas" aria-hidden="true" />
-    <div v-else class="lab-feature-stage__fallback" role="status">Canvas 2D is unavailable in this browser. The rest of Visual Lab remains available.</div>
+    <div v-else class="lab-feature-stage__fallback" role="status">{{ copy.staticText.canvas2DIsUnavailableInThisBrowserTheRestOfVisualLabRemainsAvailable }}</div>
     <div class="lab-feature-stage__vignette" aria-hidden="true" />
     <div v-if="!canvasUnavailable" class="lab-feature-stage__hint">
-      {{ prefersReducedMotion ? 'REDUCED MOTION' : isPointerActive ? 'POINTER SPRING ACTIVE' : isVisible ? 'MOVE POINTER OR USE ARROW KEYS' : 'STAGE PAUSED OFFSCREEN' }}
+      {{ prefersReducedMotion ? copy.staticText.reducedMotion : isPointerActive ? copy.staticText.pointerSpringActive : isVisible ? copy.staticText.movePointerOrUseArrowKeys : copy.staticText.stagePausedOffscreen }}
     </div>
   </div>
 </template>

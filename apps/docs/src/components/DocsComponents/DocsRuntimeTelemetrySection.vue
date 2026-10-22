@@ -16,7 +16,7 @@ const snippets = computed(() => copy.value.snippets);
       <div><p class="docs-section-eyebrow">{{ ui.performanceEyebrow }}</p><h2>{{ copy.section['frame-observability'].title }}</h2></div>
     </div>
     <p class="docs-section-intro">{{ copy.section['frame-observability'].description }}</p>
-    <div class="docs-code-window docs-performance-section__code"><div class="docs-code-window__toolbar"><span class="docs-code-window__filename">frame-coordinator.ts</span><span class="docs-code-window__language">TypeScript</span></div><pre><code>{{ snippets.frameObservability }}</code></pre></div>
+    <div class="docs-code-window docs-performance-section__code"><div class="docs-code-window__toolbar"><span class="docs-code-window__filename">frame-coordinator.ts</span><span class="docs-code-window__language">{{ ui.typescriptLabel }}</span></div><pre><code>{{ snippets.frameObservability }}</code></pre></div>
     <DocsRuntimeTelemetry />
   </section>
 </template>

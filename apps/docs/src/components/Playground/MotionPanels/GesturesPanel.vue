@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useAppStore } from '../../../stores/app';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch , computed} from 'vue';
 import { dragInertia, pointerGestures$, slideFollow, type Point2D } from '@lib';
 import { map, Subject, type Subscription } from 'rxjs';
 import MetricTile from '../../MetricTile.vue';
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.motionPanelGestures);
 
 const gestureStage = ref<HTMLElement | null>(null);
 const gestureHandle = ref<HTMLButtonElement | null>(null);
@@ -249,47 +253,47 @@ onBeforeUnmount(() => {
 <template>
   <UiCard variant="outlined" class="motion-playground-card">
     <UiCardTitle class="pa-4">
-      <div class="text-overline text-secondary">04 / GESTURE PHYSICS</div>
-      <h2 class="text-h6 ma-0">Drag inertia &amp; slide follow</h2>
-      <p class="text-body-2 text-medium-emphasis mt-2 mb-0">Drag the handle with a mouse, touch, or pen and release to see inertia. The outlined follower uses a spring to track the same point; the handle also supports arrow-key movement.</p>
+      <div class="text-overline text-secondary">{{ copy.staticText.text04GESTUREPHYSICS }}</div>
+      <h2 class="text-h6 ma-0">{{ copy.staticText.dragInertiaSlideFollow }}</h2>
+      <p class="text-body-2 text-medium-emphasis mt-2 mb-0">{{ copy.staticText.dragTheHandleWithAMouseTouch163da4 }}</p>
     </UiCardTitle>
     <UiDivider />
     <UiCardText class="pa-4 pa-md-5">
       <div class="d-flex flex-wrap align-center ga-2 mb-3">
-        <span class="text-body-2 font-weight-medium">Drag axis</span>
-        <UiButtonToggle v-model="gestureAxis" density="compact" color="primary" mandatory variant="outlined" aria-label="Drag axis lock" @update:model-value="resetGesture">
-          <UiButton value="both" size="small">Both</UiButton>
-          <UiButton value="x" size="small">Horizontal</UiButton>
-          <UiButton value="y" size="small">Vertical</UiButton>
+        <span class="text-body-2 font-weight-medium">{{ copy.staticText.dragAxis }}</span>
+        <UiButtonToggle v-model="gestureAxis" density="compact" color="primary" mandatory variant="outlined" :aria-label="copy.staticText.dragAxisLock" @update:model-value="resetGesture">
+          <UiButton value="both" size="small">{{ copy.staticText.both }}</UiButton>
+          <UiButton value="x" size="small">{{ copy.staticText.horizontal }}</UiButton>
+          <UiButton value="y" size="small">{{ copy.staticText.vertical }}</UiButton>
         </UiButtonToggle>
-        <UiChip size="small" variant="tonal" color="secondary">Pointer capture on</UiChip>
+        <UiChip size="small" variant="tonal" color="secondary">{{ copy.staticText.pointerCaptureOn }}</UiChip>
       </div>
-      <div ref="gestureStage" class="gesture-stage mb-4" role="group" aria-label="Interactive drag and spring-follow stage">
+      <div ref="gestureStage" class="gesture-stage mb-4" role="group" :aria-label="copy.staticText.interactiveDragAndSpringFollowStage">
         <div class="gesture-stage__follower" :style="{ left: `${followerX}px`, top: `${followerY}px` }" aria-hidden="true"></div>
         <button
           ref="gestureHandle"
           type="button"
           class="gesture-stage__handle"
           :style="{ left: `${dragX}px`, top: `${dragY}px` }"
-          aria-label="Drag the motion handle. Use the arrow keys to move it, or hold Shift for larger steps."
+          :aria-label="copy.staticText.dragTheMotionHandleUseTheArrowKeysToMoveItOrHoldShiftForLargerSteps"
           aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight"
           @keydown="moveHandleWithKeyboard"
-        >Drag me</button>
-        <div class="gesture-stage__follower-label" aria-hidden="true">SOLID = DRAG + INERTIA · OUTLINE = SPRING FOLLOW</div>
+        >{{ copy.staticText.dragMe }}</button>
+        <div class="gesture-stage__follower-label" aria-hidden="true">{{ copy.staticText.solidDRAGINERTIAOUTLINESPRINGFOLLOW }}</div>
       </div>
       <UiRow dense class="mb-4">
-        <UiCol cols="4"><MetricTile label="Gesture phase" :value="dragPhase" /></UiCol>
-        <UiCol cols="4"><MetricTile label="Speed" :value="`${dragVelocity.toFixed(0)} px/s`" /></UiCol>
-        <UiCol cols="4"><MetricTile label="Follower" :value="`${Math.round(followerX)}, ${Math.round(followerY)}`" /></UiCol>
+        <UiCol cols="4"><MetricTile :label="copy.staticText.gesturePhase" :value="dragPhase" /></UiCol>
+        <UiCol cols="4"><MetricTile :label="copy.staticText.speed" :value="`${dragVelocity.toFixed(0)} px/s`" /></UiCol>
+        <UiCol cols="4"><MetricTile :label="copy.staticText.follower" :value="`${Math.round(followerX)}, ${Math.round(followerY)}`" /></UiCol>
       </UiRow>
       <div class="d-flex flex-wrap align-center ga-2 mb-4">
-        <UiChip size="small" variant="tonal" color="primary">pointerdown / move / up</UiChip>
-        <UiChip size="small" variant="tonal" color="secondary">Exponential inertia</UiChip>
-        <UiChip size="small" variant="tonal">Spring follower</UiChip>
-        <UiButton size="small" variant="tonal" prepend-icon="mdi-restore" @click="resetGesture">Reset positions</UiButton>
+        <UiChip size="small" variant="tonal" color="primary">{{ copy.staticText.pointerdownMoveUp }}</UiChip>
+        <UiChip size="small" variant="tonal" color="secondary">{{ copy.staticText.exponentialInertia }}</UiChip>
+        <UiChip size="small" variant="tonal">{{ copy.staticText.springFollower }}</UiChip>
+        <UiButton size="small" variant="tonal" prepend-icon="mdi-restore" @click="resetGesture">{{ copy.staticText.resetPositions }}</UiButton>
       </div>
       <UiExpansionPanels variant="accordion">
-        <UiExpansionPanel title="View the TypeScript">
+        <UiExpansionPanel :title="copy.staticText.viewTheTypeScript">
           <UiExpansionPanelText><pre class="motion-code"><code>{{ gestureCode }}</code></pre></UiExpansionPanelText>
         </UiExpansionPanel>
       </UiExpansionPanels>

@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { useAppStore } from '../../../stores/app';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { adaptiveTween, type AdaptiveTweenSample, type TimestampedValue } from '@lib';
 import { Subject, type Subscription } from 'rxjs';
 import MetricTile from '../../MetricTile.vue';
 
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.motionPanelAdaptive);
 const adaptiveInputs = new Subject<TimestampedValue<number>>();
 const adaptiveValue = ref(50);
 const adaptiveCadence = ref(1000 / 30);
@@ -97,32 +101,32 @@ onBeforeUnmount(() => {
 <template>
   <UiCard variant="outlined" class="motion-playground-card">
   <UiCardTitle class="pa-4">
-    <div class="text-overline text-primary">07 / CADENCE-AWARE INTERPOLATION</div>
-    <h2 class="text-h6 ma-0">Adaptive tween duration</h2>
-    <p class="text-body-2 text-medium-emphasis mt-2 mb-0">Compare fast, slow and irregular timestamped streams. The operator estimates actual sample cadence and adapts each transition duration. Samples are delivered over time, not as a single batch.</p>
+    <div class="text-overline text-primary">{{ copy.staticText.text07CADENCEAWAREINTERPOLATION }}</div>
+    <h2 class="text-h6 ma-0">{{ copy.staticText.adaptiveTweenDuration }}</h2>
+    <p class="text-body-2 text-medium-emphasis mt-2 mb-0">{{ copy.staticText.compareFastSlowAndIrregularTimestampedStreams2aa1a2 }}</p>
   </UiCardTitle>
   <UiDivider />
   <UiCardText class="pa-4 pa-md-5">
     <div class="stream-chart mb-4">
-      <svg viewBox="0 0 320 120" preserveAspectRatio="none" role="img" :aria-label="`Adaptive tween history. Current value ${adaptiveValue.toFixed(1)}. Estimated cadence ${adaptiveCadence.toFixed(1)} milliseconds. Tween duration ${adaptiveDuration.toFixed(1)} milliseconds.`">
+      <svg viewBox="0 0 320 120" preserveAspectRatio="none" role="img" :aria-label="copy.staticText.adaptiveTweenHistoryAriaLabel.replace('{value}', adaptiveValue.toFixed(1)).replace('{cadence}', adaptiveCadence.toFixed(1)).replace('{duration}', adaptiveDuration.toFixed(1))">
         <line v-for="y in [12, 36, 60, 84, 108]" :key="y" x1="0" :y1="y" x2="320" :y2="y" class="stream-chart__grid" />
         <polyline v-if="adaptivePath" :points="adaptivePath" class="stream-chart__line" />
         <circle v-if="adaptivePath" cx="310" :cy="108 - Math.min(100, Math.max(0, adaptiveValue)) * 0.96" r="3.5" class="adaptive-chart__point" />
       </svg>
     </div>
     <div class="d-flex flex-wrap ga-2 mb-4">
-      <UiButton color="primary" variant="tonal" @click="sendAdaptivePattern('fast')">Simulate fast stream</UiButton>
-      <UiButton color="secondary" variant="tonal" @click="sendAdaptivePattern('slow')">Simulate slow stream</UiButton>
-      <UiButton variant="outlined" color="primary" @click="sendAdaptivePattern('jitter')">Simulate jitter</UiButton>
-      <UiChip :color="adaptiveStale ? 'warning' : 'success'" variant="tonal">{{ adaptiveStale ? 'Input stale' : 'Sampling' }}</UiChip>
+      <UiButton color="primary" variant="tonal" @click="sendAdaptivePattern('fast')">{{ copy.staticText.simulateFastStream }}</UiButton>
+      <UiButton color="secondary" variant="tonal" @click="sendAdaptivePattern('slow')">{{ copy.staticText.simulateSlowStream }}</UiButton>
+      <UiButton variant="outlined" color="primary" @click="sendAdaptivePattern('jitter')">{{ copy.staticText.simulateJitter }}</UiButton>
+      <UiChip :color="adaptiveStale ? 'warning' : 'success'" variant="tonal">{{ adaptiveStale ? copy.staticText.inputStale : copy.staticText.sampling }}</UiChip>
     </div>
     <UiRow dense class="mb-4">
-      <UiCol cols="6" md="3"><MetricTile label="Value" :value="adaptiveValue.toFixed(2)" /></UiCol>
-      <UiCol cols="6" md="3"><MetricTile label="Estimated cadence" :value="`${adaptiveCadence.toFixed(1)} ms`" /></UiCol>
-      <UiCol cols="6" md="3"><MetricTile label="Tween duration" :value="`${adaptiveDuration.toFixed(1)} ms`" /></UiCol>
-      <UiCol cols="6" md="3"><MetricTile label="Buffer policy" value="Bounded / no prediction" /></UiCol>
+      <UiCol cols="6" md="3"><MetricTile :label="copy.staticText.value" :value="adaptiveValue.toFixed(2)" /></UiCol>
+      <UiCol cols="6" md="3"><MetricTile :label="copy.staticText.estimatedCadence" :value="`${adaptiveCadence.toFixed(1)} ms`" /></UiCol>
+      <UiCol cols="6" md="3"><MetricTile :label="copy.staticText.tweenDuration" :value="`${adaptiveDuration.toFixed(1)} ms`" /></UiCol>
+      <UiCol cols="6" md="3"><MetricTile :label="copy.staticText.bufferPolicy" :value="copy.staticText.boundedNoPrediction" /></UiCol>
     </UiRow>
-    <UiAlert density="compact" variant="tonal" type="info" class="mb-4">adaptiveTween adapts the transition duration to the measured cadence. It preserves the rendered value when retargeting, but does not preserve physical velocity; use retargetMotion() for spring momentum.</UiAlert>
+    <UiAlert density="compact" variant="tonal" type="info" class="mb-4">{{ copy.staticText.adaptivetweenAdaptsTheTransitionDurationToThef9a3c3 }}</UiAlert>
     <pre class="motion-code"><code>{{ adaptiveTweenCode }}</code></pre>
   </UiCardText>
 </UiCard>

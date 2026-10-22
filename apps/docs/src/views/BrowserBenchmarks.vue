@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { keyframes } from '@lib';
+import { useAppStore } from '../stores/app';
+
+const appStore = useAppStore();
+const copy = computed(() => appStore.app.view.browserBenchmarks);
 
 type EngineId = 're-flux' | 'gsap' | 'animejs';
 type RendererId = 'dom' | 'svg' | 'canvas';
@@ -135,28 +139,28 @@ interface RenderScene {
 
 const engines: readonly EngineMeta[] = [
   {
-    id: 're-flux', name: 're;Flux', version: 'this site build',
-    subtitle: 'RxJS-driven keyframes', href: 'https://github.com/iamcodex96/re-flux',
+    id: 're-flux', name: 're;Flux', version: copy.value.staticText.thisSiteBuild,
+    subtitle: copy.value.staticText.rxjsDrivenKeyframes, href: 'https://github.com/iamcodex96/re-flux',
   },
   {
     id: 'gsap', name: 'GSAP', version: '3.15.0',
-    subtitle: 'JavaScript object tween', href: 'https://gsap.com/',
+    subtitle: copy.value.staticText.javascriptObjectTween, href: 'https://gsap.com/',
   },
   {
     id: 'animejs', name: 'Anime.js', version: '4.5.0',
-    subtitle: 'JavaScript object animation', href: 'https://animejs.com/',
+    subtitle: copy.value.staticText.javascriptObjectAnimation, href: 'https://animejs.com/',
   },
 ];
 
 const scenarios: Array<{ id: ScenarioId; label: string; description: string }> = [
-  { id: 'engine-only', label: 'Engine overhead', description: 'Each engine animates a collection of plain JavaScript objects. No DOM, SVG, Canvas or layout writes are performed in the measured workload.' },
-  { id: 'per-target-dom', label: 'Per-target DOM', description: 'Each engine updates opacity independently on the selected number of real DOM elements. This includes each engine’s per-target animation path.' },
-  { id: 'shared-renderer', label: 'Shared renderer', description: 'Each engine animates one scalar progress value and drives the same renderer callback for DOM, SVG or Canvas.' },
+  { id: 'engine-only', label: copy.value.staticText.engineOverhead, description: copy.value.staticText.engineOverheadDescription },
+  { id: 'per-target-dom', label: copy.value.staticText.perTargetDom, description: copy.value.staticText.perTargetDomDescription },
+  { id: 'shared-renderer', label: copy.value.staticText.sharedRenderer, description: copy.value.staticText.sharedRendererDescription },
 ];
 const renderers: Array<{ id: RendererId; label: string; description: string }> = [
-  { id: 'dom', label: 'DOM', description: 'Real HTML elements; inline transform and opacity updates.' },
-  { id: 'svg', label: 'SVG', description: 'Real SVG rectangles; transform and opacity attributes are updated per target.' },
-  { id: 'canvas', label: 'Canvas 2D', description: 'A real canvas redraws the selected number of shapes on each engine update.' },
+  { id: 'dom', label: copy.value.staticText.domRenderer, description: copy.value.staticText.domRendererDescription },
+  { id: 'svg', label: copy.value.staticText.svgRenderer, description: copy.value.staticText.svgRendererDescription },
+  { id: 'canvas', label: copy.value.staticText.canvas2dRenderer, description: copy.value.staticText.canvas2dRendererDescription },
 ];
 const targetOptions = [100, 250, 500, 1000, 2500, 5000];
 const durationOptions = [1000, 1500, 2000, 2500];
@@ -182,7 +186,7 @@ const selectedDurationMs = ref(1500);
 const stageHost = ref<HTMLDivElement | null>(null);
 const isRunning = ref(false);
 const currentEngine = ref<EngineId | null>(null);
-const statusMessage = ref('Ready to compare. Keep this tab visible while a run is in progress.');
+const statusMessage = ref(copy.value.staticText.readyToCompareKeepThisTabVisibleWhileARunIsInProgress);
 const errorMessage = ref<string | null>(null);
 const progressStep = ref(0);
 const totalSteps = 3 + repetitions * engines.length;
@@ -196,8 +200,8 @@ let cachedModules: Promise<EngineModules> | null = null;
 
 const selectedScenarioMeta = computed(() => scenarios.find((item) => item.id === selectedScenario.value)!);
 const selectedRendererMeta = computed(() => {
-  if (selectedScenario.value === 'engine-only') return { id: 'none' as const, label: 'JavaScript objects', description: 'Object updates only; no browser renderer is involved in the measured workload.' };
-  if (selectedScenario.value === 'per-target-dom') return { id: 'dom' as const, label: 'Per-target DOM', description: 'Each engine animates opacity on each real DOM target using its per-target animation path.' };
+  if (selectedScenario.value === 'engine-only') return { id: 'none' as const, label: copy.value.staticText.javascriptObjects, description: copy.value.staticText.javascriptObjectsDescription };
+  if (selectedScenario.value === 'per-target-dom') return { id: 'dom' as const, label: copy.value.staticText.perTargetDom, description: copy.value.staticText.perTargetDomDescriptionShort };
   return renderers.find((item) => item.id === selectedRenderer.value)!;
 });
 const activeRenderer = computed<BenchmarkRendererId>(() => selectedScenario.value === 'engine-only' ? 'none' : selectedScenario.value === 'per-target-dom' ? 'dom' : selectedRenderer.value);
@@ -207,8 +211,8 @@ const summaries = computed<EngineSummary[]>(() => engines.map((engine) => summar
 const measuredResultsExist = computed(() => summaries.value.some((summary) => summary.runs.length > 0));
 const maxRendererP95Ms = computed(() => Math.max(0, ...summaries.value.map((summary) => summary.medianRendererP95Ms ?? 0)));
 const statusLabel = computed(() => isRunning.value
-  ? (currentEngine.value ? `Running ${engineName(currentEngine.value)}…` : 'Preparing benchmark…')
-  : report.value ? 'Run complete' : errorMessage.value ? 'Run needs attention' : 'Ready');
+  ? (currentEngine.value ? copy.value.staticText.runningEngine.replace('{engine}', engineName(currentEngine.value)) : copy.value.staticText.preparingBenchmark)
+  : report.value ? copy.value.staticText.runComplete : errorMessage.value ? copy.value.staticText.runNeedsAttention : copy.value.staticText.ready);
 
 watch([selectedScenario, selectedRenderer, selectedTargetCount, selectedDurationMs], () => {
   if (isRunning.value) return;
@@ -217,7 +221,7 @@ watch([selectedScenario, selectedRenderer, selectedTargetCount, selectedDuration
   progressStep.value = 0;
   errorMessage.value = null;
   engineStatus.value = { 're-flux': 'idle', gsap: 'idle', animejs: 'idle' };
-  statusMessage.value = 'Configuration changed. Ready for a new benchmark.';
+  statusMessage.value = copy.value.staticText.configurationChangedReadyForANewBenchmark;
 });
 
 function engineName(id: EngineId): string {
@@ -287,14 +291,14 @@ function loadCompetitorModules(): Promise<EngineModules> {
         ?? (gsapDefault && typeof gsapDefault === 'object' && 'gsap' in gsapDefault ? gsapDefault.gsap : undefined)
         ?? gsapDefault;
       if (!gsapCandidate || typeof gsapCandidate !== 'object' || !('to' in gsapCandidate)) {
-        throw new Error('GSAP loaded from the CDN, but its animation API was not found.');
+        throw new Error(copy.value.staticText.gsapLoadedFromTheCdnButItsAnimationApiWasNotFound);
       }
       const animeModule = animeModuleValue as AnimeModuleShape;
       const animeDefault = animeModule.default;
       const animeCandidate = animeModule.animate
         ?? (animeDefault && typeof animeDefault === 'object' && 'animate' in animeDefault ? animeDefault.animate : undefined);
       if (typeof animeCandidate !== 'function') {
-        throw new Error('Anime.js loaded from the CDN, but its animate() API was not found.');
+        throw new Error(copy.value.staticText.animeJsLoadedFromTheCdnButItsAnimateApiWasNotFound);
       }
       return { gsap: gsapCandidate as GsapApi, animeAnimate: animeCandidate };
     })().catch((error: unknown) => {
@@ -390,7 +394,7 @@ function createScene(host: HTMLElement, renderer: RendererId, targetCount: numbe
   canvas.setAttribute('role', 'img');
   canvas.setAttribute('aria-label', `${targetCount} animated Canvas shapes`);
   const context = canvas.getContext('2d');
-  if (!context) throw new Error('Canvas 2D is not available in this browser.');
+  if (!context) throw new Error(copy.value.staticText.canvas2dIsNotAvailableInThisBrowser);
   const rows = Math.ceil(targetCount / columns);
   const cellWidth = 940 / columns;
   const cellHeight = 340 / Math.max(1, rows);
@@ -449,7 +453,7 @@ function createPerTargetRunner(
   const targets = scenario === 'engine-only'
     ? (scene.objectTargets ?? [])
     : (scene.domTargets ?? []);
-  if (targets.length === 0) throw new Error('The selected benchmark scenario has no targets.');
+  if (targets.length === 0) throw new Error(copy.value.staticText.theSelectedBenchmarkScenarioHasNoTargets);
 
   if (engine === 're-flux') {
     const animations: ReturnType<typeof keyframes<number>>[] = [];
@@ -659,7 +663,7 @@ async function measureRun(
 ): Promise<BrowserRunResult> {
   throwIfAborted(signal);
   const host = stageHost.value;
-  if (!host) throw new Error('The benchmark stage is not available.');
+  if (!host) throw new Error(copy.value.staticText.theBenchmarkStageIsNotAvailable);
   const scene = renderer === 'none'
     ? createObjectScene(host, targetCount)
     : createScene(host, renderer, targetCount);
@@ -822,7 +826,7 @@ async function measureRun(
 
 function buildReport(): BenchmarkReport {
   return {
-    benchmark: 're;Flux public browser benchmark',
+    benchmark: copy.value.staticText.publicBrowserBenchmark,
     schemaVersion: 2,
     createdAt: new Date().toISOString(),
     environment: {
@@ -850,32 +854,32 @@ function buildReport(): BenchmarkReport {
       id: engine.id,
       name: engine.name,
       version: engine.version,
-      source: engine.id === 're-flux' ? 'local site build' : cdnUrls[engine.id],
+      source: engine.id === 're-flux' ? copy.value.staticText.localSiteBuild : cdnUrls[engine.id],
     })),
     methodology: [
-      'Competitor modules are fetched before measurements; CDN load time is excluded.',
+      copy.value.staticText.competitorModulesFetchedBeforeMeasurements,
       selectedScenario.value === 'shared-renderer'
-        ? 'Each engine animates the same scalar progress value from 0 to 1 using linear easing and drives a shared renderer.'
+        ? copy.value.staticText.sharedRendererMethodology
         : selectedScenario.value === 'engine-only'
-          ? 'Each engine animates one plain JavaScript object per target without DOM, SVG, Canvas or layout writes; re;Flux uses one keyframes animation per object while GSAP and Anime.js use their multi-target object APIs.'
-          : 'Each engine animates opacity independently on the same number of real DOM targets; re;Flux uses one keyframes animation per target while GSAP and Anime.js use their multi-target DOM APIs.',
-      'The shared-renderer scenario uses the same DOM/SVG/Canvas write function and target count for each engine.',
-      'One short unreported warm-up run is completed per engine before ten measured repetitions.',
-      'The benchmark calibrates requestAnimationFrame cadence first and uses the median interval as its estimated refresh opportunity; this is not a hardware display-mode query.',
-      'Run order rotates through three permutations across ten measured repetitions to reduce ordering bias.',
-      'After each run, one extra browser scheduling opportunity checks whether stopped animation runners still call the renderer.',
-      'Renderer callback time is reported only for the shared-renderer scenario; it includes two performance.now() calls per measured callback and does not include all engine internals.',
-      'Frame intervals come from a separate requestAnimationFrame observer; they are not a direct measurement of paint completion or physical display presentation.',
-      'Estimated missed refreshes are computed by rounding each observed requestAnimationFrame interval to the nearest calibrated interval and subtracting one; this is an estimate, not a presentation-timing measurement.',
-      'Stretched intervals exceed 1.5 times the calibrated frame interval; the threshold is no longer hard-coded to 60 Hz.',
-      'Long Tasks and Long Animation Frames are reported only when supported by the browser.',
+          ? copy.value.staticText.engineOnlyMethodology
+          : copy.value.staticText.perTargetDomMethodology,
+      copy.value.staticText.sharedRendererMethodologyReport,
+      copy.value.staticText.warmUpMethodologyReport,
+      copy.value.staticText.calibrationMethodologyReport,
+      copy.value.staticText.runOrderMethodologyReport,
+      copy.value.staticText.postRunCleanupProbe,
+      copy.value.staticText.rendererCallbackTimeNote,
+      copy.value.staticText.frameIntervalNote,
+      copy.value.staticText.estimatedMissedRefreshesNote,
+      copy.value.staticText.stretchedIntervalsNote,
+      copy.value.staticText.longTasksSupportNote,
     ],
     results: summaries.value.filter((summary) => summary.runs.length > 0),
     caveats: [
-      'Results describe this browser, device, viewport, and current system load; they are not universal rankings.',
-      'The workload compares each engine with a shared render callback, not each library’s full native DOM API surface.',
-      'The CDN must be reachable to load GSAP and Anime.js. Their module transfer and evaluation happen outside the timed runs.',
-      'No benchmark results are uploaded; the JSON is generated locally in this browser.',
+      copy.value.staticText.browserDeviceCaveat,
+      copy.value.staticText.sharedCallbackCaveat,
+      copy.value.staticText.cdnCaveat,
+      copy.value.staticText.noUploadCaveat,
     ],
   };
 }
@@ -883,7 +887,7 @@ function buildReport(): BenchmarkReport {
 async function runComparison(): Promise<void> {
   if (isRunning.value) return;
   if (document.visibilityState !== 'visible') {
-    errorMessage.value = 'Bring this tab to the foreground before starting a benchmark.';
+    errorMessage.value = copy.value.staticText.bringThisTabToTheForegroundBeforeStartingABenchmark;
     return;
   }
 
@@ -898,17 +902,17 @@ async function runComparison(): Promise<void> {
   engineStatus.value = { 're-flux': 'loading', gsap: 'loading', animejs: 'loading' };
 
   try {
-    statusMessage.value = 'Loading pinned comparison engines. Network loading is excluded from the results.';
+    statusMessage.value = copy.value.staticText.loadingPinnedComparisonEnginesNetworkLoadingIsExcludedFromTheResults;
     const modules = await awaitWithAbort(loadCompetitorModules(), controller.signal);
     throwIfAborted(controller.signal);
 
-    statusMessage.value = 'Calibrating the browser frame cadence…';
+    statusMessage.value = copy.value.staticText.calibratingTheBrowserFrameCadence;
     const calibration = await calibrateFrameInterval(controller.signal);
     frameBudgetReferenceMs.value = calibration.intervalMs;
     frameBudgetSource.value = calibration.source;
     calibrationSamples.value = calibration.sampleCount;
 
-    statusMessage.value = 'Warming up each engine with a small, unreported run…';
+    statusMessage.value = copy.value.staticText.warmingUpEachEngineWithASmallUnreportedRun;
     const warmupOrder: EngineId[] = ['animejs', 'gsap', 're-flux'];
     for (const engine of warmupOrder) {
       throwIfAborted(controller.signal);
@@ -931,7 +935,7 @@ async function runComparison(): Promise<void> {
       for (const engine of runOrders[repetition - 1]!) {
         throwIfAborted(controller.signal);
         currentEngine.value = engine;
-        statusMessage.value = `Repetition ${repetition} of ${repetitions} · ${engineName(engine)} · ${selectedScenarioMeta.value.label}`;
+        statusMessage.value = copy.value.staticText.repetitionOf.replace('{current}', String(repetition)).replace('{total}', String(repetitions)).replace('{engine}', engineName(engine)).replace('{scenario}', selectedScenarioMeta.value.label);
         const result = await measureRun(
           engine,
           activeRenderer.value,
@@ -953,14 +957,14 @@ async function runComparison(): Promise<void> {
 
     engineStatus.value = { 're-flux': 'complete', gsap: 'complete', animejs: 'complete' };
     report.value = buildReport();
-    statusMessage.value = `All ${repetitions * engines.length} measured runs are complete. Export the JSON to keep or share this result.`;
+    statusMessage.value = copy.value.staticText.allMeasuredRunsComplete.replace('{count}', String(repetitions * engines.length));
   } catch (error) {
     if (isAbortError(error)) {
-      statusMessage.value = 'Benchmark canceled. Completed runs remain available below.';
+      statusMessage.value = copy.value.staticText.benchmarkCanceledCompletedRunsRemainAvailableBelow;
     } else {
-      const message = error instanceof Error ? error.message : 'An unknown error occurred while running the benchmark.';
+      const message = error instanceof Error ? error.message : copy.value.staticText.anUnknownErrorOccurredWhileRunningTheBenchmark;
       errorMessage.value = message;
-      statusMessage.value = 'The comparison did not complete. Check connectivity and try again.';
+      statusMessage.value = copy.value.staticText.theComparisonDidNotCompleteCheckConnectivityAndTryAgain;
       if (currentEngine.value) engineStatus.value[currentEngine.value] = 'error';
     }
     if (measuredResultsExist.value) report.value = buildReport();
@@ -980,7 +984,7 @@ function formatMs(value: number | null, digits = 2): string {
 }
 
 function formatCount(value: number | null): string {
-  return value === null ? 'N/A' : value.toLocaleString();
+  return value === null ? copy.value.staticText.notApplicable : value.toLocaleString();
 }
 
 function barWidth(value: number | null): string {
@@ -1006,72 +1010,72 @@ onBeforeUnmount(() => activeController?.abort());
 <template>
   <div class="browser-benchmarks">
     <section class="browser-benchmarks__hero">
-      <div class="browser-benchmarks__eyebrow"><span class="browser-benchmarks__eyebrow-dot" /> PUBLIC PERFORMANCE LAB</div>
-      <h1>Motion, measured <span>in your browser.</span></h1>
+      <div class="browser-benchmarks__eyebrow"><span class="browser-benchmarks__eyebrow-dot" /> {{ copy.staticText.publicPerformanceLab }}</div>
+      <h1>{{ copy.staticText.motionMeasured }} <span>{{ copy.staticText.inYourBrowser }}</span></h1>
       <p class="browser-benchmarks__intro">
-        Run the same browser-side workload with re;Flux, GSAP and Anime.js. Results are produced on your machine, using real DOM, SVG or Canvas targets—not prerecorded scores.
+        {{ copy.staticText.runTheSameBrowserSideWorkloadWithReFluxGsapAndAnimeJsResultsAreProducedOnYourMachineUsingRealDomSvgOrCanvasTargetsNotPrerecordedScores }}
       </p>
       <div class="browser-benchmarks__hero-meta">
-        <span><UiIcon icon="mdi-laptop" /> Client-side execution</span>
-        <span><UiIcon icon="mdi-repeat" /> 10 measured repetitions per engine</span>
-        <span><UiIcon icon="mdi-download-outline" /> Exportable JSON</span>
+        <span><UiIcon icon="mdi-laptop" /> {{ copy.staticText.clientSideExecution }}</span>
+        <span><UiIcon icon="mdi-repeat" /> {{ copy.staticText.text10MeasuredRepetitionsPerEngine }}</span>
+        <span><UiIcon icon="mdi-download-outline" /> {{ copy.staticText.exportableJson }}</span>
       </div>
     </section>
 
     <section class="browser-benchmarks__panel browser-benchmarks__configuration" aria-labelledby="benchmark-setup-title">
       <div class="browser-benchmarks__section-heading">
         <div>
-          <div class="browser-benchmarks__kicker">01 / CONFIGURE</div>
-          <h2 id="benchmark-setup-title">Choose a workload</h2>
+          <div class="browser-benchmarks__kicker">{{ copy.staticText.text01Configure }}</div>
+          <h2 id="benchmark-setup-title">{{ copy.staticText.chooseAWorkload }}</h2>
         </div>
-        <span class="browser-benchmarks__run-count">{{ repetitions }} runs per engine</span>
+        <span class="browser-benchmarks__run-count">{{ copy.staticText.runsPerEngine.replace('{count}', String(repetitions)) }}</span>
       </div>
 
       <div class="browser-benchmarks__controls">
         <label class="browser-benchmarks__field">
-          <span>Scenario</span>
+          <span>{{ copy.staticText.scenario }}</span>
           <select v-model="selectedScenario" :disabled="isRunning">
             <option v-for="scenario in scenarios" :key="scenario.id" :value="scenario.id">{{ scenario.label }}</option>
           </select>
           <small>{{ selectedScenarioMeta.description }}</small>
         </label>
         <label v-if="selectedScenario === 'shared-renderer'" class="browser-benchmarks__field">
-          <span>Render target</span>
+          <span>{{ copy.staticText.renderTarget }}</span>
           <select v-model="selectedRenderer" :disabled="isRunning">
             <option v-for="renderer in renderers" :key="renderer.id" :value="renderer.id">{{ renderer.label }}</option>
           </select>
           <small>{{ selectedRendererMeta.description }}</small>
         </label>
         <div v-else class="browser-benchmarks__field browser-benchmarks__field-note">
-          <span>{{ selectedScenario === 'engine-only' ? 'Rendering' : 'Per-target update' }}</span>
+          <span>{{ selectedScenario === 'engine-only' ? copy.staticText.rendering : copy.staticText.perTargetUpdate }}</span>
           <small>{{ selectedRendererMeta.description }}</small>
         </div>
         <label class="browser-benchmarks__field">
-          <span>Target count</span>
+          <span>{{ copy.staticText.targetCount }}</span>
           <select v-model.number="selectedTargetCount" :disabled="isRunning">
-            <option v-for="count in targetOptions" :key="count" :value="count">{{ count.toLocaleString() }} {{ count === 1 ? 'target' : 'targets' }}</option>
+            <option v-for="count in targetOptions" :key="count" :value="count">{{ count.toLocaleString() }} {{ count === 1 ? copy.staticText.target : copy.staticText.targets }}</option>
           </select>
-          <small>Identical target count for all three engines.</small>
+          <small>{{ copy.staticText.identicalTargetCountForAllThreeEngines }}</small>
         </label>
         <label class="browser-benchmarks__field">
-          <span>Animation duration</span>
+          <span>{{ copy.staticText.animationDuration }}</span>
           <select v-model.number="selectedDurationMs" :disabled="isRunning">
-            <option v-for="duration in durationOptions" :key="duration" :value="duration">{{ (duration / 1000).toFixed(1) }} seconds</option>
+            <option v-for="duration in durationOptions" :key="duration" :value="duration">{{ (duration / 1000).toFixed(1) }} {{ copy.staticText.seconds }}</option>
           </select>
-          <small>One duration and target count for all three engines.</small>
+          <small>{{ copy.staticText.oneDurationAndTargetCountForAllThreeEngines }}</small>
         </label>
       </div>
 
       <div class="browser-benchmarks__actions">
         <button class="browser-benchmarks__primary-button" type="button" :disabled="isRunning" @click="runComparison">
           <UiIcon :icon="isRunning ? 'mdi-loading' : 'mdi-play-circle-outline'" />
-          {{ isRunning ? 'Benchmark running…' : measuredResultsExist ? 'Run again' : 'Run comparison' }}
+          {{ isRunning ? copy.staticText.benchmarkRunning : measuredResultsExist ? copy.staticText.runAgain : copy.staticText.runComparison }}
         </button>
-        <button v-if="isRunning" class="browser-benchmarks__secondary-button" type="button" @click="cancelBenchmark">Cancel</button>
+        <button v-if="isRunning" class="browser-benchmarks__secondary-button" type="button" @click="cancelBenchmark">{{ copy.staticText.cancel }}</button>
         <button class="browser-benchmarks__secondary-button" type="button" :disabled="!report && !measuredResultsExist" @click="downloadReport">
-          <UiIcon icon="mdi-download-outline" /> Export JSON
+          <UiIcon icon="mdi-download-outline" /> {{ copy.staticText.exportJson }}
         </button>
-        <span class="browser-benchmarks__actions-note">Keep this tab in the foreground. Loading GSAP and Anime.js requires a network connection.</span>
+        <span class="browser-benchmarks__actions-note">{{ copy.staticText.keepThisTabInTheForegroundLoadingGsapAndAnimeJsRequiresANetworkConnection }}</span>
       </div>
 
       <div v-if="isRunning || progressStep > 0" class="browser-benchmarks__progress" role="status" aria-live="polite">
@@ -1081,38 +1085,47 @@ onBeforeUnmount(() => activeController?.abort());
       <p v-else class="browser-benchmarks__status"><span class="browser-benchmarks__status-dot" /> {{ statusMessage }}</p>
       <p v-if="errorMessage" class="browser-benchmarks__error" role="alert">{{ errorMessage }}</p>
       <p v-if="report" class="browser-benchmarks__calibration-note">
-        Estimated rAF cadence: <strong>{{ estimatedRafCadenceHz.toFixed(1) }} Hz</strong>
-        ({{ formatMs(frameBudgetReferenceMs, 2) }} median interval; {{ calibrationSamples }} calibration samples).
-        This estimates callback cadence, not the display's physical refresh mode.
+        {{ copy.staticText.estimatedRafCadence }} <strong>{{ estimatedRafCadenceHz.toFixed(1) }} Hz</strong>
+        {{ copy.staticText.calibrationDescription.replace('{medianInterval}', formatMs(frameBudgetReferenceMs, 2)).replace('{samples}', String(calibrationSamples)) }}
       </p>
     </section>
 
-    <section class="browser-benchmarks__workspace" aria-label="Benchmark animation stage and live comparison results">
+    <section class="browser-benchmarks__workspace" :aria-label="copy.staticText.benchmarkAnimationStageAndLiveComparisonResults">
       <div class="browser-benchmarks__panel browser-benchmarks__stage-panel">
         <div class="browser-benchmarks__section-heading">
           <div>
-            <div class="browser-benchmarks__kicker">02 / LIVE WORKLOAD</div>
-            <h2>{{ selectedRendererMeta.label }}{{ selectedScenario === 'engine-only' ? ' workload' : ' scene' }}</h2>
+            <div class="browser-benchmarks__kicker">{{ copy.staticText.text02LiveWorkload }}</div>
+            <h2>{{ selectedRendererMeta.label }}{{ selectedScenario === 'engine-only' ? ` ${copy.staticText.workload}` : ` ${copy.staticText.scene}` }}</h2>
           </div>
-          <span class="browser-benchmarks__stage-targets">{{ selectedTargetCount.toLocaleString() }} {{ selectedScenario === 'engine-only' ? 'objects' : 'targets' }}</span>
+          <span class="browser-benchmarks__stage-targets">{{ selectedTargetCount.toLocaleString() }} {{ selectedScenario === 'engine-only' ? copy.staticText.objects : copy.staticText.targets }}</span>
         </div>
         <div class="browser-benchmarks__stage-frame">
           <div ref="stageHost" class="browser-benchmarks__stage" :data-renderer="activeRenderer" />
           <div v-if="!isRunning && !measuredResultsExist" class="browser-benchmarks__stage-placeholder">
             <span class="browser-benchmarks__stage-orb"><i /><i /><i /></span>
-            <p>Ready when you are</p>
-            <small>The scene is generated when a benchmark starts.</small>
+            <p>{{ copy.staticText.readyWhenYouAre }}</p>
+            <small>{{ copy.staticText.theSceneIsGeneratedWhenABenchmarkStarts }}</small>
           </div>
         </div>
         <div class="browser-benchmarks__stage-legend">
-          <span><i class="browser-benchmarks__legend-swatch browser-benchmarks__legend-swatch--reflux" /> re;Flux</span>
-          <span><i class="browser-benchmarks__legend-swatch browser-benchmarks__legend-swatch--gsap" /> GSAP</span>
-          <span><i class="browser-benchmarks__legend-swatch browser-benchmarks__legend-swatch--anime" /> Anime.js</span>
+          <span><i class="browser-benchmarks__legend-swatch browser-benchmarks__legend-swatch--reflux" /> {{ copy.staticText.reFlux }}</span>
+          <span><i class="browser-benchmarks__legend-swatch browser-benchmarks__legend-swatch--gsap" /> {{ copy.staticText.gsap }}</span>
+          <span><i class="browser-benchmarks__legend-swatch browser-benchmarks__legend-swatch--anime" /> {{ copy.staticText.animeJs }}</span>
         </div>
-        <p class="browser-benchmarks__stage-note">{{ selectedScenario === 'shared-renderer' ? 'The scene shows the engine currently under test. Renderer work is shared across engines for the selected target type.' : selectedScenario === 'engine-only' ? 'The measured objects stay off-DOM to focus on per-target object updates. The stage is intentionally blank.' : 'Each engine animates opacity directly on real DOM targets; the shared scalar renderer is bypassed.' }}</p>
+        <p class="browser-benchmarks__stage-note">{{ selectedScenario === 'shared-renderer' ? copy.staticText.sharedRendererStageNote : selectedScenario === 'engine-only' ? copy.staticText.engineOnlyStageNote : copy.staticText.perTargetStageNote }}</p>
 
-        <div v-if="measuredResultsExist && selectedScenario === 'shared-renderer'" class="browser-benchmarks__comparison-bars" aria-label="Renderer callback timing comparison">
-          <h3>Renderer callback p95 <span>shared DOM/SVG/Canvas write path</span></h3>
+        <div v-if="measuredResultsExist && selectedScenario === 'shared-renderer'" class="browser-benchmarks__comparison-bars" :aria-label="copy.staticText.rendererCallbackTimingComparison">
+          <h3>{{ copy.staticText.rendererCallbackP95 }} <span>{{ copy.staticText.sharedDomSvgCanvasWritePath }}</span></h3>
+          <div v-for="engine in summaries" :key="engine.id" class="browser-benchmarks__bar-row">
+            <span>{{ engine.name }}</span>
+            <div class="browser-benchmarks__bar-track"><span :class="`bar-${engine.id}`" :style="{ width: barWidth(engine.medianRendererP95Ms) }" /></div>
+            <strong>{{ formatMs(engine.medianRendererP95Ms, 4) }}</strong>
+          </div>
+        </div>
+        <p class="browser-benchmarks__stage-note">{{ selectedScenario === 'shared-renderer' ? copy.staticText.sharedRendererScenarioStageNote : selectedScenario === 'engine-only' ? copy.staticText.engineOnlyScenarioStageNote : copy.staticText.perTargetDomScenarioStageNote }}</p>
+
+        <div v-if="measuredResultsExist && selectedScenario === 'shared-renderer'" class="browser-benchmarks__comparison-bars" :aria-label="copy.staticText.rendererCallbackTimingComparison">
+          <h3>{{ copy.staticText.rendererCallbackP95 }} <span>{{ copy.staticText.sharedDomSvgCanvasWritePath }}</span></h3>
           <div v-for="engine in summaries" :key="engine.id" class="browser-benchmarks__bar-row">
             <span>{{ engine.name }}</span>
             <div class="browser-benchmarks__bar-track"><span :class="`bar-${engine.id}`" :style="{ width: barWidth(engine.medianRendererP95Ms) }" /></div>
@@ -1124,8 +1137,8 @@ onBeforeUnmount(() => activeController?.abort());
       <div class="browser-benchmarks__panel browser-benchmarks__results-panel">
         <div class="browser-benchmarks__section-heading">
           <div>
-            <div class="browser-benchmarks__kicker">03 / RESULTS</div>
-            <h2>Measured on this device</h2>
+            <div class="browser-benchmarks__kicker">{{ copy.staticText.text03Results }}</div>
+            <h2>{{ copy.staticText.measuredOnThisDevice }}</h2>
           </div>
           <span class="browser-benchmarks__status-pill" :class="{ 'is-active': isRunning }">{{ statusLabel }}</span>
         </div>
@@ -1137,68 +1150,68 @@ onBeforeUnmount(() => activeController?.abort());
                 <span class="browser-benchmarks__engine-mark" aria-hidden="true">{{ engine.id === 're-flux' ? 're;' : engine.id === 'gsap' ? 'G' : 'A' }}</span>
                 <h3>{{ engine.name }}</h3>
               </div>
-              <span class="browser-benchmarks__engine-status">{{ engineStatus[engine.id] === 'complete' ? 'Complete' : engineStatus[engine.id] === 'error' ? 'Error' : engine.runs.length ? `${engine.runs.length}/${repetitions}` : 'Waiting' }}</span>
+              <span class="browser-benchmarks__engine-status">{{ engineStatus[engine.id] === 'complete' ? copy.staticText.complete : engineStatus[engine.id] === 'error' ? copy.staticText.error : engine.runs.length ? `${engine.runs.length}/${repetitions}` : copy.staticText.waiting }}</span>
             </div>
-            <p class="browser-benchmarks__engine-version">{{ engine.version }} · {{ engine.runs.length ? 'measured' : engine.subtitle }}</p>
+            <p class="browser-benchmarks__engine-version">{{ engine.version }} · {{ engine.runs.length ? copy.staticText.measured : engine.subtitle }}</p>
             <div v-if="selectedScenario === 'shared-renderer'" class="browser-benchmarks__engine-primary">
-              <span>Shared renderer callback p95</span>
+              <span>{{ copy.staticText.sharedRendererCallbackP95 }}</span>
               <strong>{{ engine.runs.length ? formatMs(engine.medianRendererP95Ms, 4) : '—' }}</strong>
             </div>
             <div v-else class="browser-benchmarks__engine-primary">
-              <span>{{ selectedScenario === 'engine-only' ? 'Mode' : 'Update path' }}</span>
-              <strong>{{ selectedScenario === 'engine-only' ? 'JS objects' : 'Direct DOM' }}</strong>
+              <span>{{ selectedScenario === 'engine-only' ? copy.staticText.mode : copy.staticText.updatePath }}</span>
+              <strong>{{ selectedScenario === 'engine-only' ? copy.staticText.jsObjects : copy.staticText.directDom }}</strong>
             </div>
             <div class="browser-benchmarks__engine-metrics">
-              <div><span>Completion time</span><strong>{{ engine.runs.length ? formatMs(engine.medianCompletionMs) : '—' }}</strong></div>
-              <div><span>Frame interval p95</span><strong>{{ formatMs(engine.medianFrameP95Ms) }}</strong></div>
-              <div><span>Frame interval p99</span><strong>{{ formatMs(engine.medianFrameP99Ms) }}</strong></div>
-              <div v-if="selectedScenario === 'shared-renderer'"><span>Shared renderer callbacks</span><strong>{{ engine.runs.length ? formatCount(engine.medianRenderCallbacks) : '—' }}</strong></div>
-              <div><span>Estimated missed refreshes</span><strong>{{ engine.runs.length ? formatCount(engine.medianEstimatedMissedRefreshCount) : '—' }}</strong></div>
-              <div><span>Intervals &gt; {{ formatMs(activeFrameThresholdMs, 1) }}</span><strong>{{ engine.runs.length ? formatCount(engine.medianStretchedFrameCount) : '—' }}</strong></div>
-              <div><span>Long tasks</span><strong>{{ engine.runs.length ? formatCount(engine.medianLongTaskCount) : '—' }}</strong></div>
-              <div><span>Long animation frames</span><strong>{{ engine.runs.length ? formatCount(engine.medianLongAnimationFrameCount) : '—' }}</strong></div>
-              <div><span>Cleanup probe</span><strong>{{ !engine.runs.length || engine.cleanupPassed === null ? 'N/A' : engine.cleanupPassed ? 'Passed' : 'Failed' }}</strong></div>
+              <div><span>{{ copy.staticText.completionTime }}</span><strong>{{ engine.runs.length ? formatMs(engine.medianCompletionMs) : '—' }}</strong></div>
+              <div><span>{{ copy.staticText.frameIntervalP95 }}</span><strong>{{ formatMs(engine.medianFrameP95Ms) }}</strong></div>
+              <div><span>{{ copy.staticText.frameIntervalP99 }}</span><strong>{{ formatMs(engine.medianFrameP99Ms) }}</strong></div>
+              <div v-if="selectedScenario === 'shared-renderer'"><span>{{ copy.staticText.sharedRendererCallbacks }}</span><strong>{{ engine.runs.length ? formatCount(engine.medianRenderCallbacks) : '—' }}</strong></div>
+              <div><span>{{ copy.staticText.estimatedMissedRefreshes }}</span><strong>{{ engine.runs.length ? formatCount(engine.medianEstimatedMissedRefreshCount) : '—' }}</strong></div>
+              <div><span>{{ copy.staticText.intervalThreshold.replace('{threshold}', formatMs(activeFrameThresholdMs, 1)) }}</span><strong>{{ engine.runs.length ? formatCount(engine.medianStretchedFrameCount) : '—' }}</strong></div>
+              <div><span>{{ copy.staticText.longTasks }}</span><strong>{{ engine.runs.length ? formatCount(engine.medianLongTaskCount) : '—' }}</strong></div>
+              <div><span>{{ copy.staticText.longAnimationFrames }}</span><strong>{{ engine.runs.length ? formatCount(engine.medianLongAnimationFrameCount) : '—' }}</strong></div>
+              <div><span>{{ copy.staticText.cleanupProbe }}</span><strong>{{ !engine.runs.length || engine.cleanupPassed === null ? copy.staticText.notApplicable : engine.cleanupPassed ? copy.staticText.passed : copy.staticText.failed }}</strong></div>
             </div>
           </article>
         </div>
 
         <div v-if="!measuredResultsExist" class="browser-benchmarks__empty-result">
           <UiIcon icon="mdi-chart-timeline-variant-shimmer" />
-          <p>Results will appear here after the first measured repetition.</p>
+          <p>{{ copy.staticText.resultsWillAppearHereAfterTheFirstMeasuredRepetition }}</p>
         </div>
       </div>
     </section>
 
     <section class="browser-benchmarks__methodology">
       <div class="browser-benchmarks__method-copy">
-        <div class="browser-benchmarks__kicker">04 / METHODOLOGY</div>
-        <h2>Compare the work, not the marketing.</h2>
-        <p v-if="selectedScenario === 'shared-renderer'">Every engine animates one scalar progress value from 0 to 1. The same render function writes the selected number of real DOM, SVG or Canvas targets, so the renderer workload stays consistent while the animation engine changes.</p>
-        <p v-else-if="selectedScenario === 'engine-only'">Every engine updates the same number of JavaScript object targets without touching the DOM. The report focuses on callback cadence, completion and main-thread diagnostics rather than renderer duration.</p>
-        <p v-else>Every engine updates opacity on the same number of real DOM elements. re;Flux uses an Animation instance per target; GSAP and Anime.js use their multi-target APIs. The different native API shapes are part of this workload and are documented in the export.</p>
+        <div class="browser-benchmarks__kicker">{{ copy.staticText.text04Methodology }}</div>
+        <h2>{{ copy.staticText.compareTheWorkNotTheMarketing }}</h2>
+        <p v-if="selectedScenario === 'shared-renderer'">{{ copy.staticText.everyEngineAnimatesOneScalarProgressValueFrom0To1TheSameRenderFunctionWritesTheSelectedNumberOfRealDomSvgOrCanvasTargetsSoTheRendererWorkloadStaysConsistentWhileTheAnimationEngineChanges }}</p>
+        <p v-else-if="selectedScenario === 'engine-only'">{{ copy.staticText.everyEngineUpdatesTheSameNumberOfJavascriptObjectTargetsWithoutTouchingTheDomTheReportFocusesOnCallbackCadenceCompletionAndMainThreadDiagnosticsRatherThanRendererDuration }}</p>
+        <p v-else>{{ copy.staticText.everyEngineUpdatesOpacityOnTheSameNumberOfRealDomElementsReFluxUsesAnAnimationInstancePerTargetGsapAndAnimeJsUseTheirMultiTargetApisTheDifferentNativeApiShapesArePartOfThisWorkloadAndAreDocumentedInTheExport }}</p>
       </div>
       <div class="browser-benchmarks__method-list">
-        <div><span>01</span><p><strong>Warm-up</strong> Each engine gets one short, unreported run before measurement.</p></div>
-        <div><span>02</span><p><strong>10 repetitions</strong> The run order rotates through three permutations. Compare results on the same machine.</p></div>
-        <div><span>03</span><p><strong>Refresh calibration</strong> The median requestAnimationFrame interval estimates the active callback cadence; it does not query the physical display mode.</p></div>
-        <div><span>04</span><p><strong>Percentiles</strong> Frame interval p95/p99 and missed-refresh estimates show tail behavior, not actual display presentation.</p></div>
-        <div><span>05</span><p><strong>Local report</strong> JSON is created in your browser. No benchmark result is uploaded.</p></div>
+        <div><span>01</span><p><strong>{{ copy.staticText.warmUp }}</strong> {{ copy.staticText.eachEngineGetsOneShortUnreportedRunBeforeMeasurement }}</p></div>
+        <div><span>02</span><p><strong>{{ copy.staticText.text10Repetitions }}</strong> {{ copy.staticText.theRunOrderRotatesThroughThreePermutationsCompareResultsOnTheSameMachine }}</p></div>
+        <div><span>03</span><p><strong>{{ copy.staticText.refreshCalibration }}</strong> {{ copy.staticText.theMedianRequestanimationframeIntervalEstimatesTheActiveCallbackCadenceItDoesNotQueryThePhysicalDisplayMode }}</p></div>
+        <div><span>04</span><p><strong>{{ copy.staticText.percentiles }}</strong> {{ copy.staticText.frameIntervalP95P99AndMissedRefreshEstimatesShowTailBehaviorNotActualDisplayPresentation }}</p></div>
+        <div><span>05</span><p><strong>{{ copy.staticText.localReport }}</strong> {{ copy.staticText.jsonIsCreatedInYourBrowserNoBenchmarkResultIsUploaded }}</p></div>
       </div>
     </section>
 
     <section class="browser-benchmarks__notes" aria-labelledby="benchmark-notes-title">
-      <h2 id="benchmark-notes-title">Versions and limitations</h2>
+      <h2 id="benchmark-notes-title">{{ copy.staticText.versionsAndLimitations }}</h2>
       <div class="browser-benchmarks__library-links">
         <a v-for="engine in engines" :key="engine.id" :href="engine.href" target="_blank" rel="noopener noreferrer">
           <span>{{ engine.name }}</span><strong>{{ engine.version }}</strong><UiIcon icon="mdi-open-in-new" />
         </a>
       </div>
       <ul>
-        <li>GSAP and Anime.js are loaded on demand from esm.sh at pinned versions. Their download time is not included, but results require the CDN to be reachable.</li>
-        <li>The shared-renderer scenario compares a scalar-progress callback. Engine-only and per-target DOM scenarios compare each library's target API shape; re;Flux creates one Animation per target while GSAP and Anime.js use multi-target calls.</li>
-        <li>Frame cadence is calibrated from requestAnimationFrame timestamps. Missed-refresh values are estimates from callback intervals, not proof of dropped physical presentations.</li>
-        <li>Long Tasks and Long Animation Frames depend on browser support. “N/A” means the relevant observer is unavailable, not that the browser experienced zero work.</li>
-        <li>Results vary with browser, refresh rate, operating system, thermal state, extensions, other tabs and system load. Use multiple runs and compare the same environment.</li>
+        <li>{{ copy.staticText.gsapAndAnimeJsAreLoadedOnDemandFromEsmShAtPinnedVersionsTheirDownloadTimeIsNotIncludedButResultsRequireTheCdnToBeReachable }}</li>
+        <li>{{ copy.staticText.theSharedRendererScenarioComparesAScalarProgressCallbackEngineOnlyAndPerTargetDomScenariosCompareEachLibrarySTargetApiShapeReFluxCreatesOneAnimationPerTargetWhileGsapAndAnimeJsUseMultiTargetCalls }}</li>
+        <li>{{ copy.staticText.frameCadenceIsCalibratedFromRequestanimationframeTimestampsMissedRefreshValuesAreEstimatesFromCallbackIntervalsNotProofOfDroppedPhysicalPresentations }}</li>
+        <li>{{ copy.staticText.longTasksAndLongAnimationFramesDependOnBrowserSupportNAMeansTheRelevantObserverIsUnavailableNotThatTheBrowserExperiencedZeroWork }}</li>
+        <li>{{ copy.staticText.resultsVaryWithBrowserRefreshRateOperatingSystemThermalStateExtensionsOtherTabsAndSystemLoadUseMultipleRunsAndCompareTheSameEnvironment }}</li>
       </ul>
     </section>
   </div>
