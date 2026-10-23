@@ -37,4 +37,14 @@ jobs:
       - name: Run full release validation
         run: npm run check:all
       - name: Publish with npm Trusted Publishing (OIDC)
-        run: npm publish --provenance --access public
+        shell: bash
+        run: |
+          VERSION="$(node -e 'console.log(JSON.parse(require("node:fs").readFileSync("package.json", "utf8")).version)')"
+          if [[ "$VERSION" == *-* ]]; then
+            DIST_TAG="${VERSION#*-}"
+            DIST_TAG="${DIST_TAG%%.*}"
+          else
+            DIST_TAG="latest"
+          fi
+          echo "Publishing @re-code/flux@$VERSION with npm dist-tag '$DIST_TAG'."
+          npm publish --provenance --access public --tag "$DIST_TAG"

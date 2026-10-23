@@ -1,27 +1,26 @@
 ## Unreleased
 
-### Documentation
+### Added
 
-- Rebuild the SVG, Canvas, DOM interaction, and Scroll Visual Lab panels around selectable scene tabs, one active preview, and a matching copyable TypeScript example.
+- Add selectable scene tabs and matching copyable TypeScript examples to the SVG, Canvas, DOM interaction, and Scroll Visual Lab panels.
+- Promote the Fluid Noise Field WebGL shader to the Home hero and refine it into a softly domain-warped, loopable teal/violet field.
+- Add release checks for package-consumer behavior and the complete documentation contract suite.
+- Expand browser integration coverage for reduced-motion preference changes, per-animation policy isolation, hidden-page pause/resume, and explicit-pause precedence.
+- Document the complete benchmark suite, including DOM/SVG/Canvas adapter workloads.
 
-### Release readiness
+### Changed
 
-- Run the public package-consumer and full documentation contract checks in CI.
-- Make npm tag publishing install Chromium and pass the complete `check:all` gate before publishing.
+- Defer below-the-fold landing demonstrations until the user scrolls near them, while allowing the hero shader to load after the initial render without requiring scroll.
+- Restore natural mobile documentation scrolling and align the sticky toolbar and header dimensions.
+- Centralize the documentation API catalog in locale data and derive the displayed documentation version from the root package version.
+- Make npm publication select a prerelease dist-tag from the package version and reserve `latest` for stable versions.
+- Standardize install instructions so projects install the RxJS peer dependency when it is not already available.
 
-### Maintenance
+### Fixed
 
-- Extend Chromium integration checks to cover live `prefers-reduced-motion` changes, per-animation policy isolation, hidden-page pause/resume, and explicit-pause precedence.
-
-- Remove the temporary `ci/workflows/` mirrors and keep `.github/workflows/` as the sole source of truth for GitHub Actions.
-- Fix `Timeline.call()` markers at offset zero so backward scrubbing re-arms the callback without invoking it repeatedly at the marker.
-- Consolidate source-level documentation and UI contract checks into `npm run check:docs` and run the full set in CI.
-- Simplify the library build TypeScript include list to match the source tree.
-- Fix mobile documentation scrolling by restoring natural page scroll, keeping the article from becoming a nested scroll container, and aligning the sticky toolbar/header sizes.
-
-- Promoted the Fluid Noise Field WebGL shader to the Home hero background and removed it from the Visual Lab catalog and shader selector to avoid duplicating the signature effect.
-- Reworked the fluid shader into a softly domain-warped, loopable teal/violet field and added visibility/reduced-motion lifecycle handling on Home.
-- Updated Visual Lab counts and static checks to keep the catalog and hero ownership in sync.
+- Re-arm `Timeline.call()` markers correctly when backward scrubbing crosses an offset-zero marker.
+- Keep `.github/workflows/` as the only canonical location for GitHub Actions workflows and remove the temporary `ci/workflows/` mirrors.
+- Consolidate source-level documentation and UI contract checks under `npm run check:docs`.
 
 # Changelog
 
@@ -51,7 +50,6 @@
 - The package now declares Node.js `>=22` as its supported minimum.
 - Nested timelines are treated as owned by their first parent after insertion; do not reuse the same timeline instance in multiple positions or parents.
 
-### Validation notes
+### Historical validation note
 
-- TypeScript library and test checks, library build, package allowlist validation, release-tag validation, and public-subpath consumer smoke tests passed in the release preparation environment.
-- The full Jest suite and platform-native tree-shaking/docs builds were not verified in this environment because dependency installation could not complete reliably. Run the GitHub Actions workflows on a clean Linux runner before publishing.
+The original `0.2.0` release-preparation environment could not complete the full Jest suite or the platform-native tree-shaking/documentation builds because dependency installation was unreliable there. This records that environment's limitation, not the status of later commits or releases. For each subsequent release, use the tagged CI workflow and current release gate described in [the publishing guide](./guidelines/PUBLISHING.md).

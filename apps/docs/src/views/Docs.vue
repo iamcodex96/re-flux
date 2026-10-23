@@ -15,7 +15,7 @@ const pageNavigation = computed(() => copy.value.pageNavigation as Array<{ label
 const mobileNavigation = computed(() => pageNavigation.value.flatMap((group) => group.links.map((link) => ({ title: `${group.label} / ${link.label}`, value: link.to }))));
 const docsScroller = ref<HTMLElement | null>(null);
 const mobileNavigationOpen = ref(false);
-const versionLabel = 'v0.2.0';
+const versionLabel = `v${__RE_FLUX_VERSION__}`;
 const currentPageIndex = computed(() => mobileNavigation.value.findIndex((item) => item.value === route.path));
 const previousPage = computed(() => currentPageIndex.value > 0 ? mobileNavigation.value[currentPageIndex.value - 1] : undefined);
 const nextPage = computed(() => currentPageIndex.value >= 0 && currentPageIndex.value < mobileNavigation.value.length - 1 ? mobileNavigation.value[currentPageIndex.value + 1] : undefined);

@@ -9,8 +9,10 @@ For DOM animations, call `animate(targets, options)` from `@re-code/flux/dom`; C
 ## Installation
 
 ```bash
-npm install @re-code/flux
+npm install @re-code/flux rxjs
 ```
+
+`rxjs` is a peer dependency and must be available in your application. If your project already depends on a compatible RxJS 7.x release satisfying the package requirement (>=7.8.0), you do not need to install it again.
 
 ## Quick start
 

@@ -33,7 +33,7 @@ const springTargetFactor = ref(0.72);
 const installCopied = ref(false);
 const installCopyError = ref(false);
 const activeStageName = computed(() => copy.value.story.steps[activeStep.value]?.stage ?? copy.value.staticText.motionComposition);
-const installCommand = 'npm install @re-code/flux';
+const installCommand = computed(() => store.app.view.docs.ui.installCommand);
 
 function getPreviewKind(kind: string): LandingLabPreviewKind {
   if (kind === 'canvas' || kind === 'interaction') return kind;
@@ -167,7 +167,7 @@ function syncScrollTrigger(): void {
 
 async function copyInstallCommand(): Promise<void> {
   try {
-    await navigator.clipboard.writeText(installCommand);
+    await navigator.clipboard.writeText(installCommand.value);
     installCopied.value = true;
     installCopyError.value = false;
   } catch {

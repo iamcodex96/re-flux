@@ -8,7 +8,9 @@ These benchmarks are intentionally separate from `check:all`: elapsed-time limit
 npm run bench
 ```
 
-This builds the library and runs the shared frame-coordinator benchmark, the timeline duration/seek benchmark, and the concurrent-`Animation` benchmark.
+This builds the library and runs four workloads: shared frame coordination, timeline duration/seek operations, concurrent `Animation` instances, and DOM/SVG/Canvas adapter updates. The adapter benchmark uses lightweight mock targets to measure binding dispatch, value conversion, scheduled work, burst coalescing, and cleanup; it does not measure browser layout, SVG painting, or Canvas rasterization.
+
+The adapter workload can be tuned with `BENCH_ADAPTER_TARGETS`, `BENCH_ADAPTER_FRAMES`, `BENCH_REPEATS`, `BENCH_WARMUP_ROUNDS`, and `BENCH_CANVAS_BURST_EMISSIONS`. Its JSON output reports frame-time distributions, adapter operations, pending RAF callbacks, and cleanup status.
 
 ## Run concurrent animations only
 
@@ -18,7 +20,7 @@ npm run bench:animation-load
 
 Defaults exercise 100, 1,000, and 5,000 concurrent animations for 180 measured frame intervals. Each workload runs with frame metrics disabled and with a metrics observer attached. The report includes mean, p50, p95, p99, and maximum frame elapsed time, callback count, peak pending RAF callback count, and cleanup diagnostics.
 
-Configuration can be adjusted without editing source:
+Configuration for the concurrent-animation workload can be adjusted without editing source:
 
 ```bash
 BENCH_ANIMATION_COUNTS=1000,5000,10000 \

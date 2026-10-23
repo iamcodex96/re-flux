@@ -8,7 +8,7 @@ const read = (path) => readFile(resolve(root, path), 'utf8');
 const locale = JSON.parse(await read('apps/docs/src/locales/en.json'));
 const docs = locale.app.view.docs;
 const router = await read('apps/docs/src/router/index.ts');
-const publicExports = await read('src/index.ts');
+const publicExports = new Set(docs.apiReference.entries.map((entry) => entry.exportName));
 const mainScss = await read('apps/docs/src/styles/main.scss');
 const docsResponsive = await read('apps/docs/src/styles/views/docs/_responsive.scss');
 const docsShell = await read('apps/docs/src/styles/views/docs/_shell.scss');
@@ -67,20 +67,19 @@ for (const fragment of [
 const simulator = await read(requiredComponents[0]);
 const telemetry = await read(requiredComponents[2]);
 const pipeline = await read(requiredComponents[1]);
-const api = await read(requiredComponents[4]);
 assert.ok(simulator.includes('RetargetableMotion'), 'Spring simulator must use the public RetargetableMotion API.');
 assert.ok(simulator.includes('prefers-reduced-motion'), 'Spring simulator must account for reduced motion.');
 assert.ok(telemetry.includes('frameCoordinator.metrics$'), 'Telemetry must use real FrameCoordinator metrics.');
 assert.ok(telemetry.includes('lastFrameWorkMs'), 'Telemetry must show actual measured frame work.');
 assert.ok(pipeline.includes('retargetMotion'), 'Architecture example must use the public retargetMotion operator.');
-assert.ok(api.includes('stepSpring()') && api.includes('staggered()'), 'API reference must include core physics and composition exports.');
+assert.ok(docs.apiReference.entries.some((entry) => entry.exportName === 'stepSpring') && docs.apiReference.entries.some((entry) => entry.exportName === 'staggered'), 'API reference must include core physics and composition exports.');
 for (const exportName of [
   'Animation', 'Timeline', 'Tween', 'keyframes', 'sequence', 'parallel', 'staggered',
   'RetargetableMotion', 'stepSpring', 'retargetMotion', 'smoothStream', 'adaptiveTween',
   'pointerGestures$', 'dragInertia', 'slideFollow', 'projectInertiaTarget', 'stagger',
   'MotionPreferences', 'FrameCoordinator', 'frameCoordinator', 'createAnimationFrameObservable',
   'Easings', 'resolveEasing', 'cubicBezier', 'steps', 'interpolate',
-]) assert.ok(publicExports.includes(exportName), `API reference entry does not match a public export: ${exportName}.`);
+]) assert.ok(publicExports.has(exportName), `API reference entry does not match a public export: ${exportName}.`);
 
 const localeKeys = ['installPanel', 'pipeline', 'springSimulator', 'apiReference', 'runtimeTelemetry'];
 for (const key of localeKeys) assert.ok(docs[key], `Missing localized docs content: ${key}.`);

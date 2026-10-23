@@ -143,12 +143,12 @@
           "overview": {
             "title": "Introduction",
             "subtitle": "Start here",
-            "description": "Control an animation’s timing, inspect every update, and connect motion to any layer of your application."
+            "description": "Control an animation\u2019s timing, inspect every update, and connect motion to any layer of your application."
           },
           "install": {
             "title": "Installation",
             "subtitle": "Install the core and create your first instance.",
-            "description": "RxJS is a peer dependency. During source development, the playground resolves the library through Vite’s @lib alias. Consumer applications install the published package as @re-code/flux."
+            "description": "RxJS is a peer dependency. During source development, the playground resolves the library through Vite\u2019s @lib alias. Consumer applications install the published package as @re-code/flux."
           },
           "animation": {
             "title": "One animation, one playhead",
@@ -264,7 +264,6 @@
         "ui": {
           "pageTitle": "Documentation",
           "pageDescription": "API guide with live examples.",
-          "version": "v0.1 · initial API",
           "openPlaygrounds": "Open playgrounds",
           "onThisPage": "Documentation sections",
           "apiReference": "API reference",
@@ -272,7 +271,7 @@
           "rxjs": "RxJS 7.8",
           "raf": "requestAnimationFrame",
           "copyCode": "Copy code",
-          "copied": "Copied ✓",
+          "copied": "Copied \u2713",
           "interactiveExample": "Interactive example",
           "basicMotion": "Basic motion",
           "progress": "Progress",
@@ -316,7 +315,7 @@
           "sequenceAndOverlap": "Sequence and overlap",
           "start": "start",
           "end": "end",
-          "translateRotateOpacity": "translate · rotate · opacity",
+          "translateRotateOpacity": "translate \u00b7 rotate \u00b7 opacity",
           "durationColumn": "Duration (ms)",
           "easeColumn": "Eased progress",
           "optionTypeColumn": "Type",
@@ -332,15 +331,15 @@
           "pathEnd": "end of path",
           "yoyo": "Yoyo",
           "applyPlaybackOptions": "Apply options",
-          "playResumeSymbol": "▶ Play",
-          "pauseSymbol": "Ⅱ Pause",
-          "restartSymbol": "↻ Restart",
-          "stopSymbol": "■ Stop",
+          "playResumeSymbol": "\u25b6 Play",
+          "pauseSymbol": "\u2161 Pause",
+          "restartSymbol": "\u21bb Restart",
+          "stopSymbol": "\u25a0 Stop",
           "playMethodDescription": "Starts or resumes. If the animation has completed, it starts a new cycle.",
           "pauseMethodDescription": "Pauses the clock without losing the current time position.",
           "stopMethodDescription": "Cancels the pending cycle, resets to idle, and rejects its promise.",
           "restartMethodDescription": "Creates a new completion cycle and starts from zero.",
-          "seekMethodDescription": "Jumps to a specific time, clamped to the instance’s valid range.",
+          "seekMethodDescription": "Jumps to a specific time, clamped to the instance\u2019s valid range.",
           "updateMethodDescription": "Receives linear progress and progress transformed by easing.",
           "lifecycleCallbackDescription": "The API also provides onStart, onComplete, onPause, onResume, and onStop. They run when the corresponding state transition occurs, not when the instance is created.",
           "callbackLogDescription": "This log listens for onStart, onPause, onResume, onStop, and onComplete. The onUpdate callback moves the box without flooding the log with dozens of entries per second.",
@@ -359,24 +358,24 @@
           "hundredAfterPrevious": "100 ms after the previous item ends.",
           "overlapPrevious": "Overlaps the previous item by 100 ms.",
           "sameStartAsPrevious": "Starts at the same time as the last item added.",
-          "openTimelinePlaygroundPrompt": "Want to change durations and offsets from a control panel? Open the Timeline Playground ↗",
+          "openTimelinePlaygroundPrompt": "Want to change durations and offsets from a control panel? Open the Timeline Playground \u2197",
           "promiseStatus": "Promise status",
-          "playAndAwait": "▶ Play and await",
-          "stopReject": "■ Stop (reject)",
+          "playAndAwait": "\u25b6 Play and await",
+          "stopReject": "\u25a0 Stop (reject)",
           "stopRejectsPromisePrefix": "If you call",
           "stopRejectsPromiseSuffix": "before completion, the pending cycle rejects with",
           "stopRejectsPromiseTail": "Use try/catch when the outcome matters.",
           "promiseRejectionExplanation": "re;Flux internally marks the rejection as observed to avoid unhandledrejection, but the error is still delivered to your catch.",
           "interactiveCurve": "Interactive curve",
           "exploreEasing": "Explore easing",
-          "playCurve": "▶ Play curve",
-          "reset": "↻ Reset",
+          "playCurve": "\u25b6 Play curve",
+          "reset": "\u21bb Reset",
           "compareAllCurves": "To compare all curves and see more examples,",
-          "openEasingsPlayground": "open the Easings Playground ↗",
-          "tryEasing": "Try easing ↗",
+          "openEasingsPlayground": "open the Easings Playground \u2197",
+          "tryEasing": "Try easing \u2197",
           "selectCurve": "Selected curve",
           "reactivityStopNote": "When an animation is stopped before completion, its active promise rejects. Catch the error if that is an expected control path.",
-          "retargetNumericNote": "This operator is for numeric targets. Cancellation switches the destination, while continuity comes from carrying value and velocity in the physical state—not from switchMap alone.",
+          "retargetNumericNote": "This operator is for numeric targets. Cancellation switches the destination, while continuity comes from carrying value and velocity in the physical state\u2014not from switchMap alone.",
           "smoothStreamTimestampPrefix": "Every input timestamp must use the same monotonic time origin as requestAnimationFrame timestamps, normally",
           "smoothStreamTimestampSuffix": "Convert remote server timestamps to a client monotonic clock before passing them in.",
           "smoothStreamPlaygroundPrompt": "The Reactive streams tab in the Motion playground lets you send values at irregular intervals and compare the latest input with the smoothed output.",
@@ -400,7 +399,7 @@
           "optionBehavior": "Option / behavior",
           "propertyDefinitionDescription": "Define CSS properties inside options.properties, not on the outer options object. A property accepts a scalar endpoint, evenly distributed values, a factory (target, index, total) => values, { from, to }, { values, ...timing }, or { keyframes, ...timing }.",
           "propertyTimingDescription": "Top-level duration, delay, easing, repeat, and yoyo provide defaults. A property object can override them. If no global duration is supplied, each property object must define a duration. Global delay, property delay, and target stagger are added together and clamped at time zero.",
-          "keyframeOffsetDescription": "Offsets are normalized to 0–1. Each keyframe’s easing applies to the segment leading away from that keyframe.",
+          "keyframeOffsetDescription": "Offsets are normalized to 0\u20131. Each keyframe\u2019s easing applies to the segment leading away from that keyframe.",
           "staggerDescription": "Adds a per-target delay. Use a number for the delay step, or a callback (index, target, total) => delayMs.",
           "disposeDescription": "Cancels active playback if needed, releases style subscriptions and restores original inline declarations.",
           "cssInterpolationDescription": "Values with matching numeric templates and units interpolate numerically. Incompatible values change discretely at the endpoint; for transforms, provide explicit arrays whose string templates match.",
@@ -463,17 +462,17 @@
           "offsetUpper": "OFFSET",
           "segmentsUpper": "SEGMENTS",
           "childrenUpper": "CHILDREN",
-          "playbackCodeTitle": "TypeScript · Playback",
-          "timelineCodeTitle": "TypeScript · Timeline",
-          "offsetsCodeTitle": "TypeScript · Offsets",
-          "compositionCodeTitle": "TypeScript · Composition",
-          "easingCodeTitle": "TypeScript · Easings",
-          "customEasingCodeTitle": "TypeScript · Custom Easing",
-          "retargetCodeTitle": "TypeScript · retargetMotion",
-          "smoothStreamCodeTitle": "TypeScript · smoothStream",
-          "adaptiveTweenCodeTitle": "TypeScript · adaptiveTween",
-          "optionalAdaptersCodeTitle": "TypeScript · optional adapters",
-          "keyframesDomCodeTitle": "TypeScript · keyframes and DOM targets",
+          "playbackCodeTitle": "TypeScript \u00b7 Playback",
+          "timelineCodeTitle": "TypeScript \u00b7 Timeline",
+          "offsetsCodeTitle": "TypeScript \u00b7 Offsets",
+          "compositionCodeTitle": "TypeScript \u00b7 Composition",
+          "easingCodeTitle": "TypeScript \u00b7 Easings",
+          "customEasingCodeTitle": "TypeScript \u00b7 Custom Easing",
+          "retargetCodeTitle": "TypeScript \u00b7 retargetMotion",
+          "smoothStreamCodeTitle": "TypeScript \u00b7 smoothStream",
+          "adaptiveTweenCodeTitle": "TypeScript \u00b7 adaptiveTween",
+          "optionalAdaptersCodeTitle": "TypeScript \u00b7 optional adapters",
+          "keyframesDomCodeTitle": "TypeScript \u00b7 keyframes and DOM targets",
           "repeatsLabel": "Repeats",
           "repeatIndefinitely": "Repeat indefinitely",
           "alternateDirectionYoyo": "Alternate direction (yoyo)",
@@ -488,7 +487,7 @@
           "outro": "outro",
           "timelineLabel": "Timeline",
           "smoothStreamLateDataExplanation": "Every input timestamp must use the same monotonic time origin as requestAnimationFrame timestamps, normally",
-          "retargetNumericText": "This operator is for numeric targets. Cancellation switches the destination, while continuity comes from carrying value and velocity in the physical state—not from switchMap alone.",
+          "retargetNumericText": "This operator is for numeric targets. Cancellation switches the destination, while continuity comes from carrying value and velocity in the physical state\u2014not from switchMap alone.",
           "streamPlaygroundText": "The Reactive streams tab in the Motion playground lets you send values at irregular intervals and compare the latest input with the smoothed output.",
           "adaptiveOutputDescription": "Each output includes the current value, progress, estimated cadence, chosen transition duration and transition start timestamp. Duplicate and out-of-order source timestamps are ignored. Try the Adaptive tween tab in the Motion playground to compare fast, slow and jittery sample cadences.",
           "adaptersDescription": "DOM, SVG, Canvas and structural Three.js adapters are implemented as opt-in entry points. Canvas pixels are not restored on unsubscribe; configure clearOnUnsubscribe when clearing is desired.",
@@ -504,7 +503,7 @@
           "interpolateRequiredDesc": "Maps the current value, target and eased progress to the value emitted for the frame.",
           "keyframePropertyDesc": "Put CSS properties inside options.properties. Each property accepts a scalar endpoint, an array of evenly spaced values, a factory (target, index, total) => values, { from, to }, an object with values, or an object with explicit keyframes.",
           "propertyTimingsDesc": "Top-level duration, delay, easing, repeat, and yoyo provide defaults. A property object can override them. If no global duration is supplied, each property object must define a duration. Global delay, property delay, and target stagger are added together and clamped at time zero.",
-          "keyframeOffsetEaseDesc": "Offsets are normalized to 0–1. Each keyframe’s easing applies to the segment leading away from that keyframe.",
+          "keyframeOffsetEaseDesc": "Offsets are normalized to 0\u20131. Each keyframe\u2019s easing applies to the segment leading away from that keyframe.",
           "staggerValueDesc": "Adds a per-target delay: a number for the delay step, or a callback (index, target, total) => delayMs.",
           "disposeAdapterDesc": "Cancels active playback if needed, releases style subscriptions and restores original inline declarations.",
           "cssInterpolationDesc": "Values with matching numeric templates and units interpolate numerically. Incompatible values change discretely at the endpoint; for transforms, provide explicit arrays whose string templates match.",
@@ -523,41 +522,41 @@
           "offsetParallelExample": ".add(next, '<')",
           "repeatChoices": [
             {
-              "title": "0 · once",
+              "title": "0 \u00b7 once",
               "value": 0
             },
             {
-              "title": "1 · two cycles",
+              "title": "1 \u00b7 two cycles",
               "value": 1
             },
             {
-              "title": "2 · three cycles",
+              "title": "2 \u00b7 three cycles",
               "value": 2
             },
             {
-              "title": "3 · four cycles",
+              "title": "3 \u00b7 four cycles",
               "value": 3
             }
           ],
           "offsetPresetChoices": [
             {
-              "title": "Omitted · sequential",
+              "title": "Omitted \u00b7 sequential",
               "value": "sequential"
             },
             {
-              "title": "+=150 · delay",
+              "title": "+=150 \u00b7 delay",
               "value": "+=150"
             },
             {
-              "title": "-=150 · overlap",
+              "title": "-=150 \u00b7 overlap",
               "value": "-=150"
             },
             {
-              "title": "< · parallel",
+              "title": "< \u00b7 parallel",
               "value": "<"
             },
             {
-              "title": "300 · absolute",
+              "title": "300 \u00b7 absolute",
               "value": "absolute"
             }
           ],
@@ -614,7 +613,7 @@
           "promiseRejectionPrefix": "re;Flux internally marks the rejection as observed to avoid",
           "promiseRejectionMiddle": "but the error is still delivered to your",
           "timelinePromptPrefix": "Want to change durations and offsets from a control panel?",
-          "openTimelinePlayground": "Open the Timeline Playground ↗",
+          "openTimelinePlayground": "Open the Timeline Playground \u2197",
           "streamPlaygroundPrefix": "The",
           "streamPlaygroundLink": "Reactive streams tab in the Motion playground",
           "streamPlaygroundSuffix": "lets you send values at irregular intervals and compare the latest input with the smoothed output.",
@@ -646,20 +645,20 @@
           "offsetProgressAriaLabel": "Offset example progress",
           "nestedProgressAriaLabel": "Nested timeline progress",
           "easingProgressAriaLabel": "Easing progress",
-          "animationCodeTitle": "TypeScript · Animation",
-          "asyncAwaitCodeTitle": "TypeScript · Async / Await",
+          "animationCodeTitle": "TypeScript \u00b7 Animation",
+          "asyncAwaitCodeTitle": "TypeScript \u00b7 Async / Await",
           "defaultAnimationDuration": "1,100 ms",
           "easingTrackEnd": "1,000 ms",
           "easingCurveLabelPrefix": "Easing curve",
           "selectEasingLabelPrefix": "Select",
           "timingExamplesExplanation": "Delay postpones the active start. Repeat counts additional cycles, and yoyo reverses progress on alternating cycles. Select Apply options to create an instance with this configuration.",
           "timingEasingName": "easeInOutCubic",
-          "typescriptRxjsLabel": "TypeScript · RxJS",
-          "typescriptCallbacksLabel": "TypeScript · Callbacks",
-          "playCallbackButton": "▶ Play / Resume",
-          "pauseCallbackButton": "Ⅱ Pause",
-          "stopCallbackButton": "■ Stop",
-          "fluentMethodReturn": "→ this",
+          "typescriptRxjsLabel": "TypeScript \u00b7 RxJS",
+          "typescriptCallbacksLabel": "TypeScript \u00b7 Callbacks",
+          "playCallbackButton": "\u25b6 Play / Resume",
+          "pauseCallbackButton": "\u2161 Pause",
+          "stopCallbackButton": "\u25a0 Stop",
+          "fluentMethodReturn": "\u2192 this",
           "callbackReturnLabel": "callback",
           "stopRejectsPromiseFinal": "Use try/catch when the outcome matters.",
           "propertyOptionLabel": "Property",
@@ -696,14 +695,14 @@
           "demoPlaying": "Playing",
           "demoPaused": "Paused",
           "demoStreamStopped": "Stream stopped",
-          "demoPromisePending": "Promise pending…",
+          "demoPromisePending": "Promise pending\u2026",
           "demoPromiseResolved": "await resolved",
           "demoCallbackStarted": "onStart()",
           "demoCallbackCompleted": "onComplete()",
           "retargetDemoCaption": "Position and velocity are preserved",
-          "smoothStreamDemoCaption": "Timestamped samples → smoothed value",
-          "adaptiveTweenDemoCaption": "Incoming cadence → adaptive duration",
-          "repeatYoyoDemoCaption": "repeat: Infinity · yoyo: true",
+          "smoothStreamDemoCaption": "Timestamped samples \u2192 smoothed value",
+          "adaptiveTweenDemoCaption": "Incoming cadence \u2192 adaptive duration",
+          "repeatYoyoDemoCaption": "repeat: Infinity \u00b7 yoyo: true",
           "repeatYoyoCodeTitle": "Repeat and yoyo",
           "compositionHelpersCodeTitle": "Sequence, parallel & staggered composition",
           "docsNavigationTitle": "On this page",
@@ -713,7 +712,7 @@
           "visualShowcaseLink": "Visual showcase",
           "svgMorphTitle": "Morph SVG paths with different commands",
           "svgMorphDescription": "normalizeSvgPathPair() converts supported path commands to absolute cubic curves, subdivides contours to matching segment counts and heuristically aligns closed contours. Subpaths are paired by order, and paired paths must agree on open versus closed geometry. The helper has a bounded segment count to avoid unexpectedly expensive morphs.",
-          "svgMorphCodeTitle": "TypeScript · SVG path normalization",
+          "svgMorphCodeTitle": "TypeScript \u00b7 SVG path normalization",
           "documentationLabel": "Documentation",
           "sidebarDescription": "API reference, concepts and interactive examples.",
           "quickstartBreadcrumb": "Quickstart & Concepts",
@@ -889,8 +888,8 @@
           },
           "api-reference": {
             "label": "API Reference",
-            "title": "Operator Reference & API Signatures",
-            "description": "Browse the public exports, their signatures, return types, and intended role in a reactive motion pipeline."
+            "title": "Public runtime API reference",
+            "description": "Browse root-package runtime exports, signatures, return types, and related renderer-adapter entry points."
           }
         },
         "installPanel": {
@@ -901,7 +900,7 @@
           "peerDependencyNote": "RxJS is a peer dependency. Install it in your application if it is not already present.",
           "interopTitle": "RxJS 7+ interoperability",
           "interopDescription": "Use existing RxJS",
-          "interopSuffix": "streams directly when their input type matches the operator—for example, numeric targets for retargetMotion() or timestamped samples for smoothing.",
+          "interopSuffix": "streams directly when their input type matches the operator\u2014for example, numeric targets for retargetMotion() or timestamped samples for smoothing.",
           "metaLabel": "PACKAGE MODEL",
           "metaValue": "Core + optional adapters"
         },
@@ -975,12 +974,12 @@
           "reducedMotionNote": "Reduced motion is enabled: moving the orb updates its target without spring interpolation."
         },
         "apiReference": {
-          "eyebrow": "Core exports / signatures",
-          "title": "Operator reference & API signatures",
-          "description": "A searchable index of public primitives and operators exported by @re-code/flux. Renderer adapters remain available through their explicit subpaths.",
-          "importNotice": "Examples and signatures reflect the current public entry points. DOM, SVG, Canvas, and Three.js helpers are imported from optional subpaths rather than the headless core.",
+          "eyebrow": "Public runtime API",
+          "title": "Public Runtime API Reference",
+          "description": "Search the runtime exports available from @re-code/flux, including animation primitives, composition helpers, stream operators, spring physics, frame scheduling, easing functions, and math utilities. Type-only exports are referenced by their related signatures, while renderer adapters have dedicated documentation.",
+          "importNotice": "This index includes every runtime export from the root package. It does not list type-only exports as separate rows; those types appear in related signatures and examples. Adapter-specific functions are imported from the explicit /dom, /svg, /canvas, /three, and /effects/canvas subpaths.",
           "searchLabel": "Search API entries",
-          "searchPlaceholder": "Search names, signatures or descriptions…",
+          "searchPlaceholder": "Search names, signatures or descriptions\u2026",
           "categoryFilterLabel": "Filter API by category",
           "allCategories": "All",
           "operatorColumn": "Export",
@@ -991,9 +990,399 @@
           "copyImportFor": "Copy import for",
           "importCopied": "Import copied",
           "noResults": "No API entries match this filter.",
-          "entriesLabel": "public exports shown",
+          "entriesLabel": "runtime exports listed",
           "adapterNote": "For target-specific APIs, see",
-          "renderingAdaptersLink": "Rendering adapters"
+          "renderingAdaptersLink": "Rendering adapters",
+          "categories": [
+            {
+              "value": "all",
+              "label": "All"
+            },
+            {
+              "value": "core",
+              "label": "Core"
+            },
+            {
+              "value": "values",
+              "label": "Values"
+            },
+            {
+              "value": "composition",
+              "label": "Composition"
+            },
+            {
+              "value": "physics",
+              "label": "Physics"
+            },
+            {
+              "value": "streams",
+              "label": "Streams"
+            },
+            {
+              "value": "gestures",
+              "label": "Gestures"
+            },
+            {
+              "value": "timing",
+              "label": "Timing"
+            },
+            {
+              "value": "lifecycle",
+              "label": "Lifecycle"
+            },
+            {
+              "value": "scheduler",
+              "label": "Scheduler"
+            },
+            {
+              "value": "utilities",
+              "label": "Utilities"
+            }
+          ],
+          "entries": [
+            {
+              "name": "Animation",
+              "signature": "new Animation(options: AnimationOptions)",
+              "result": "Animation",
+              "category": "core",
+              "description": "Owns a playhead, easing, delay, repeat/yoyo and lifecycle callbacks.",
+              "importPath": "@re-code/flux",
+              "exportName": "Animation"
+            },
+            {
+              "name": "Timeline",
+              "signature": "new Timeline(options?: TimelineOptions)",
+              "result": "Timeline",
+              "category": "core",
+              "description": "Coordinates AnimatableItems on one timeline and supports relative or labeled offsets.",
+              "importPath": "@re-code/flux",
+              "exportName": "Timeline"
+            },
+            {
+              "name": "Tween<T>",
+              "signature": "new Tween<T>(options: TweenOptions<T>)",
+              "result": "Tween<T>",
+              "category": "core",
+              "description": "Interpolates typed values while exposing value$, progress$ and state$.",
+              "importPath": "@re-code/flux",
+              "exportName": "Tween"
+            },
+            {
+              "name": "keyframes<T>()",
+              "signature": "keyframes<T>(options: KeyframesOptions<T>)",
+              "result": "Keyframes<T>",
+              "category": "composition",
+              "description": "Creates a reusable keyframed AnimatableItem from normalized offsets.",
+              "importPath": "@re-code/flux",
+              "exportName": "keyframes"
+            },
+            {
+              "name": "sequence()",
+              "signature": "sequence(items: Iterable<AnimatableItem>, options?: TimelineOptions)",
+              "result": "Timeline",
+              "category": "composition",
+              "description": "Places each item after the previous item in a composed timeline.",
+              "importPath": "@re-code/flux",
+              "exportName": "sequence"
+            },
+            {
+              "name": "parallel()",
+              "signature": "parallel(items: Iterable<AnimatableItem>, options?: TimelineOptions)",
+              "result": "Timeline",
+              "category": "composition",
+              "description": "Starts all items at the same timeline offset.",
+              "importPath": "@re-code/flux",
+              "exportName": "parallel"
+            },
+            {
+              "name": "staggered()",
+              "signature": "staggered(items: Iterable<AnimatableItem>, each: number, staggerOptions?: StaggerOptions, timelineOptions?: TimelineOptions)",
+              "result": "Timeline",
+              "category": "composition",
+              "description": "Offsets a collection of items by a configurable interval.",
+              "importPath": "@re-code/flux",
+              "exportName": "staggered"
+            },
+            {
+              "name": "RetargetableMotion",
+              "signature": "new RetargetableMotion(options?: RetargetableMotionOptions)",
+              "result": "RetargetableMotion",
+              "category": "physics",
+              "description": "A retargetable numeric spring exposing value$, velocity$, target$, sample$ and state$.",
+              "importPath": "@re-code/flux",
+              "exportName": "RetargetableMotion"
+            },
+            {
+              "name": "stepSpring()",
+              "signature": "stepSpring(state: SpringState, target: number, deltaMs: number, options?: SpringOptions)",
+              "result": "SpringStepResult",
+              "category": "physics",
+              "description": "Advances one damped spring sample using bounded semi-implicit Euler substeps.",
+              "importPath": "@re-code/flux",
+              "exportName": "stepSpring"
+            },
+            {
+              "name": "retargetMotion()",
+              "signature": "retargetMotion(options?: RetargetMotionOperatorOptions)",
+              "result": "OperatorFunction<number, MotionSample>",
+              "category": "streams",
+              "description": "Turns a numeric target stream into continuous spring samples while preserving velocity.",
+              "importPath": "@re-code/flux",
+              "exportName": "retargetMotion"
+            },
+            {
+              "name": "smoothStream()",
+              "signature": "smoothStream<T>(options: SmoothStreamOptions<T>)",
+              "result": "OperatorFunction<TimestampedValue<T>, SmoothedStreamSample<T>>",
+              "category": "streams",
+              "description": "Samples irregular timestamped values on the shared frame clock with bounded latency.",
+              "importPath": "@re-code/flux",
+              "exportName": "smoothStream"
+            },
+            {
+              "name": "adaptiveTween()",
+              "signature": "adaptiveTween<T>(options: AdaptiveTweenOptions<T>)",
+              "result": "OperatorFunction<TimestampedValue<T>, AdaptiveTweenSample<T>>",
+              "category": "streams",
+              "description": "Adapts transition duration to the measured cadence of incoming timestamped values.",
+              "importPath": "@re-code/flux",
+              "exportName": "adaptiveTween"
+            },
+            {
+              "name": "pointerGestures$()",
+              "signature": "pointerGestures$(target: EventTarget, options?: PointerGestureOptions)",
+              "result": "Observable<PointerGestureEvent>",
+              "category": "gestures",
+              "description": "Normalizes pointer down/move/up/cancel and capture-loss behavior into one stream.",
+              "importPath": "@re-code/flux",
+              "exportName": "pointerGestures$"
+            },
+            {
+              "name": "dragInertia()",
+              "signature": "dragInertia(options?: DragInertiaOptions)",
+              "result": "OperatorFunction<PointerGestureEvent, DragInertiaSample>",
+              "category": "gestures",
+              "description": "Applies filtered velocity, axis locking, bounds and inertial motion to pointer gestures.",
+              "importPath": "@re-code/flux",
+              "exportName": "dragInertia"
+            },
+            {
+              "name": "slideFollow()",
+              "signature": "slideFollow(options?: SlideFollowOptions)",
+              "result": "OperatorFunction<Point2D, SlideFollowSample>",
+              "category": "gestures",
+              "description": "Creates a smoothed follower stream from target points.",
+              "importPath": "@re-code/flux",
+              "exportName": "slideFollow"
+            },
+            {
+              "name": "projectInertiaTarget()",
+              "signature": "projectInertiaTarget(position: number, velocity: number, friction?: number, bounds?: { min?: number; max?: number })",
+              "result": "number",
+              "category": "physics",
+              "description": "Projects a release position using exponential velocity decay and optional min/max bounds.",
+              "importPath": "@re-code/flux",
+              "exportName": "projectInertiaTarget"
+            },
+            {
+              "name": "stagger()",
+              "signature": "stagger(each: number, options?: StaggerOptions)",
+              "result": "StaggerDelayFunction",
+              "category": "composition",
+              "description": "Creates a reusable delay resolver for first, last, center, or index-based stagger origins.",
+              "importPath": "@re-code/flux",
+              "exportName": "stagger"
+            },
+            {
+              "name": "MotionPreferences",
+              "signature": "new MotionPreferences(options?: MotionPreferencesOptions)",
+              "result": "MotionPreferences",
+              "category": "lifecycle",
+              "description": "Observes reduced-motion and document visibility preferences without imposing a global policy.",
+              "importPath": "@re-code/flux",
+              "exportName": "MotionPreferences"
+            },
+            {
+              "name": "FrameCoordinator",
+              "signature": "new FrameCoordinator()",
+              "result": "FrameCoordinator",
+              "category": "scheduler",
+              "description": "Coordinates frame consumers and scheduled reads/writes on a shared requestAnimationFrame clock.",
+              "importPath": "@re-code/flux",
+              "exportName": "FrameCoordinator"
+            },
+            {
+              "name": "frameCoordinator",
+              "signature": "frameCoordinator.metrics$ / getDiagnostics()",
+              "result": "FrameCoordinator",
+              "category": "scheduler",
+              "description": "The shared coordinator singleton with measured work, subscriber counts, task queues, and idle assertions.",
+              "importPath": "@re-code/flux",
+              "exportName": "frameCoordinator"
+            },
+            {
+              "name": "createAnimationFrameObservable()",
+              "signature": "createAnimationFrameObservable()",
+              "result": "Observable<number>",
+              "category": "scheduler",
+              "description": "Creates an independently subscribed Observable of requestAnimationFrame timestamps with teardown.",
+              "importPath": "@re-code/flux",
+              "exportName": "createAnimationFrameObservable"
+            },
+            {
+              "name": "Easings",
+              "signature": "Easings: Readonly<Record<string, EasingFunction>>",
+              "result": "Named easing map",
+              "category": "timing",
+              "description": "Provides the built-in easing functions used by Animation, Tween, and Keyframes.",
+              "importPath": "@re-code/flux",
+              "exportName": "Easings"
+            },
+            {
+              "name": "resolveEasing()",
+              "signature": "resolveEasing(easing?: EasingOption)",
+              "result": "EasingFunction",
+              "category": "timing",
+              "description": "Resolves a built-in easing name or custom function; unknown strings fall back to linear.",
+              "importPath": "@re-code/flux",
+              "exportName": "resolveEasing"
+            },
+            {
+              "name": "cubicBezier()",
+              "signature": "cubicBezier(x1: number, y1: number, x2: number, y2: number)",
+              "result": "EasingFunction",
+              "category": "timing",
+              "description": "Builds a cubic-bezier easing function with validated x control points.",
+              "importPath": "@re-code/flux",
+              "exportName": "cubicBezier"
+            },
+            {
+              "name": "steps()",
+              "signature": "steps(count: number, position?: 'start' | 'end')",
+              "result": "EasingFunction",
+              "category": "timing",
+              "description": "Creates a discrete easing function with a configured number of steps.",
+              "importPath": "@re-code/flux",
+              "exportName": "steps"
+            },
+            {
+              "name": "interpolate<T>()",
+              "signature": "interpolate<T>(from: T, to: T, progress: number)",
+              "result": "T",
+              "category": "values",
+              "description": "Interpolates compatible numbers, strings, arrays, and plain objects between values.",
+              "importPath": "@re-code/flux",
+              "exportName": "interpolate"
+            },
+            {
+              "name": "Keyframes<T>",
+              "exportName": "Keyframes",
+              "signature": "new Keyframes<T>(options: KeyframesOptions<T>)",
+              "result": "Keyframes<T>",
+              "category": "values",
+              "description": "Animates through normalized keyframe offsets while exposing value$, progress$ and state$.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "DEFAULT_SPRING_OPTIONS",
+              "exportName": "DEFAULT_SPRING_OPTIONS",
+              "signature": "DEFAULT_SPRING_OPTIONS: Required<SpringOptions>",
+              "result": "Required<SpringOptions>",
+              "category": "physics",
+              "description": "Provides the frozen default configuration used by the spring solver.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "animationFrame$",
+              "exportName": "animationFrame$",
+              "signature": "animationFrame$: Observable<number>",
+              "result": "Observable<number>",
+              "category": "scheduler",
+              "description": "Shares one requestAnimationFrame timestamp stream among active subscribers.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "clamp()",
+              "exportName": "clamp",
+              "signature": "clamp(value: number, min?: number, max?: number)",
+              "result": "number",
+              "category": "utilities",
+              "description": "Constrains a numeric value to a configurable minimum and maximum.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "lerp()",
+              "exportName": "lerp",
+              "signature": "lerp(from: number, to: number, progress: number)",
+              "result": "number",
+              "category": "utilities",
+              "description": "Linearly interpolates between two numeric endpoints.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "mapRange()",
+              "exportName": "mapRange",
+              "signature": "mapRange(value: number, inputMin: number, inputMax: number, outputMin: number, outputMax: number, shouldClamp?: boolean)",
+              "result": "number",
+              "category": "utilities",
+              "description": "Maps a number from one range into another, with optional clamping.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "snap()",
+              "exportName": "snap",
+              "signature": "snap(value: number, target: SnapTarget)",
+              "result": "number",
+              "category": "utilities",
+              "description": "Snaps a value to a numeric step or the nearest value in a target list.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "wrap()",
+              "exportName": "wrap",
+              "signature": "wrap(value: number, min: number, max: number)",
+              "result": "number",
+              "category": "utilities",
+              "description": "Wraps a number into a repeating half-open numeric interval.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "random()",
+              "exportName": "random",
+              "signature": "random(min?: number, max?: number, randomSource?: () => number)",
+              "result": "number",
+              "category": "utilities",
+              "description": "Returns a number in the configured range using an injectable random source.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "interpolateRange()",
+              "exportName": "interpolateRange",
+              "signature": "interpolateRange(input: NumericRange | readonly number[], output: readonly number[], shouldClamp?: boolean)",
+              "result": "(value: number) => number",
+              "category": "utilities",
+              "description": "Creates a numeric range mapper from paired input and output ranges.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "pipe()",
+              "exportName": "pipe",
+              "signature": "pipe<T>(...functions: readonly ((value: T) => T)[])",
+              "result": "(value: T) => T",
+              "category": "utilities",
+              "description": "Composes same-type unary functions into a single left-to-right pipeline.",
+              "importPath": "@re-code/flux"
+            },
+            {
+              "name": "distribute()",
+              "exportName": "distribute",
+              "signature": "distribute(options?: DistributeOptions)",
+              "result": "(index: number, total: number) => number",
+              "category": "utilities",
+              "description": "Creates a resolver that distributes numeric values across a collection.",
+              "importPath": "@re-code/flux"
+            }
+          ]
         },
         "runtimeTelemetry": {
           "eyebrow": "Live scheduler sample",
@@ -1066,7 +1455,7 @@
         "npmRegistry": "npm registry",
         "reportAnIssue": "Report an issue",
         "reFluxReleasedUnderMIT": "re;Flux. Released under MIT.",
-        "builtWithTypeScriptRxJSVue": "Built with TypeScript · RxJS · Vue",
+        "builtWithTypeScriptRxJSVue": "Built with TypeScript \u00b7 RxJS \u00b7 Vue",
         "staticText": {
           "closeNavigation": "Close navigation",
           "openNavigation": "Open navigation",
@@ -1176,7 +1565,7 @@
         "capabilities": {
           "eyebrow": "MOTION, MADE VISIBLE",
           "title": "One engine. Many kinds of motion.",
-          "description": "Watch staggered entrances, property-level timing, spring retargeting, and irregular data streams—all driven by re;Flux.",
+          "description": "Watch staggered entrances, property-level timing, spring retargeting, and irregular data streams\u2014all driven by re;Flux.",
           "ariaLabel": "Animated re;Flux capabilities showcase",
           "cascadeTitle": "Stagger",
           "cascadeDescription": "A single delay function choreographs every target.",
@@ -1194,7 +1583,7 @@
           "springPositionLabel": "position",
           "springRetargetLabel": "retargeting",
           "springVelocityLabel": "velocity",
-          "propertyTag": "transform · opacity · radius",
+          "propertyTag": "transform \u00b7 opacity \u00b7 radius",
           "streamTag": "smoothStream()"
         },
         "heroTagline": "Compose high-framerate animations, reactive event streams, and physical springs with one lightweight, tree-shakable TypeScript engine.",
@@ -1206,7 +1595,7 @@
           "Shared frame clock",
           "Composable timelines",
           "Gesture physics",
-          "DOM · SVG · Canvas"
+          "DOM \u00b7 SVG \u00b7 Canvas"
         ],
         "story": {
           "eyebrow": "02 / ARCHITECTURE MONOGRAPH",
@@ -1219,7 +1608,7 @@
               "stage": "KINETIC COMPOSITION",
               "title": "Compose Motion",
               "description": "Staggered entrances, orchestrated micro-delays, and carefully chosen easing curves let a whole scene move with intention. Build sequences without a maze of nested callbacks.",
-              "detail": "Tween · Timeline · sequence()"
+              "detail": "Tween \u00b7 Timeline \u00b7 sequence()"
             },
             {
               "number": "02",
@@ -1227,7 +1616,7 @@
               "stage": "STREAM COMPOSITION",
               "title": "Think Reactively",
               "description": "Streams are first-class primitives. Combine changing values and event input, then connect them to DOM or canvas output without burying the animation loop inside rendering code.",
-              "detail": "value$ · pipe() · subscribe()"
+              "detail": "value$ \u00b7 pipe() \u00b7 subscribe()"
             },
             {
               "number": "03",
@@ -1235,7 +1624,7 @@
               "stage": "SPRING DYNAMICS",
               "title": "Feel the Physics",
               "description": "Retarget spring motion while it is moving. Position and velocity flow forward, creating physical responses that feel connected to the interaction rather than restarting on every input.",
-              "detail": "stiffness · damping · velocity"
+              "detail": "stiffness \u00b7 damping \u00b7 velocity"
             },
             {
               "number": "04",
@@ -1243,7 +1632,7 @@
               "stage": "RENDER ADAPTERS",
               "title": "Animate beyond interfaces",
               "description": "Keep the motion model independent from the renderer. Reuse values and timing for DOM styles, SVG paths, Canvas draw callbacks, and compatible Three.js transforms.",
-              "detail": "DOM · SVG · Canvas · Three.js"
+              "detail": "DOM \u00b7 SVG \u00b7 Canvas \u00b7 Three.js"
             }
           ],
           "stageLabel": "LIVE MOTION GRAPH",
@@ -1375,7 +1764,7 @@
           "libraryCapabilities": "Library capabilities",
           "rxjsNative": "RxJS-native",
           "sharedFrameCoordination": "Shared frame coordination",
-          "domSvgCanvasThreeJs": "DOM · SVG · Canvas · Three.js",
+          "domSvgCanvasThreeJs": "DOM \u00b7 SVG \u00b7 Canvas \u00b7 Three.js",
           "treeShakableModules": "Tree-shakable modules",
           "howReFluxWorks": "How re;Flux works",
           "liveKernel": "LIVE KERNEL",
@@ -1391,11 +1780,11 @@
           "move": "move.",
           "motionComposition": "MOTION COMPOSITION",
           "installCommandCopied": "Install command copied.",
-          "clipboardUnavailableSelectTheCommandToCopyIt": "Clipboard unavailable — select the command to copy it.",
+          "clipboardUnavailableSelectTheCommandToCopyIt": "Clipboard unavailable \u2014 select the command to copy it.",
           "stageNODE": "STAGE NODE:",
           "reFlux": "re;Flux /",
           "installCopied": "Install command copied.",
-          "installClipboardUnavailable": "Clipboard unavailable — select the command to copy it."
+          "installClipboardUnavailable": "Clipboard unavailable \u2014 select the command to copy it."
         }
       },
       "animationPlayground": {
@@ -1411,7 +1800,7 @@
           "livePreview": "Live preview",
           "motionStage": "Motion stage",
           "rx": "rx",
-          "translatexRotateOpacity": "translateX · rotate · opacity",
+          "translatexRotateOpacity": "translateX \u00b7 rotate \u00b7 opacity",
           "progress": "Progress",
           "eased": "Eased",
           "state": "State",
@@ -1435,8 +1824,8 @@
           "onResumeEvent": "onResume()",
           "onStopEvent": "onStop()",
           "createdNewInstanceWithCurrentOptions": "Created a new instance with the current options",
-          "awaitAnimation": "await animation…",
-          "awaitResolved": "await resolved ✓",
+          "awaitAnimation": "await animation\u2026",
+          "awaitResolved": "await resolved \u2713",
           "idle": "Idle",
           "running": "Running",
           "paused": "Paused",
@@ -1448,7 +1837,7 @@
         "staticText": {
           "text01HeadlessValues": "01 / HEADLESS VALUES",
           "typedKeyframes": "Typed keyframes",
-          "offsetsAreNormalizedTo01EachKeyframeCanOverrideTheEasingUsedByItsOutgoingSegment": "Offsets are normalized to 0–1. Each keyframe can override the easing used by its outgoing segment.",
+          "offsetsAreNormalizedTo01EachKeyframeCanOverrideTheEasingUsedByItsOutgoingSegment": "Offsets are normalized to 0\u20131. Each keyframe can override the easing used by its outgoing segment.",
           "value": "Value",
           "progress": "Progress",
           "state": "State",
@@ -1490,7 +1879,7 @@
           "paused": "Paused",
           "stopped": "Stopped",
           "millisecondsAbbreviation": "ms",
-          "compositionDurationSummary": "Total duration: {duration} ms · The same items are composed sequentially, in parallel, or with a center-out stagger."
+          "compositionDurationSummary": "Total duration: {duration} ms \u00b7 The same items are composed sequentially, in parallel, or with a center-out stagger."
         }
       },
       "browserBenchmarks": {
@@ -1498,7 +1887,7 @@
           "publicPerformanceLab": "PUBLIC PERFORMANCE LAB",
           "motionMeasured": "Motion, measured",
           "inYourBrowser": "in your browser.",
-          "runTheSameBrowserSideWorkloadWithReFluxGsapAndAnimeJsResultsAreProducedOnYourMachineUsingRealDomSvgOrCanvasTargetsNotPrerecordedScores": "Run the same browser-side workload with re;Flux, GSAP and Anime.js. Results are produced on your machine, using real DOM, SVG or Canvas targets—not prerecorded scores.",
+          "runTheSameBrowserSideWorkloadWithReFluxGsapAndAnimeJsResultsAreProducedOnYourMachineUsingRealDomSvgOrCanvasTargetsNotPrerecordedScores": "Run the same browser-side workload with re;Flux, GSAP and Anime.js. Results are produced on your machine, using real DOM, SVG or Canvas targets\u2014not prerecorded scores.",
           "clientSideExecution": "Client-side execution",
           "text10MeasuredRepetitionsPerEngine": "10 measured repetitions per engine",
           "exportableJson": "Exportable JSON",
@@ -1554,14 +1943,14 @@
           "gsapAndAnimeJsAreLoadedOnDemandFromEsmShAtPinnedVersionsTheirDownloadTimeIsNotIncludedButResultsRequireTheCdnToBeReachable": "GSAP and Anime.js are loaded on demand from esm.sh at pinned versions. Their download time is not included, but results require the CDN to be reachable.",
           "theSharedRendererScenarioComparesAScalarProgressCallbackEngineOnlyAndPerTargetDomScenariosCompareEachLibrarySTargetApiShapeReFluxCreatesOneAnimationPerTargetWhileGsapAndAnimeJsUseMultiTargetCalls": "The shared-renderer scenario compares a scalar-progress callback. Engine-only and per-target DOM scenarios compare each library's target API shape; re;Flux creates one Animation per target while GSAP and Anime.js use multi-target calls.",
           "frameCadenceIsCalibratedFromRequestanimationframeTimestampsMissedRefreshValuesAreEstimatesFromCallbackIntervalsNotProofOfDroppedPhysicalPresentations": "Frame cadence is calibrated from requestAnimationFrame timestamps. Missed-refresh values are estimates from callback intervals, not proof of dropped physical presentations.",
-          "longTasksAndLongAnimationFramesDependOnBrowserSupportNAMeansTheRelevantObserverIsUnavailableNotThatTheBrowserExperiencedZeroWork": "Long Tasks and Long Animation Frames depend on browser support. “N/A” means the relevant observer is unavailable, not that the browser experienced zero work.",
+          "longTasksAndLongAnimationFramesDependOnBrowserSupportNAMeansTheRelevantObserverIsUnavailableNotThatTheBrowserExperiencedZeroWork": "Long Tasks and Long Animation Frames depend on browser support. \u201cN/A\u201d means the relevant observer is unavailable, not that the browser experienced zero work.",
           "resultsVaryWithBrowserRefreshRateOperatingSystemThermalStateExtensionsOtherTabsAndSystemLoadUseMultipleRunsAndCompareTheSameEnvironment": "Results vary with browser, refresh rate, operating system, thermal state, extensions, other tabs and system load. Use multiple runs and compare the same environment.",
           "readyToCompareKeepThisTabVisibleWhileARunIsInProgress": "Ready to compare. Keep this tab visible while a run is in progress.",
           "configurationChangedReadyForANewBenchmark": "Configuration changed. Ready for a new benchmark.",
           "bringThisTabToTheForegroundBeforeStartingABenchmark": "Bring this tab to the foreground before starting a benchmark.",
           "loadingPinnedComparisonEnginesNetworkLoadingIsExcludedFromTheResults": "Loading pinned comparison engines. Network loading is excluded from the results.",
-          "calibratingTheBrowserFrameCadence": "Calibrating the browser frame cadence…",
-          "warmingUpEachEngineWithASmallUnreportedRun": "Warming up each engine with a small, unreported run…",
+          "calibratingTheBrowserFrameCadence": "Calibrating the browser frame cadence\u2026",
+          "warmingUpEachEngineWithASmallUnreportedRun": "Warming up each engine with a small, unreported run\u2026",
           "allMeasuredRunsAreCompleteExportTheJsonToKeepOrShareThisResult": "All measured runs are complete. Export the JSON to keep or share this result.",
           "benchmarkCanceledCompletedRunsRemainAvailableBelow": "Benchmark canceled. Completed runs remain available below.",
           "anUnknownErrorOccurredWhileRunningTheBenchmark": "An unknown error occurred while running the benchmark.",
@@ -1580,7 +1969,7 @@
           "engineOverhead": "Engine overhead",
           "engineOverheadDescription": "Each engine animates a collection of plain JavaScript objects. No DOM, SVG, Canvas or layout writes are performed in the measured workload.",
           "perTargetDom": "Per-target DOM",
-          "perTargetDomDescription": "Each engine updates opacity independently on the selected number of real DOM elements. This includes each engine’s per-target animation path.",
+          "perTargetDomDescription": "Each engine updates opacity independently on the selected number of real DOM elements. This includes each engine\u2019s per-target animation path.",
           "sharedRenderer": "Shared renderer",
           "sharedRendererDescription": "Each engine animates one scalar progress value and drives the same renderer callback for DOM, SVG or Canvas.",
           "domRenderer": "DOM",
@@ -1592,16 +1981,16 @@
           "javascriptObjects": "JavaScript objects",
           "javascriptObjectsDescription": "Object updates only; no browser renderer is involved in the measured workload.",
           "perTargetDomDescriptionShort": "Each engine animates opacity on each real DOM target using its per-target animation path.",
-          "runningEngine": "Running {engine}…",
-          "preparingBenchmark": "Preparing benchmark…",
-          "repetitionOf": "Repetition {current} of {total} · {engine} · {scenario}",
+          "runningEngine": "Running {engine}\u2026",
+          "preparingBenchmark": "Preparing benchmark\u2026",
+          "repetitionOf": "Repetition {current} of {total} \u00b7 {engine} \u00b7 {scenario}",
           "allMeasuredRunsComplete": "All {count} measured runs are complete. Export the JSON to keep or share this result.",
           "rendering": "Rendering",
           "perTargetUpdate": "Per-target update",
           "target": "target",
           "targets": "targets",
           "seconds": "seconds",
-          "benchmarkRunning": "Benchmark running…",
+          "benchmarkRunning": "Benchmark running\u2026",
           "runAgain": "Run again",
           "runComparison": "Run comparison",
           "workload": "workload",
@@ -1622,7 +2011,7 @@
           "notApplicable": "N/A",
           "passed": "Passed",
           "failed": "Failed",
-          "calibrationNote": "{interval} median interval; {samples} calibration samples. This estimates callback cadence, not the display’s physical refresh mode.",
+          "calibrationNote": "{interval} median interval; {samples} calibration samples. This estimates callback cadence, not the display\u2019s physical refresh mode.",
           "publicBrowserBenchmark": "re;Flux public browser benchmark",
           "localSiteBuild": "local site build",
           "sharedRendererMethodology": "Each engine animates the same scalar progress value from 0 to 1 using linear easing and drives a shared renderer.",
@@ -1634,7 +2023,7 @@
           "runOrderMethodologyReport": "Run order rotates through three permutations to reduce order bias.",
           "localReportMethodologyReport": "The report is generated locally in your browser and is not uploaded.",
           "browserDeviceCaveat": "Results describe this browser, device, viewport, and current system load; they are not universal rankings.",
-          "sharedCallbackCaveat": "The workload compares each engine with a shared render callback, not each library’s full native DOM API surface.",
+          "sharedCallbackCaveat": "The workload compares each engine with a shared render callback, not each library\u2019s full native DOM API surface.",
           "cdnCaveat": "The CDN must be reachable to load GSAP and Anime.js. Their module transfer and evaluation happen outside the timed runs.",
           "noUploadCaveat": "No benchmark results are uploaded; the JSON is generated locally in this browser.",
           "competitorModulesFetchedBeforeMeasurements": "Competitor modules are fetched before measurements; CDN load time is excluded.",
@@ -1657,7 +2046,7 @@
       "easingsPlayground": {
         "staticText": {
           "easingCurve": "Easing curve",
-          "tEasingT": "t → easing(t)",
+          "tEasingT": "t \u2192 easing(t)",
           "timeT": "Time (t)",
           "output": "Output",
           "interpolation": "Interpolation",
@@ -1713,8 +2102,8 @@
           "timelineOnResumeEvent": "Timeline: onResume()",
           "timelineOnStopEvent": "Timeline: onStop()",
           "timelineRebuiltWithCurrentOffsets": "Timeline rebuilt with the current offsets",
-          "awaitTimeline": "await timeline…",
-          "awaitResolved": "await resolved ✓",
+          "awaitTimeline": "await timeline\u2026",
+          "awaitResolved": "await resolved \u2713",
           "startAtZero": "Start at 0",
           "sequential": "Sequential",
           "offsetDelay": "Offset delay (milliseconds)",
@@ -1745,7 +2134,7 @@
           "canvas2d": "CANVAS 2D",
           "retargetableSprings": "RETARGETABLE SPRINGS",
           "neuralSpringLattice": "Neural Spring Lattice",
-          "aResponsive239MeshPointerDisplacementIsSmoothedByRetargetableSpringStreamsTuneThePreviewBelowAndWatchTheFieldReact": "A responsive 23 × 9 mesh. Pointer displacement is smoothed by retargetable spring streams; tune the preview below and watch the field react.",
+          "aResponsive239MeshPointerDisplacementIsSmoothedByRetargetableSpringStreamsTuneThePreviewBelowAndWatchTheFieldReact": "A responsive 23 \u00d7 9 mesh. Pointer displacement is smoothed by retargetable spring streams; tune the preview below and watch the field react.",
           "exploreCanvasDemos": "Explore Canvas demos",
           "springDynamics": "Spring dynamics",
           "liveCanvasMeasurements": "Live Canvas measurements",
@@ -1764,8 +2153,8 @@
           "livePreview": "LIVE PREVIEW",
           "theseControlsTuneTheFeaturedCanvasLatticeTheyAreLocalPreviewParametersNotGlobalEngineDefaultsExportCreatesARunnableRetargetablemotionExampleFromTheCurrentSettings": "These controls tune the featured Canvas lattice. They are local preview parameters, not global engine defaults. Export creates a runnable RetargetableMotion example from the current settings.",
           "timeScale": "Time scale",
-          "text01Slower": "0.1× slower",
-          "text2Faster": "2× faster",
+          "text01Slower": "0.1\u00d7 slower",
+          "text2Faster": "2\u00d7 faster",
           "gravityInfluence": "Gravity influence",
           "text00Low": "0.0 low",
           "text250High": "25.0 high",
@@ -1789,7 +2178,7 @@
           "staggeredGlyphs": "STAGGERED GLYPHS",
           "textEntersByGraphemeUsingReFluxStaggerTimingLeaveTheCardToRestoreTheOriginalReadableText": "Text enters by grapheme using re;Flux stagger timing. Leave the card to restore the original readable text.",
           "morphingTopographySplines": "Morphing Topography Splines",
-          "bZierContinuum": "BÉZIER CONTINUUM",
+          "bZierContinuum": "B\u00c9ZIER CONTINUUM",
           "aNormalizedSvgPathMorphsBetweenCompatibleGeometriesAndResetsToItsOriginalOutlineOnPointerLeave": "A normalized SVG path morphs between compatible geometries and resets to its original outline on pointer leave.",
           "fluidParticleVortices": "Fluid Particle Vortices",
           "particleConstellation": "PARTICLE CONSTELLATION",
@@ -1829,7 +2218,7 @@
           "aMarkerMovesAlongACurveWhileItsOrientationFollowsThePathDirection": "A marker moves along a curve while its orientation follows the path direction.",
           "parametricCurveMorph": "Parametric Curve Morph",
           "geometryInterpolation": "GEOMETRY INTERPOLATION",
-          "twoCompatibleBZierContoursInterpolateContinuouslyThroughOneNormalizedProgressStream": "Two compatible Bézier contours interpolate continuously through one normalized progress stream.",
+          "twoCompatibleBZierContoursInterpolateContinuouslyThroughOneNormalizedProgressStream": "Two compatible B\u00e9zier contours interpolate continuously through one normalized progress stream.",
           "frequencySpectrum": "Frequency Spectrum",
           "liveDataDisplay": "LIVE DATA DISPLAY",
           "aSpectrumLikeBarFieldTurnsAScalarPhaseValueIntoASetOfAnimatedVisualMeasurements": "A spectrum-like bar field turns a scalar phase value into a set of animated visual measurements.",
@@ -1865,26 +2254,26 @@
           "dataViz": "DATA VIZ",
           "radial": "RADIAL",
           "reducedMotion": "REDUCED MOTION",
-          "samplingRenderMetrics": "SAMPLING RENDER METRICS…",
-          "stageIdleMeasurementsPaused": "STAGE IDLE · MEASUREMENTS PAUSED",
+          "samplingRenderMetrics": "SAMPLING RENDER METRICS\u2026",
+          "stageIdleMeasurementsPaused": "STAGE IDLE \u00b7 MEASUREMENTS PAUSED",
           "canvasDraw": "canvas draw",
           "liveCanvasStage": "LIVE CANVAS STAGE",
           "staticPreview": "STATIC PREVIEW",
           "stageReady": "STAGE READY",
-          "sampling": "Sampling…",
+          "sampling": "Sampling\u2026",
           "paused": "Paused",
           "inactive": "Inactive",
-          "experimentCountSummary": "{visible} of {total} experiments · Hover or keyboard-focus to play; leave to reset.",
+          "experimentCountSummary": "{visible} of {total} experiments \u00b7 Hover or keyboard-focus to play; leave to reset.",
           "streamDownloaded": "Stream downloaded",
           "exportStreamTypeScript": "Export stream (.ts)",
           "codeCopied": "Code copied",
           "clipboardUnavailable": "Clipboard unavailable",
           "copyCode": "Copy code",
           "of": "of",
-          "experimentsHoverOrKeyboardFocusToPlayLeaveToReset": "experiments · Hover or keyboard-focus to play; leave to reset.",
-          "text": "×",
+          "experimentsHoverOrKeyboardFocusToPlayLeaveToReset": "experiments \u00b7 Hover or keyboard-focus to play; leave to reset.",
+          "text": "\u00d7",
           "exportStream": "Export stream (.ts)",
-          "canvasDrawMetrics": "{fps} FPS · {frameTime} ms canvas draw"
+          "canvasDrawMetrics": "{fps} FPS \u00b7 {frameTime} ms canvas draw"
         }
       },
       "visualShowcase": {
@@ -1892,7 +2281,7 @@
           "playgroundVisualLab": "Playground / Visual Lab",
           "beyondMovement": "Beyond movement",
           "exploreHowOneReactiveEngineCanDriveGeometryPixelsTypographyInteractionsAndScrollLinkedScenesChooseACategoryToLoadOnlyTheDemonstrationsYouWantToInspect": "Explore how one reactive engine can drive geometry, pixels, typography, interactions and scroll-linked scenes. Choose a category to load only the demonstrations you want to inspect.",
-          "oneReactiveEngineManyKindsOfOutput": "One reactive engine · many kinds of output",
+          "oneReactiveEngineManyKindsOfOutput": "One reactive engine \u00b7 many kinds of output",
           "motionIsOnlyTheBeginning": "Motion is only the beginning.",
           "everyCategoryOwnsItsAnimationLifecycleChangingTheRouteTearsDownItsSubscriptionsObserversAndBrowserResourcesBeforeMountingTheNextCollectionOfScenes": "Every category owns its animation lifecycle. Changing the route tears down its subscriptions, observers and browser resources before mounting the next collection of scenes.",
           "svg": "SVG",
@@ -2045,7 +2434,7 @@
           "composedTimeline": "COMPOSED TIMELINE",
           "svgPathInterpolation": "SVG PATH INTERPOLATION",
           "targetChangesPreserveVelocity": "target changes preserve velocity",
-          "twoTracksOneClock": "two tracks · one clock",
+          "twoTracksOneClock": "two tracks \u00b7 one clock",
           "compatiblePathCommandsInterpolated": "compatible path commands interpolated",
           "springCodeFilename": "spring-follower.ts",
           "timelineCodeFilename": "timeline-scene.ts",
@@ -2057,11 +2446,11 @@
           "completed": "completed",
           "stopped": "stopped",
           "retargeted": "RETARGETED",
-          "springConfiguration": "spring · k 240 / d 28",
+          "springConfiguration": "spring \u00b7 k 240 / d 28",
           "timelineDuration": "1,460 ms",
           "timelineEasing": "easeOutCubic + easeInOutCubic",
           "svgDuration": "2,200 ms",
-          "svgEasing": "easeInOutCubic · yoyo",
+          "svgEasing": "easeInOutCubic \u00b7 yoyo",
           "currentProgress": "Current progress {progress}."
         }
       },
@@ -2071,7 +2460,7 @@
           "canvasVALUE": "CANVAS / VALUE$",
           "re": "re;",
           "gestureSPRING": "GESTURE / SPRING",
-          "dragTheNode": "Drag the node ↗",
+          "dragTheNode": "Drag the node \u2197",
           "draggableMotionNodeAriaLabel": "Draggable motion node. Use pointer or arrow keys to move it.",
           "svgPathMorphingPreviewAriaLabel": "{title}: an SVG path morphing between geometric and organic shapes",
           "canvasParticleConstellationPreviewAriaLabel": "{title}: a Canvas 2D particle constellation driven by re;Flux"
@@ -2086,7 +2475,7 @@
           "update": "UPDATE",
           "render": "RENDER",
           "sharedFrameCoordination": "shared frame coordination",
-          "oneMotionModelMultipleRenderers": "one motion model · multiple renderers",
+          "oneMotionModelMultipleRenderers": "one motion model \u00b7 multiple renderers",
           "animatedTechnicalIllustrationAriaLabel": "{title}: animated technical illustration driven by a re;Flux value stream"
         }
       },
@@ -2104,14 +2493,14 @@
           "spring2": "spring()",
           "frameCoordination": "frame coordination",
           "flow": "FLOW",
-          "observableMotionOutput": "observable → motion → output",
+          "observableMotionOutput": "observable \u2192 motion \u2192 output",
           "illustrativeMotionPipelineAriaLabel": "Illustrative motion pipeline",
           "animatedVectorPipelineAriaLabel": "Animated vector paths and nodes illustrate values moving through a reactive animation pipeline."
         }
       },
       "easingCurve": {
         "staticText": {
-          "progress01": "Progress: 0 → 1",
+          "progress01": "Progress: 0 \u2192 1",
           "outputRange": "Output range:"
         }
       },
@@ -2133,7 +2522,7 @@
         "staticText": {
           "streamDRIVENGLYPHS": "STREAM-DRIVEN GLYPHS",
           "kinetic": "KINETIC",
-          "vSTAGGER": "Δv · STAGGER",
+          "vSTAGGER": "\u0394v \u00b7 STAGGER",
           "canvas2DUNAVAILABLE": "CANVAS 2D UNAVAILABLE",
           "launchView": "Launch view",
           "reducedMotion": "REDUCED MOTION",
@@ -2156,7 +2545,7 @@
       "visualLabShaderPreview": {
         "staticText": {
           "cssFallback": "CSS fallback",
-          "webglUnavailableFallbackActive": "WEBGL UNAVAILABLE · FALLBACK ACTIVE",
+          "webglUnavailableFallbackActive": "WEBGL UNAVAILABLE \u00b7 FALLBACK ACTIVE",
           "fallbackActive": "FALLBACK ACTIVE"
         }
       },
@@ -2170,7 +2559,7 @@
           "frequencyBinsTs": "frequency-bins.ts",
           "normalizedSAMPLES": "NORMALIZED SAMPLES",
           "animatedCyanAndVioletFrequencyBarVisualization": "Animated cyan and violet frequency bar visualization",
-          "burstTrailAndFadeWithoutAMutableParticleEngine": "Burst, trail and fade — without a mutable particle engine.",
+          "burstTrailAndFadeWithoutAMutableParticleEngine": "Burst, trail and fade \u2014 without a mutable particle engine.",
           "fireworkTrailsAreDerivedFromASingle46c9b3": "Firework trails are derived from a single phase. The drawing function is deterministic for a given frame, so it can be paused, scrubbed or driven by any Observable.",
           "fireworksTs": "fireworks.ts",
           "deterministicDRAWING": "DETERMINISTIC DRAWING",
@@ -2183,7 +2572,7 @@
           "waveformsAsLiveData": "Waveforms as live data.",
           "severalHarmonicLayersUpdateFromOnePhase38e4d9": "Several harmonic layers update from one phase value, with no animation loop inside the drawing callback.",
           "waveFieldTs": "wave-field.ts",
-          "onePHASEFOURLAYERS": "ONE PHASE · FOUR LAYERS",
+          "onePHASEFOURLAYERS": "ONE PHASE \u00b7 FOUR LAYERS",
           "fourLayeredAnimatedSineWaveCurves": "Four layered animated sine wave curves",
           "animateGeometryInThreeDimensions": "Animate geometry in three dimensions.",
           "latitudeAndLongitudeCurvesAreProjectedFromc765b9": "Latitude and longitude curves are projected from a rotating 3D sphere into Canvas 2D. Depth changes opacity and line weight, producing a light-weight scientific visualization.",
@@ -2236,7 +2625,7 @@
           "reorderTheseTilesFLIPMeasuresTheirOldfd3e11": "Reorder these tiles. FLIP measures their old and new geometry, then animates the inverse transform back to identity.",
           "flipLAYOUTSTAGE": "FLIP LAYOUT STAGE",
           "layoutTransitionTs": "layout-transition.ts",
-          "firstLASTINVERTPLAY": "FIRST · LAST · INVERT · PLAY",
+          "firstLASTINVERTPLAY": "FIRST \u00b7 LAST \u00b7 INVERT \u00b7 PLAY",
           "fourTilesWhoseVisualOrderCanBeChangedWithAFLIPAnimation": "Four tiles whose visual order can be changed with a FLIP animation",
           "restoreOrder": "Restore order",
           "reorderTiles": "Reorder tiles"
@@ -2244,7 +2633,7 @@
       },
       "visualScrollPanel": {
         "staticText": {
-          "scrollInsideThisPreview": "Scroll inside this preview ↓",
+          "scrollInsideThisPreview": "Scroll inside this preview \u2193",
           "startSCROLLDOWN": "START / SCROLL DOWN",
           "theTargetEntersTheViewportBelow": "The target enters the viewport below",
           "scrollprogress": "scrollProgress$",
@@ -2380,7 +2769,7 @@
           "vertical": "Vertical",
           "pointerCaptureOn": "Pointer capture on",
           "dragMe": "Drag me",
-          "solidDRAGINERTIAOUTLINESPRINGFOLLOW": "SOLID = DRAG + INERTIA · OUTLINE = SPRING FOLLOW",
+          "solidDRAGINERTIAOUTLINESPRINGFOLLOW": "SOLID = DRAG + INERTIA \u00b7 OUTLINE = SPRING FOLLOW",
           "pointerdownMoveUp": "pointerdown / move / up",
           "exponentialInertia": "Exponential inertia",
           "springFollower": "Spring follower",
@@ -2424,7 +2813,7 @@
           "motionEventLog": "Motion event log",
           "retargetingAndSpringCompletionEventsWillAppearHere": "Retargeting and spring-completion events will appear here.",
           "springSettledLog": "Spring settled at its target",
-          "retargetedLog": "Retargeted {position} → {target}; velocity {velocity} preserved",
+          "retargetedLog": "Retargeted {position} \u2192 {target}; velocity {velocity} preserved",
           "springParametersUpdatedLog": "Spring parameters updated: k={stiffness}, c={damping}",
           "inertiaProjectedEndpointLog": "Inertia projected endpoint {target} from {velocity} units/s",
           "idle": "Idle",
@@ -2447,7 +2836,7 @@
           "text06REALTIMESTREAMS": "06 / REAL-TIME STREAMS",
           "smoothIrregularSamples": "Smooth irregular samples",
           "sendValuesAtIrregularTimesTheGraphec47eb": "Send values at irregular times. The graph samples a bounded timestamp buffer about 100 ms behind the shared RAF clock, smoothing visual changes without inventing future data.",
-          "dashedLatestInputSolidFrameSmoothedValue": "Dashed = latest input · Solid = frame-smoothed value",
+          "dashedLatestInputSolidFrameSmoothedValue": "Dashed = latest input \u00b7 Solid = frame-smoothed value",
           "send": "Send",
           "domStyleAdapterPreview": "DOM style adapter preview",
           "motionValue": "Motion value",
