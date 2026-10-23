@@ -3,6 +3,8 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { resolveLocaleReferences } from './lib/locale.mjs';
+
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const read = (path) => readFile(resolve(root, path), 'utf8');
 const [overview, stage, card, shaderPreview, shadersPanel, router, showcase, styles, cardStyles, shadersStyles, home, localeSource] = await Promise.all([
@@ -19,7 +21,7 @@ const [overview, stage, card, shaderPreview, shadersPanel, router, showcase, sty
   read('apps/docs/src/views/Home.vue'),
   read('apps/docs/src/locales/en.json'),
 ]);
-const locale = JSON.parse(localeSource);
+const locale = resolveLocaleReferences(JSON.parse(localeSource));
 const shaderCopy = locale.app.view.visualLabShaderPreview.staticText;
 
 const experimentStart = overview.indexOf('const experiments: VisualLabExperiment[] = [');

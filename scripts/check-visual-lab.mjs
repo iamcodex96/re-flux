@@ -2,9 +2,11 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 
+import { resolveLocaleReferences } from './lib/locale.mjs';
+
 const root = fileURLToPath(new URL('..', import.meta.url));
 const panelsDirectory = resolve(root, 'apps/docs/src/components/VisualLab');
-const locale = JSON.parse(await readFile(resolve(root, 'apps/docs/src/locales/en.json'), 'utf8'));
+const locale = resolveLocaleReferences(JSON.parse(await readFile(resolve(root, 'apps/docs/src/locales/en.json'), 'utf8')));
 const checks = [
   {
     file: 'VisualSvgPanel.vue',

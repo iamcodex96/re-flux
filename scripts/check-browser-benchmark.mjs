@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveLocaleReferences } from './lib/locale.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (path) => readFile(resolve(root, path), 'utf8');
@@ -12,7 +13,7 @@ const app = await read('apps/docs/src/App.vue');
 const mainScss = await read('apps/docs/src/styles/main.scss');
 const page = await read('apps/docs/src/views/BrowserBenchmarks.vue');
 const styles = await read('apps/docs/src/styles/views/benchmarks.scss');
-const locale = JSON.parse(await read('apps/docs/src/locales/en.json'));
+const locale = resolveLocaleReferences(JSON.parse(await read('apps/docs/src/locales/en.json')));
 const benchmarkCopy = locale.app.view.browserBenchmarks.staticText;
 
 assert.ok(router.includes("path: '/benchmarks'"), 'The public /benchmarks route is missing.');

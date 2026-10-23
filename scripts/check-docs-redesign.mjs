@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveLocaleReferences } from './lib/locale.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (path) => readFile(resolve(root, path), 'utf8');
-const locale = JSON.parse(await read('apps/docs/src/locales/en.json'));
+const locale = resolveLocaleReferences(JSON.parse(await read('apps/docs/src/locales/en.json')));
 const docs = locale.app.view.docs;
 const router = await read('apps/docs/src/router/index.ts');
 const publicExports = new Set(docs.apiReference.entries.map((entry) => entry.exportName));

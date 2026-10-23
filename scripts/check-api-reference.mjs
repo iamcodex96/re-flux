@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
+import { resolveLocaleReferences } from './lib/locale.mjs';
+
 const root = new URL('../', import.meta.url);
 const [indexSource, localeSource, componentSource] = await Promise.all([
   readFile(new URL('src/index.ts', root), 'utf8'),
   readFile(new URL('apps/docs/src/locales/en.json', root), 'utf8'),
   readFile(new URL('apps/docs/src/components/DocsComponents/DocsApiReference.vue', root), 'utf8'),
 ]);
-const locale = JSON.parse(localeSource);
+const locale = resolveLocaleReferences(JSON.parse(localeSource));
 const api = locale.app?.view?.docs?.apiReference;
 assert.ok(api && Array.isArray(api.entries) && Array.isArray(api.categories), 'API entries and categories must live in the locale file.');
 

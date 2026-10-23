@@ -94,7 +94,7 @@
     "check:docs-redesign": "node scripts/check-docs-redesign.mjs",
     "check:visual-lab-hover": "node scripts/check-visual-lab-hover.mjs",
     "check:visual-lab-complete": "node scripts/check-visual-lab-complete.mjs",
-    "check:docs": "node scripts/check-api-reference.mjs && node scripts/check-docs-release-metadata.mjs && node scripts/check-docs-redesign.mjs && node scripts/check-home-experience.mjs && node scripts/check-playground-lifecycle.mjs && node scripts/check-scss-tokens.mjs && node scripts/check-ui-framework.mjs && node scripts/check-visual-lab.mjs && node scripts/check-visual-lab-hover.mjs && node scripts/check-visual-lab-complete.mjs && npm run check:browser-benchmark",
+    "check:docs": "node scripts/check-locale-common.mjs && node scripts/check-api-reference.mjs && node scripts/check-docs-release-metadata.mjs && node scripts/check-docs-redesign.mjs && node scripts/check-home-experience.mjs && node scripts/check-playground-lifecycle.mjs && node scripts/check-scss-tokens.mjs && node scripts/check-ui-framework.mjs && node scripts/check-visual-lab.mjs && node scripts/check-visual-lab-hover.mjs && node scripts/check-visual-lab-complete.mjs && npm run check:browser-benchmark",
     "check:all": "npm run typecheck && npm run typecheck:tests && npm test -- --runInBand && npm run build:lib && npm run check:browser-integration && node scripts/check-tree-shaking.mjs && node scripts/check-package-files.mjs && node scripts/check-package-consumer.mjs && npm run check:docs && npm run build --workspace=re-flux-docs",
     "check:package:consumer": "npm run build:lib && node scripts/check-package-consumer.mjs",
     "bench:animation-load": "npm run build:lib && node benchmarks/animation-load.bench.mjs",
@@ -102,7 +102,8 @@
     "check:browser-benchmark": "node scripts/check-browser-benchmark.mjs",
     "check:browser-integration": "node scripts/check-browser-integration.mjs",
     "check:api-reference": "node scripts/check-api-reference.mjs",
-    "check:docs-release-metadata": "node scripts/check-docs-release-metadata.mjs"
+    "check:docs-release-metadata": "node scripts/check-docs-release-metadata.mjs",
+    "check:locale-common": "node scripts/check-locale-common.mjs"
   },
   "peerDependencies": {
     "rxjs": "^7.8.0"

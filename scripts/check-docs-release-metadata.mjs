@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { resolveLocaleReferences } from './lib/locale.mjs';
 
 const root = new URL('../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
@@ -11,7 +12,7 @@ const [packageSource, readme, home, gettingStarted, localeSource, docsView, vite
   read('benchmarks/README.md'), read('benchmarks/run-all.bench.mjs'), read('benchmarks/adapters.bench.mjs'),
 ]);
 const packageJson = JSON.parse(packageSource);
-const locale = JSON.parse(localeSource);
+const locale = resolveLocaleReferences(JSON.parse(localeSource));
 const installCommand = locale.app.view.docs.ui.installCommand;
 
 assert.match(readme, /npm install @re-code\/flux rxjs/, 'README must install the RxJS peer dependency.');
