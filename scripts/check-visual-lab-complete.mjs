@@ -7,9 +7,12 @@ import { resolveLocaleReferences } from './lib/locale.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const read = (path) => readFile(resolve(root, path), 'utf8');
-const [overview, stage, card, shaderPreview, shadersPanel, router, showcase, styles, cardStyles, shadersStyles, home, localeSource] = await Promise.all([
+const [overview, stage, stageController, stageRenderer, p5Runtime, card, shaderPreview, shadersPanel, router, showcase, styles, cardStyles, shadersStyles, home, localeSource] = await Promise.all([
   read('apps/docs/src/views/VisualLabOverview.vue'),
   read('apps/docs/src/components/VisualLab/VisualLabFeaturedStage.vue'),
+  read('apps/docs/src/components/VisualLab/useVisualLabFeaturedStage.ts'),
+  read('apps/docs/src/components/VisualLab/kineticSingularityRenderer.ts'),
+  read('apps/docs/src/components/VisualLab/p5Runtime.ts'),
   read('apps/docs/src/components/VisualLab/VisualExperimentCard.vue'),
   read('apps/docs/src/components/VisualLab/VisualLabShaderPreview.vue'),
   read('apps/docs/src/components/VisualLab/VisualShadersPanel.vue'),
@@ -28,7 +31,7 @@ const experimentStart = overview.indexOf('const experiments: VisualLabExperiment
 const experimentEnd = overview.indexOf('\n];', experimentStart);
 assert.ok(experimentStart >= 0 && experimentEnd > experimentStart, 'Visual Lab experiment registry must be a static typed catalog.');
 const registry = overview.slice(experimentStart, experimentEnd);
-assert.equal((registry.match(/code:\s*'EXP-\d+'/g) ?? []).length, 17, 'Catalog must contain 17 categorized demos; the featured lattice and Fluid Noise hero visual live outside the card catalog.');
+assert.equal((registry.match(/code:\s*'EXP-\d+'/g) ?? []).length, 17, 'Catalog must contain 17 categorized demos; the featured Kinetic Singularity and Fluid Noise hero visual live outside the card catalog.');
 for (const [category, expected] of Object.entries({ physics: 6, shader: 3, svg: 5, canvas: 3 })) {
   const actual = (registry.match(new RegExp(`category:\\s*'${category}'`, 'g')) ?? []).length;
   assert.equal(actual, expected, `Expected ${expected} ${category} experiments, found ${actual}.`);
@@ -71,9 +74,19 @@ assert.match(shaderPreview, /timeSubscription\?\.unsubscribe\(\)/, 'WebGL unifor
 assert.match(shaderPreview, /gl\.deleteProgram\(program\)/, 'WebGL program must be released at teardown.');
 assert.doesNotMatch(shaderPreview, /smoothstep\(\s*1\.1\s*,\s*0\.15\s*,|smoothstep\(\s*0\.22\s*,\s*0\.0\s*,|smoothstep\(\s*0\.16\s*,\s*0\.0\s*,/, 'GLSL smoothstep edges must be ordered.');
 
-for (const contract of ['GRID_COLUMNS = 23', 'GRID_ROWS = 9', 'new RetargetableMotion', 'bindCanvas', 'IntersectionObserver', 'performance.now()', 'latestDrawTimeMs', 'emitTelemetry', 'reducedMotion', 'if (!isPointerActive.value)', 'renderSubscription?.unsubscribe()']) {
-  assert.ok(stage.includes(contract), `Featured lattice is missing ${contract}.`);
+for (const contract of ['RIBBON_COUNT = 6', 'FIELD_PARTICLE_COUNT = 120', 'drawSingularity', 'ribbonPoint', 'drawRibbon', 'const rgba = cyan ? [44, 221, 240] : [164, 117, 255]']) {
+  assert.ok(stageRenderer.includes(contract), `Kinetic Singularity renderer is missing ${contract}.`);
 }
+for (const contract of ['new RetargetableMotion', 'loadP5()', 'IntersectionObserver', 'performance.now()', 'latestDrawTimeMs', 'emitTelemetry', 'reducedMotion', 'if (!isPointerActive.value)', 'renderSubscription?.unsubscribe()', 'p5Instance?.remove()', 'phaseTween?.stop()']) {
+  assert.ok(stageController.includes(contract), `Kinetic Singularity lifecycle controller is missing ${contract}.`);
+}
+const docsPackage = JSON.parse(await read('apps/docs/package.json'));
+assert.equal(docsPackage.dependencies.p5, '2.3.4', 'Visual Lab must pin the npm-installed p5.js version in the docs workspace manifest.');
+assert.match(p5Runtime, /import\('p5'\)/, 'p5.js must load from the npm workspace dependency.');
+assert.doesNotMatch(p5Runtime, /https?:\/\/|P5_SCRIPT_URL|createElement\(['"]script['"]\)/, 'p5.js must not be loaded from a CDN or injected script.');
+assert.match(stage, /copy\.staticText\.poweredByP5js[\s\S]*?copy\.staticText\.p5jsName/, 'The featured canvas must credit p5.js with locale-backed text.');
+assert.match(stageController, /p5Instance\?\.remove\(\)/, 'The p5.js sketch must be removed on teardown.');
+assert.match(overview, /kineticSingularity[\s\S]*?kineticSingularityDescription/, 'The featured lab must describe the generative singularity scene.');
 for (const contract of ['@pointerenter="onPointerEnter"', '@pointerleave="onPointerLeave"', '@focusin="onFocusIn"', '@focusout="onFocusOut"', 'playPreview()', 'resetPreview()', 'animateText(', 'VisualLabShaderPreview', 'onBeforeUnmount']) {
   assert.ok(card.includes(contract), `Experiment card is missing ${contract}.`);
 }
@@ -88,9 +101,9 @@ assert.match(cardStyles, /@media\s*\(prefers-reduced-motion:\s*reduce\)/, 'Card 
 assert.match(card, /canvasUnavailable\.value = true[\s\S]*?experiment-art__canvas-fallback/, 'Canvas previews must expose a graceful fallback if Canvas 2D is unavailable.');
 assert.match(shadersStyles, /@media\s*\(max-width:/, 'Shader details must have responsive layout rules.');
 assert.match(shadersPanel, /preferenceSubscription\.unsubscribe\(\)/, 'Shader page motion preference subscription must be released.');
-assert.match(stage, /function getColor[\s\S]*?return `rgb\(\$\{value\}\)`/, 'Canvas colors must normalize comma-separated RGB design tokens to valid CSS colors.');
+assert.match(stageRenderer, /const rgba = cyan \? \[44, 221, 240\] : \[164, 117, 255\]/, 'Kinetic Singularity must use its defined cyan/violet renderer palette.');
 
-const publicText = `${overview}\n${stage}\n${shaderPreview}\n${shadersPanel}`;
+const publicText = `${overview}\n${stage}\n${stageController}\n${stageRenderer}\n${shaderPreview}\n${shadersPanel}`;
 assert.doesNotMatch(publicText, /212\.0\s*FPS|0\s*ALLOC(?:ATION)?\s*LEAK|50K\s*COMPUTE|100%\s*GC/i, 'Do not publish fabricated benchmark or leak counters.');
 
 console.log('✓ Visual Lab complete: 17 categorized catalog entries, hero-owned fluid noise field, category counts, hover/focus reset, measured telemetry, interactive sandbox, WebGL shaders/fallback, routing, cleanup and responsive styles');

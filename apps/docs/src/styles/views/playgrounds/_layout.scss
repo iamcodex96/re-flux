@@ -1,0 +1,126 @@
+@use '../../abstracts/breakpoints' as breakpoints;
+
+// All playground modules share one visual workbench: a control surface paired
+// with a larger stage. Route-specific scenes can override only their proportions.
+.playground-route {
+  width: 100%;
+  min-width: 0;
+}
+
+.playground-route > .ui-row,
+.playground-layout__content > .ui-row {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.78fr) minmax(0, 1.35fr);
+  align-items: stretch;
+  gap: clamp(1rem, 1.8vw, 1.5rem);
+  min-width: 0;
+  margin: 0;
+}
+
+.playground-route > .ui-row > .ui-col,
+.playground-layout__content > .ui-row > .ui-col {
+  grid-column: auto;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+}
+
+.playground-route--easings > .ui-row {
+  grid-template-columns: minmax(0, 1.2fr) minmax(17rem, 0.8fr);
+}
+
+.playground-route--api > .ui-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.playground-route > .ui-row > .ui-col > .ui-card,
+.playground-layout__content > .ui-row > .ui-col > .ui-card,
+.playground-route > .ui-card,
+.playground-layout__content > .motion-playground-card {
+  height: 100%;
+  overflow: hidden;
+  border-color: rgba(var(--rx-theme-border-strong), 0.2) !important;
+  border-radius: var(--rx-radius-card, 1rem) !important;
+  background: linear-gradient(145deg, rgba(var(--rx-theme-surface), 0.98), rgba(var(--rx-theme-surface-variant), 0.64)) !important;
+  box-shadow: 0 1rem 3rem rgba(var(--rx-color-black-rgb), 0.1);
+}
+
+.playground-route .ui-card-title {
+  min-height: 4.25rem;
+  border-bottom: 1px solid rgba(var(--rx-theme-border-strong), 0.14);
+  background: rgba(var(--rx-theme-surface-variant), 0.2);
+}
+
+.playground-route .ui-card-text {
+  min-width: 0;
+}
+
+.playground-layout__content .ui-card .ui-divider {
+  opacity: 0.55;
+}
+
+.playground-route .ui-chip {
+  font-family: var(--rx-font-mono), monospace;
+  font-size: var(--rx-font-size-xs);
+  font-weight: 650;
+}
+
+.playground-route .ui-button {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.playground-route :is(input, select, button):focus-visible {
+  outline-color: var(--rx-color-secondary);
+  outline-offset: var(--rx-border-width-strong);
+}
+
+.playground-route .motion-stage,
+.playground-route .easing-stage,
+.playground-route .api-keyframe-stage,
+.playground-route .api-demo-stage {
+  border-color: rgba(var(--rx-theme-border-strong), 0.18);
+  border-radius: var(--rx-radius-card, 1rem);
+  background-color: var(--rx-color-canvas-night-deep);
+}
+
+.playground-layout__content .event-log {
+  margin-top: 1rem;
+}
+
+@media (max-width: breakpoints.$rx-breakpoint-header-compact) {
+  .playground-route > .ui-row,
+  .playground-route--easings > .ui-row,
+  .playground-route--api > .ui-row,
+  .playground-layout__content > .ui-row {
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+    gap: var(--rx-space-4);
+  }
+}
+
+@media (max-width: breakpoints.$rx-breakpoint-tablet-narrow) {
+  .playground-route > .ui-row,
+  .playground-route--easings > .ui-row,
+  .playground-route--api > .ui-row,
+  .playground-layout__content > .ui-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--rx-space-4);
+  }
+
+  .playground-route > .ui-row > .ui-col > .ui-card,
+  .playground-layout__content > .ui-row > .ui-col > .ui-card {
+    height: auto;
+  }
+}
+
+@media (max-width: breakpoints.$rx-breakpoint-mobile) {
+  .playground-route > .ui-row,
+  .playground-route--easings > .ui-row,
+  .playground-route--api > .ui-row,
+  .playground-layout__content > .ui-row {
+    gap: var(--rx-space-card);
+  }
+
+  .playground-route .ui-card-title { min-height: 3.8rem; padding: var(--rx-space-4) !important; }
+  .playground-route .ui-card-text { padding: var(--rx-space-4) !important; }
+}

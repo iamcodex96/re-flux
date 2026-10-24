@@ -46,7 +46,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <UiContainer class="py-8 py-md-12" style="max-width: 1200px">
+  <div class="playground-route playground-route--easings">
 <UiRow align="start">
       <UiCol cols="12" md="7">
         <UiCard variant="outlined" class="h-100">
@@ -71,5 +71,5 @@ onBeforeUnmount(() => {
         </UiCard>
       </UiCol>
     </UiRow>
-  </UiContainer>
+  </div>
 </template>

@@ -94,7 +94,7 @@ onBeforeUnmount(() => { animation.value.stop(); });
 </script>
 
 <template>
-  <UiContainer class="py-8 py-md-12" style="max-width: 1200px">
+  <div class="playground-route playground-route--animation">
 <UiRow align="start">
       <UiCol cols="12" md="4" lg="3">
         <UiCard variant="outlined">
@@ -171,5 +171,5 @@ onBeforeUnmount(() => { animation.value.stop(); });
         />
       </UiCol>
     </UiRow>
-  </UiContainer>
+  </div>
 </template>

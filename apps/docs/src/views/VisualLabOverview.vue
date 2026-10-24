@@ -31,7 +31,7 @@ const config = reactive<VisualLabStageConfig>({ ...defaultConfig });
 const stageTelemetry = reactive<VisualLabTelemetry>({
   fps: 0,
   frameTimeMs: 0,
-  nodeCount: 23 * 9,
+  nodeCount: 120,
   pointerX: null,
   pointerY: null,
   state: 'idle',
@@ -201,35 +201,35 @@ export function resetPointer(): void {
   pointerY.to(-1, springOptions);
 }
 
-// Mirrors the featured Canvas lattice's phase, gravity and pointer-displacement model.
-export function sampleLatticePoint(
-  baseX: number,
-  baseY: number,
-  column: number,
-  row: number,
-  elapsedMs: number,
+// Samples one of the featured orbital ribbons using the current reactive motion state.
+export function sampleOrbitalPoint(
+  progress: number,
+  ribbon: number,
+  phaseInput: number,
   width: number,
   height: number,
-  rows = 9,
 ): { x: number; y: number } {
-  const phase = (elapsedMs / 1000) * visualLabConfig.timeScale;
-  const amplitude = visualLabConfig.springElasticity
-    * (1 - Math.min(0.72, visualLabConfig.airDrag * 5.5))
-    * Math.min(14, height * 0.035);
-  let x = baseX + Math.sin(phase + row * 0.7) * amplitude * 0.2;
-  let y = baseY
-    + Math.sin(phase * 1.25 + column * 0.23 + row * 0.41) * amplitude
-    + (visualLabConfig.gravity / 25) * (row / Math.max(1, rows - 1)) * height * 0.025;
+  const phase = phaseInput * visualLabConfig.timeScale;
+  const unit = ((progress % 1) + 1) % 1;
+  const angle = unit * Math.PI * 2 + phase * 0.14 + ribbon * 0.42;
+  const resistance = 1 - Math.min(0.68, visualLabConfig.airDrag * 4.8);
+  const amplitude = (0.55 + visualLabConfig.springElasticity * 0.8) * resistance;
+  const x = width * 0.5
+    + Math.cos(angle) * width * (0.205 + ribbon * 0.012)
+    + Math.sin(angle * 3 + phase * 0.24 + ribbon * 0.74) * width * 0.062 * amplitude;
+  const y = height * 0.5
+    + Math.sin(angle * 2 + ribbon * 0.19) * height * (0.245 + ribbon * 0.018) * 0.72
+    + Math.cos(angle * 3 - phase * 0.17 + ribbon * 0.61) * height * 0.105 * amplitude
+    + (visualLabConfig.gravity / 25) * (unit - 0.5) * height * 0.09;
 
   const targetX = pointerX.value$.value;
   const targetY = pointerY.value$.value;
   if (targetX >= 0 && targetX <= 1 && targetY >= 0 && targetY <= 1) {
-    const dx = baseX - targetX * width;
-    const dy = baseY - targetY * height;
+    const dx = targetX * width - x;
+    const dy = targetY * height - y;
     const distance = Math.hypot(dx / Math.max(1, width), dy / Math.max(1, height));
-    const influence = Math.max(0, 1 - distance / 0.22);
-    x -= dx * influence * 0.095;
-    y -= dy * influence * 0.12;
+    const influence = Math.max(0, 1 - distance / 0.34) * visualLabConfig.springElasticity * 0.28;
+    return { x: x + dx * influence, y: y + dy * influence };
   }
   return { x, y };
 }
@@ -301,8 +301,8 @@ onBeforeUnmount(() => {
       <div class="visual-lab-overview__brandline"><span class="visual-lab-overview__status-dot" /> {{ copy.staticText.kineticStreamEditorial }}</div>
       <div class="visual-lab-overview__runtime">
         <span class="visual-lab-overview__status-dot" />
-        <span>{{ stageTelemetry.state === 'reduced-motion' || reducedMotion ? copy.staticText.reducedMotion : stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? copy.staticText.canvasDrawMetrics.replace('{fps}', stageTelemetry.fps.toFixed(1)).replace('{frameTime}', stageTelemetry.frameTimeMs.toFixed(2)) : stageTelemetry.state === 'running' ? copy.staticText.samplingRenderMetrics : copy.staticText.stageIdleMeasurementsPaused }}</span>
-        <span>·</span><span>{{ copy.staticText.canvas2dSvgWebgl }}</span>
+        <span>{{ stageTelemetry.state === 'reduced-motion' || reducedMotion ? copy.staticText.reducedMotion : stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? copy.staticText.p5DrawMetrics.replace('{fps}', stageTelemetry.fps.toFixed(1)).replace('{frameTime}', stageTelemetry.frameTimeMs.toFixed(2)) : stageTelemetry.state === 'running' ? copy.staticText.samplingRenderMetrics : copy.staticText.stageIdleMeasurementsPaused }}</span>
+        <span>·</span><span>{{ copy.staticText.p5JsCanvasSvgWebgl }}</span>
       </div>
     </div>
 
@@ -327,25 +327,25 @@ onBeforeUnmount(() => {
 
     <section class="lab-feature" aria-labelledby="lab-feature-title">
       <div class="lab-feature__header">
-        <div class="lab-feature__titleline"><span class="visual-lab-overview__status-dot" /> {{ copy.staticText.featuredExperiment }} <span class="lab-feature__divider">/</span> {{ copy.staticText.exp094 }} <span class="lab-feature__divider">/</span> {{ copy.staticText.proceduralLattice }}</div>
-        <div class="lab-feature__badges"><span>{{ copy.staticText.canvas2d }}</span><span>{{ copy.staticText.retargetableSprings }}</span></div>
+        <div class="lab-feature__titleline"><span class="visual-lab-overview__status-dot" /> {{ copy.staticText.featuredExperiment }} <span class="lab-feature__divider">/</span> {{ copy.staticText.exp094 }} <span class="lab-feature__divider">/</span> {{ copy.staticText.generativeFlowField }}</div>
+        <div class="lab-feature__badges"><span>{{ copy.staticText.p5jsCanvasBadge }}</span><span>{{ copy.staticText.retargetableSprings }}</span></div>
       </div>
       <div class="lab-feature__content">
         <VisualLabFeaturedStage ref="featuredStage" :config="config" :preferences="preferences" @telemetry="updateTelemetry" />
         <div class="lab-feature__intro">
-          <span class="lab-feature__live"><span class="visual-lab-overview__status-dot" /> {{ stageTelemetry.state === 'running' ? copy.staticText.liveCanvasStage : reducedMotion ? copy.staticText.staticPreview : copy.staticText.stageReady }}</span>
-          <h1 id="lab-feature-title">{{ copy.staticText.neuralSpringLattice }}</h1>
-          <p>{{ copy.staticText.aResponsive239MeshPointerDisplacementIsSmoothedByRetargetableSpringStreamsTuneThePreviewBelowAndWatchTheFieldReact }}</p>
+          <span class="lab-feature__live"><span class="visual-lab-overview__status-dot" /> {{ stageTelemetry.state === 'running' ? copy.staticText.liveP5jsStage : reducedMotion ? copy.staticText.staticPreview : copy.staticText.stageReady }}</span>
+          <h1 id="lab-feature-title">{{ copy.staticText.kineticSingularity }}</h1>
+          <p>{{ copy.staticText.kineticSingularityDescription }}</p>
           <div class="lab-feature__actions">
             <RouterLink to="/visuals/canvas" class="lab-button lab-button--primary">{{ copy.staticText.exploreCanvasDemos }} <span aria-hidden="true">↗</span></RouterLink>
             <RouterLink to="/docs/interactions" class="lab-button lab-button--quiet">{{ copy.staticText.springDynamics }}</RouterLink>
           </div>
         </div>
-        <div class="lab-feature__readout" :aria-label="copy.staticText.liveCanvasMeasurements">
-          <div><span>{{ copy.staticText.renderTarget }}</span><strong>{{ copy.staticText.canvas2d2 }}</strong></div>
+        <div class="lab-feature__readout" :aria-label="copy.staticText.liveRendererMeasurements">
+          <div><span>{{ copy.staticText.renderTarget }}</span><strong>{{ copy.staticText.p5jsCanvas }}</strong></div>
           <div><span>{{ copy.staticText.fpsSample }}</span><strong>{{ stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? stageTelemetry.fps.toFixed(1) : '—' }}</strong></div>
-          <div><span>{{ copy.staticText.canvasDrawTime }}</span><strong>{{ stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? `${stageTelemetry.frameTimeMs.toFixed(2)} ms` : stageTelemetry.state === 'running' ? copy.staticText.sampling : copy.staticText.paused }}</strong></div>
-          <div><span>{{ copy.staticText.gridNodes }}</span><strong>{{ stageTelemetry.nodeCount }}</strong></div>
+          <div><span>{{ copy.staticText.p5DrawTime }}</span><strong>{{ stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? `${stageTelemetry.frameTimeMs.toFixed(2)} ms` : stageTelemetry.state === 'running' ? copy.staticText.sampling : copy.staticText.paused }}</strong></div>
+          <div><span>{{ copy.staticText.fieldParticles }}</span><strong>{{ stageTelemetry.nodeCount }}</strong></div>
           <div><span>{{ copy.staticText.pointerVector }}</span><strong>{{ stageTelemetry.pointerX === null || stageTelemetry.pointerY === null ? copy.staticText.inactive : `x ${stageTelemetry.pointerX.toFixed(2)} · y ${stageTelemetry.pointerY.toFixed(2)}` }}</strong></div>
         </div>
       </div>
@@ -382,7 +382,7 @@ onBeforeUnmount(() => {
       <div class="lab-sandbox__intro">
         <span class="lab-kicker">{{ copy.staticText.previewConfiguration }}</span>
         <h2 id="lab-sandbox-title">{{ copy.staticText.globalEngineSandbox }} <span class="lab-sandbox__live">{{ copy.staticText.livePreview }}</span></h2>
-        <p>{{ copy.staticText.theseControlsTuneTheFeaturedCanvasLatticeTheyAreLocalPreviewParametersNotGlobalEngineDefaultsExportCreatesARunnableRetargetablemotionExampleFromTheCurrentSettings }}</p>
+        <p>{{ copy.staticText.generativeFieldConfigurationDescription }}</p>
       </div>
       <div class="lab-sandbox__controls">
         <label class="lab-control">

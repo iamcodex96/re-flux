@@ -146,6 +146,7 @@
           "second": "Second",
           "from": "from",
           "timelineProgress": "Timeline progress",
+          "liveWorkbench": "LIVE WORKBENCH",
           "livePreviewUpper": "LIVE PREVIEW",
           "velocity": "Velocity",
           "all": "All",
@@ -2396,10 +2397,8 @@
           "experimentCategories": "Experiment categories",
           "featuredExperiment": "FEATURED EXPERIMENT",
           "exp094": "EXP-094",
-          "proceduralLattice": "PROCEDURAL LATTICE",
           "canvas2d": "CANVAS 2D",
           "retargetableSprings": "RETARGETABLE SPRINGS",
-          "neuralSpringLattice": "Neural Spring Lattice",
           "aResponsive239MeshPointerDisplacementIsSmoothedByRetargetableSpringStreamsTuneThePreviewBelowAndWatchTheFieldReact": "A responsive 23 × 9 mesh. Pointer displacement is smoothed by retargetable spring streams; tune the preview below and watch the field react.",
           "exploreCanvasDemos": "Explore Canvas demos",
           "springDynamics": "@ref:app.view.common.terms.springDynamics",
@@ -2408,7 +2407,6 @@
           "canvas2d2": "@ref:app.view.common.terms.canvas2D",
           "fpsSample": "FPS SAMPLE",
           "canvasDrawTime": "CANVAS DRAW TIME",
-          "gridNodes": "GRID NODES",
           "pointerVector": "POINTER VECTOR",
           "batchExecutionRuntimes": "// BATCH EXECUTION RUNTIMES",
           "experimentalLabModules": "Experimental Lab Modules",
@@ -2417,7 +2415,6 @@
           "previewConfiguration": "// PREVIEW CONFIGURATION",
           "globalEngineSandbox": "Global Engine Sandbox",
           "livePreview": "@ref:app.view.common.labels.livePreviewUpper",
-          "theseControlsTuneTheFeaturedCanvasLatticeTheyAreLocalPreviewParametersNotGlobalEngineDefaultsExportCreatesARunnableRetargetablemotionExampleFromTheCurrentSettings": "These controls tune the featured Canvas lattice. They are local preview parameters, not global engine defaults. Export creates a runnable RetargetableMotion example from the current settings.",
           "timeScale": "Time scale",
           "text01Slower": "0.1× slower",
           "text2Faster": "2× faster",
@@ -2539,7 +2536,21 @@
           "experimentsHoverOrKeyboardFocusToPlayLeaveToReset": "experiments · Hover or keyboard-focus to play; leave to reset.",
           "text": "×",
           "exportStream": "@ref:app.view.common.actions.exportStream",
-          "canvasDrawMetrics": "{fps} FPS · {frameTime} ms canvas draw"
+          "canvasDrawMetrics": "{fps} FPS · {frameTime} ms canvas draw",
+          "kineticSingularity": "Kinetic Singularity",
+          "aLuminousOrbitalFieldTwistsAroundAKineticCoreMoveThePointerToBendTheRibbonsAndWatchSpringRetargetedParticlesRespondInRealTime": "A luminous orbital field twists around a kinetic core. Move the pointer to bend the ribbons and watch spring-retargeted particles respond in real time.",
+          "fieldParticles": "FIELD PARTICLES",
+          "theseControlsTuneTheFeaturedCanvasKineticFieldTheyAreLocalPreviewParametersNotGlobalEngineDefaultsExportCreatesARunnableRetargetablemotionExampleFromTheCurrentSettings": "These controls tune the featured Canvas kinetic field. They are local preview parameters, not global engine defaults. Export creates a runnable RetargetableMotion example from the current settings.",
+          "p5JsCanvasSvgWebgl": "P5.JS / CANVAS / SVG / WEBGL",
+          "generativeFlowField": "GENERATIVE FLOW FIELD",
+          "kineticSingularityDescription": "Luminous orbital ribbons and flowing particle trails bend around a spring-retargeted core. Move the pointer to reshape the field, then tune the motion below.",
+          "liveRendererMeasurements": "Live renderer measurements",
+          "p5jsCanvas": "p5.js Canvas",
+          "p5jsCanvasBadge": "P5.JS / GENERATIVE CANVAS",
+          "p5DrawTime": "P5.JS DRAW TIME",
+          "p5DrawMetrics": "{fps} FPS · {frameTime} MS P5.JS DRAW",
+          "liveP5jsStage": "LIVE P5.JS STAGE",
+          "generativeFieldConfigurationDescription": "These controls tune the generative field. They are local preview parameters, not global engine defaults. Export creates a reusable RetargetableMotion controller and orbital point sampler from the current settings."
         }
       },
       "visualShowcase": {
@@ -2607,7 +2618,14 @@
           "canvasAdapter": "@ref:app.view.common.terms.canvasAdapter",
           "renderAValueStream": "Render a value stream",
           "keyframesDOM": "@ref:app.view.common.terms.keyframesDOM",
-          "selectorsAndStaggering": "Selectors and staggering"
+          "selectorsAndStaggering": "Selectors and staggering",
+          "moduleIndex": "MODULE INDEX",
+          "workspaceEyebrow": "INTERACTIVE MOTION WORKBENCH",
+          "activeModule": "ACTIVE MODULE",
+          "interactiveWorkspace": "WORKSPACE READY",
+          "exploreModules": "Explore modules",
+          "moduleSelectionHint": "Choose a module to configure motion, inspect its live output and explore the underlying API.",
+          "workbench": "@ref:app.view.common.labels.liveWorkbench"
         },
         "pages": {
           "animation": {
@@ -2666,7 +2684,7 @@
       },
       "landingCodeMotion": {
         "staticText": {
-          "liveWORKBENCH": "LIVE WORKBENCH",
+          "liveWORKBENCH": "@ref:app.view.common.labels.liveWorkbench",
           "codeInMotion": "Code in Motion",
           "aWorkingExampleItsSourceAndTheMotionModelThatDrivesIt": "A working example, its source, and the motion model that drives it.",
           "re": "@ref:app.view.common.terms.brandMark",
@@ -2801,11 +2819,15 @@
       "visualLabFeaturedStage": {
         "staticText": {
           "canvas2DIsUnavailableInThisBrowserTheRestOfVisualLabRemainsAvailable": "Canvas 2D is unavailable in this browser. The rest of Visual Lab remains available.",
-          "interactiveCanvasLatticePreview": "Interactive Canvas lattice preview. Move the pointer or use arrow keys to displace the spring-smoothed mesh. Press Home or Escape to reset.",
           "reducedMotion": "@ref:app.view.common.labels.reducedMotion",
           "pointerSpringActive": "POINTER SPRING ACTIVE",
           "movePointerOrUseArrowKeys": "MOVE POINTER OR USE ARROW KEYS",
-          "stagePausedOffscreen": "STAGE PAUSED OFFSCREEN"
+          "stagePausedOffscreen": "STAGE PAUSED OFFSCREEN",
+          "interactiveCanvasKineticFieldPreview": "Interactive Canvas kinetic field preview. Move the pointer or use arrow keys to bend the spring-retargeted orbital ribbons. Press Home or Escape to reset.",
+          "interactiveP5Singularity": "Interactive generative art canvas powered by p5.js. Move the pointer or use arrow keys to bend the orbital ribbons. Press Home or Escape to reset.",
+          "p5PreviewUnavailable": "The p5.js renderer could not be loaded. The rest of Visual Lab remains available.",
+          "poweredByP5js": "Powered by",
+          "p5jsName": "p5.js"
         }
       },
       "visualLabShaderPreview": {

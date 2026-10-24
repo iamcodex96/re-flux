@@ -209,7 +209,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <UiContainer class="py-8 py-md-12 api-playground" style="max-width: 1200px">
+  <div class="playground-route playground-route--api api-playground">
 <UiRow align="stretch">
       <UiCol cols="12" lg="5">
         <UiCard variant="outlined" rounded="lg" class="h-100">
@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
     <UiAlert type="info" variant="tonal" density="comfortable" class="mt-6">
       <strong>{{ copy.staticText.headlessByDesign }}</strong> {{ copy.staticText.import }} <code>keyframes</code> {{ copy.staticText.from }} <code>@re-code/flux</code> {{ copy.staticText.forGenericValuesImport }} <code>animate</code> {{ copy.staticText.from }} <code>@re-code/flux/dom</code> {{ copy.staticText.onlyWhenYouWantSelectorResolutionAndCssPropertyBinding }}
     </UiAlert>
-  </UiContainer>
+  </div>
 </template>
 
 <style scoped lang="scss" src="../styles/views/api-playground.scss"></style>

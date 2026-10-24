@@ -6,11 +6,12 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const read = (path) => readFile(resolve(root, path), 'utf8');
 
-const [router, card, overview, stage, cardStyles, overviewStyles] = await Promise.all([
+const [router, card, overview, stage, stageController, cardStyles, overviewStyles] = await Promise.all([
   read('apps/docs/src/router/index.ts'),
   read('apps/docs/src/components/VisualLab/VisualExperimentCard.vue'),
   read('apps/docs/src/views/VisualLabOverview.vue'),
   read('apps/docs/src/components/VisualLab/VisualLabFeaturedStage.vue'),
+  read('apps/docs/src/components/VisualLab/useVisualLabFeaturedStage.ts'),
   read('apps/docs/src/styles/components/_visual-experiment-card.scss'),
   read('apps/docs/src/styles/views/visual-lab/_overview.scss'),
 ]);
@@ -51,13 +52,13 @@ for (const kind of ['typography', 'spline', 'particles', 'cloth', 'dispersion', 
   assert.ok(card.includes(`'${kind}'`), `VisualExperimentCard.vue must support the ${kind} preview kind.`);
 }
 
-requireMatch(stage, /@pointermove="onPointerMove"[\s\S]*?@pointerleave="clearPointer"/, 'Featured lattice must respond to pointer movement and clear the target on leave.');
-requireMatch(stage, /phaseTween(?:\?\.|\.)play\(\)/, 'Featured lattice must play the phase tween while visible.');
-requireMatch(stage, /phaseTween\?\.stop\(\)/, 'Featured lattice must stop while hidden or reduced-motion is enabled.');
-requireMatch(stage, /performance\.now\(\)[\s\S]*?latestDrawTimeMs/, 'Featured Canvas telemetry must measure draw time.');
-requireMatch(stage, /new RetargetableMotion/, 'Featured pointer displacement must use RetargetableMotion.');
-requireMatch(stage, /xMotion\?\.to\(x, options\)[\s\S]*?yMotion\?\.to\(y, options\)/, 'Featured pointer movement must retarget both axes using the active spring options.');
-requireMatch(stage, /renderSubscription\?\.unsubscribe\(\)/, 'Featured Canvas binding must be unsubscribed on teardown.');
+requireMatch(stage, /@pointermove="onPointerMove"[\s\S]*?@pointerleave="clearPointer"/, 'Kinetic Singularity must respond to pointer movement and clear the target on leave.');
+requireMatch(stageController, /phaseTween(?:\?\.|\.)play\(\)/, 'Kinetic Singularity must play the phase tween while visible.');
+requireMatch(stageController, /phaseTween\?\.stop\(\)/, 'Kinetic Singularity must stop while hidden or reduced-motion is enabled.');
+requireMatch(stageController, /performance\.now\(\)[\s\S]*?latestDrawTimeMs/, 'p5.js renderer telemetry must measure draw time.');
+requireMatch(stageController, /new RetargetableMotion/, 'Featured pointer displacement must use RetargetableMotion.');
+requireMatch(stageController, /xMotion\?\.to\(x, options\)[\s\S]*?yMotion\?\.to\(y, options\)/, 'Featured pointer movement must retarget both axes using the active spring options.');
+requireMatch(stageController, /renderSubscription\?\.unsubscribe\(\)/, 'The p5.js stage frame subscription must be unsubscribed on teardown.');
 requireMatch(stage, /role="group"/, 'The interactive featured stage must expose an interactive semantic role.');
 
 requireMatch(cardStyles, /&:focus-within/, 'Cards must have a visible keyboard focus treatment.');

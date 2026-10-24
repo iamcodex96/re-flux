@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { useAppStore } from '../../stores/app';
 import { computed } from 'vue';
-import { RouterView, useRoute } from 'vue-router';
-import PageHeader from '../PageHeader.vue';
-
+import { RouterLink, RouterView, useRoute } from 'vue-router';
+import { useAppStore } from '../../stores/app';
 
 const appStore = useAppStore();
 const copy = computed(() => appStore.app.view.playgroundLayout);
 const route = useRoute();
-const playgroundGroups = [
+
+const playgroundGroups = computed(() => [
   {
+    key: 'animation',
     title: copy.value.staticText.animation,
     items: [
       { name: 'playground-animation', title: copy.value.staticText.animation, subtitle: copy.value.staticText.timingAndPlayback, icon: 'mdi-play-circle-outline' },
@@ -18,6 +18,7 @@ const playgroundGroups = [
     ],
   },
   {
+    key: 'reactive-motion',
     title: copy.value.staticText.reactiveMotion,
     items: [
       { name: 'playground-tween-values', title: copy.value.staticText.tweenValues, subtitle: copy.value.staticText.typedValueStreams, icon: 'mdi-numeric' },
@@ -29,62 +30,117 @@ const playgroundGroups = [
     ],
   },
   {
+    key: 'rendering-api',
     title: copy.value.staticText.renderingAPI,
     items: [
       { name: 'playground-canvas', title: copy.value.staticText.canvasAdapter, subtitle: copy.value.staticText.renderAValueStream, icon: 'mdi-canvas' },
       { name: 'playground-api', title: copy.value.staticText.keyframesDOM, subtitle: copy.value.staticText.selectorsAndStaggering, icon: 'mdi-code-braces' },
     ],
   },
-] as const;
-type PlaygroundPageKey = keyof typeof appStore.app.view.playgroundLayout.pages;
+]);
 
-function isPlaygroundPageKey(key: string): key is PlaygroundPageKey {
-  return Object.prototype.hasOwnProperty.call(copy.value.pages, key);
-}
-
+const playgroundItems = computed(() => playgroundGroups.value.flatMap((group) => group.items));
+const moduleCount = computed(() => playgroundItems.value.length);
+const activeModuleIndex = computed(() => {
+  const index = playgroundItems.value.findIndex((item) => item.name === route.name);
+  return String(index < 0 ? 1 : index + 1).padStart(2, '0');
+});
 const activePage = computed(() => {
   const pageKey = route.meta.playgroundPage;
-  return typeof pageKey === 'string' && isPlaygroundPageKey(pageKey)
-    ? copy.value.pages[pageKey]
+  return typeof pageKey === 'string' && Object.prototype.hasOwnProperty.call(copy.value.pages, pageKey)
+    ? copy.value.pages[pageKey as keyof typeof copy.value.pages]
     : copy.value.pages.animation;
 });
 </script>
 
+
 <template>
-  <UiContainer class="playground-layout py-8 py-md-12" max-width="1240">
-    <PageHeader :eyebrow="copy.staticText.playground" :title="activePage.title" :description="activePage.description" />
+  <UiContainer class="playground-layout" max-width="1600">
+    <header class="playground-hero">
+      <div class="playground-hero__copy">
+        <p class="playground-hero__eyebrow">
+          <span class="playground-hero__status-dot" aria-hidden="true" />
+          {{ copy.staticText.workspaceEyebrow }}
+        </p>
+        <h1 class="playground-hero__title">
+          {{ activePage.title }}<span class="playground-hero__title-mark" aria-hidden="true">.</span>
+        </h1>
+        <p class="playground-hero__description">{{ activePage.description }}</p>
+      </div>
+      <aside class="playground-hero__telemetry" :aria-label="copy.staticText.activeModule">
+        <div class="playground-hero__telemetry-label">{{ copy.staticText.activeModule }}</div>
+        <div class="playground-hero__index-line">
+          <strong>{{ activeModuleIndex }}</strong>
+          <span aria-hidden="true">/</span>
+          <span>{{ String(moduleCount).padStart(2, '0') }}</span>
+        </div>
+        <div class="playground-hero__telemetry-footer">
+          <span class="playground-hero__telemetry-dot" aria-hidden="true" />
+          {{ copy.staticText.interactiveWorkspace }}
+        </div>
+      </aside>
+    </header>
 
-    <UiRow align="start" class="playground-layout__body">
-      <UiCol cols="12" md="3" lg="3">
-        <UiCard class="playground-nav" variant="outlined">
-          <UiCardTitle class="px-4 pt-4 pb-2 text-subtitle-1 font-weight-bold">{{ copy.staticText.playground }}</UiCardTitle>
-          <UiCardSubtitle class="px-4 pb-3">{{ copy.staticText.chooseAnExperiment }}</UiCardSubtitle>
-          <UiDivider />
-          <UiList nav density="comfortable" class="pa-2" :aria-label="copy.staticText.playgroundNavigation">
-            <template v-for="group in playgroundGroups" :key="group.title">
-              <UiListSubheader class="playground-nav__group-label">{{ group.title }}</UiListSubheader>
-              <UiListItem
-                v-for="item in group.items"
-                :key="item.name"
-                :to="{ name: item.name }"
-                :active="route.name === item.name"
-                :prepend-icon="item.icon"
-                :title="item.title"
-                :subtitle="item.subtitle"
-                rounded="lg"
-                color="primary"
-              />
-            </template>
-          </UiList>
-          <UiDivider />
-          <div class="pa-4 text-caption text-medium-emphasis">{{ copy.staticText.onlyTheSelectedPlaygroundIsMountedLeavinga7a1cc }}</div>
-        </UiCard>
-      </UiCol>
+    <section class="playground-directory" :aria-label="copy.staticText.playgroundNavigation">
+      <div class="playground-directory__heading">
+        <div>
+          <span class="playground-directory__eyebrow">{{ copy.staticText.moduleIndex }}</span>
+          <h2>{{ copy.staticText.exploreModules }}</h2>
+        </div>
+        <p>{{ copy.staticText.moduleSelectionHint }}</p>
+      </div>
 
-      <UiCol cols="12" md="9" lg="9" class="playground-layout__content">
+      <div class="playground-directory__groups">
+        <section
+          v-for="(group, groupIndex) in playgroundGroups"
+          :key="group.key"
+          class="playground-module-group"
+          :class="`playground-module-group--${group.key}`"
+        >
+          <div class="playground-module-group__heading">
+            <span class="playground-module-group__number">{{ String(groupIndex + 1).padStart(2, '0') }}</span>
+            <h3>{{ group.title }}</h3>
+            <span class="playground-module-group__count">{{ String(group.items.length).padStart(2, '0') }}</span>
+          </div>
+          <nav class="playground-module-group__items" :aria-label="group.title">
+            <RouterLink
+              v-for="item in group.items"
+              :key="item.name"
+              :to="{ name: item.name }"
+              class="playground-module-link"
+              :class="{ 'is-active': route.name === item.name }"
+              :aria-current="route.name === item.name ? 'page' : undefined"
+            >
+              <span class="playground-module-link__icon" aria-hidden="true">
+                <UiIcon :icon="item.icon" size="18" />
+              </span>
+              <span class="playground-module-link__copy">
+                <span class="playground-module-link__title">{{ item.title }}</span>
+                <span class="playground-module-link__subtitle">{{ item.subtitle }}</span>
+              </span>
+              <span class="playground-module-link__arrow" aria-hidden="true">↗</span>
+            </RouterLink>
+          </nav>
+        </section>
+      </div>
+    </section>
+
+    <section class="playground-workspace" :aria-label="copy.staticText.workbench">
+      <div class="playground-workspace__heading">
+        <div class="playground-workspace__label">
+          <span class="playground-workspace__pulse" aria-hidden="true" />
+          {{ copy.staticText.workbench }}
+        </div>
+        <div class="playground-workspace__active">
+          <span>{{ activePage.title }}</span>
+          <span class="playground-workspace__separator" aria-hidden="true">/</span>
+          <span>{{ activeModuleIndex }} / {{ String(moduleCount).padStart(2, '0') }}</span>
+        </div>
+      </div>
+      <div class="playground-layout__content">
         <RouterView />
-      </UiCol>
-    </UiRow>
+      </div>
+    </section>
   </UiContainer>
 </template>
 
