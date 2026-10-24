@@ -2,6 +2,7 @@
   position: relative;
   display: grid;
   min-width: 0;
+  height: clamp(10rem, 15vw, 13rem);
   min-height: clamp(10rem, 15vw, 13rem);
   overflow: hidden;
   place-items: center;
@@ -15,7 +16,8 @@
     position: relative;
     z-index: var(--rx-z-scene);
     width: min(100%, 24rem);
-    height: auto;
+    height: 100%;
+    max-height: 100%;
     overflow: visible;
   }
 

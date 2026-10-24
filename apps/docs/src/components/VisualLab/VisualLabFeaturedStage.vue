@@ -1,29 +1,536 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { useAppStore } from '../../stores/app';
-import type { MotionPreferences } from '@lib';
+import { combineLatest, BehaviorSubject, map, type Subscription } from 'rxjs';
+import { onBeforeUnmount, onMounted, ref, watch , computed} from 'vue';
+import { MotionPreferences, RetargetableMotion, Tween } from '@lib';
+import { bindCanvas, resizeCanvas } from '@lib/canvas';
 import type { VisualLabStageConfig, VisualLabTelemetry } from './visualLabTypes';
-import { useVisualLabFeaturedStage } from './useVisualLabFeaturedStage';
 
-const props = defineProps<{ config: VisualLabStageConfig; preferences: MotionPreferences }>();
-const emit = defineEmits<{ telemetry: [telemetry: VisualLabTelemetry] }>();
+
 const appStore = useAppStore();
 const copy = computed(() => appStore.app.view.visualLabFeaturedStage);
-const stage = useVisualLabFeaturedStage(props, (telemetry) => emit('telemetry', telemetry));
-const {
-  root,
-  canvasHost,
-  isVisible,
-  isPointerActive,
-  canvasUnavailable,
-  prefersReducedMotion,
-  onPointerMove,
-  clearPointer,
-  onKeydown,
-  resetCenter,
-} = stage;
+interface PointerPosition { x: number; y: number }
+interface CanvasSize { width: number; height: number }
+interface StageFrame {
+  phase: number;
+  pointer: PointerPosition | null;
+  config: VisualLabStageConfig;
+  size: CanvasSize;
+}
+
+const GLYPH_TEXT = 're;Flux';
+const GLYPHS = Array.from(GLYPH_TEXT);
+const GLYPH_COUNT = GLYPHS.length;
+const MAX_GLYPH_SPEED = 164;
+const MAX_GLYPH_FORCE = 620;
+const TELEMETRY_INTERVAL_MS = 250;
+
+const props = defineProps<{
+  config: VisualLabStageConfig;
+  preferences: MotionPreferences;
+}>();
+
+const emit = defineEmits<{ telemetry: [telemetry: VisualLabTelemetry] }>();
+
+const root = ref<HTMLElement | null>(null);
+const canvas = ref<HTMLCanvasElement | null>(null);
+const isVisible = ref(false);
+const isPointerActive = ref(false);
+const canvasUnavailable = ref(false);
+const prefersReducedMotion = ref(props.preferences.snapshot.reducedMotion);
+
+const pointerSubject = new BehaviorSubject<PointerPosition | null>(null);
+const configSubject = new BehaviorSubject<VisualLabStageConfig>({ ...props.config });
+const sizeSubject = new BehaviorSubject<CanvasSize>({ width: 1, height: 1 });
+const cleanups: Array<() => void> = [];
+let phaseTween: Tween<number> | null = null;
+let renderSubscription: Subscription | null = null;
+let resizeObserver: ResizeObserver | null = null;
+let visibilityObserver: IntersectionObserver | null = null;
+let canvasContext: CanvasRenderingContext2D | null = null;
+let xMotion: RetargetableMotion | null = null;
+let yMotion: RetargetableMotion | null = null;
+let xMotionSubscription: Subscription | null = null;
+let yMotionSubscription: Subscription | null = null;
+let palette = { cyan: '#67e8f9', violet: '#a78bfa' };
+let lastFrameAt = 0;
+let lastTelemetryAt = 0;
+let smoothedFps = 0;
+let latestDrawTimeMs = 0;
+let latestPointer: PointerPosition | null = null;
+
+function getColor(name: string, fallback: string): string {
+  const element = root.value ?? document.documentElement;
+  const value = getComputedStyle(element).getPropertyValue(name).trim();
+  if (!value) return fallback;
+  if (/^rgba?\(/i.test(value) || /^#[\da-f]{3}(?:[\da-f]{3})?(?:[\da-f]{2})?$/i.test(value)) return value;
+  // Theme tokens intentionally store RGB channels as comma-separated numbers for rgba().
+  if (/^\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}$/.test(value)) return `rgb(${value})`;
+  return fallback;
+}
+
+function alphaColor(color: string, alpha: number): string {
+  const rgb = color.match(/^rgb\(([^)]+)\)$/i);
+  if (rgb?.[1]) return `rgba(${rgb[1]}, ${alpha})`;
+  const hex = color.match(/^#([\da-f]{3}|[\da-f]{6})$/i)?.[1];
+  if (hex) {
+    const expanded = hex.length === 3 ? hex.split('').map((channel) => `${channel}${channel}`).join('') : hex;
+    const channels = [0, 2, 4].map((offset) => Number.parseInt(expanded.slice(offset, offset + 2), 16));
+    return `rgba(${channels.join(', ')}, ${alpha})`;
+  }
+  return color;
+}
+
+interface GlyphTrailPoint { x: number; y: number }
+interface KineticGlyphAgent {
+  readonly character: string;
+  readonly index: number;
+  readonly phase: number;
+  readonly width: number;
+  homeX: number;
+  homeY: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  rotation: number;
+  trail: GlyphTrailPoint[];
+}
+
+let glyphAgents: KineticGlyphAgent[] = [];
+let glyphLayoutSignature = '';
+let glyphFontSize = 48;
+let glyphFontFamily = 'monospace';
+let glyphBackground = '#080b12';
+
+function limitVector(x: number, y: number, maximum: number): PointerPosition {
+  const magnitude = Math.hypot(x, y);
+  if (magnitude === 0 || magnitude <= maximum) return { x, y };
+  const ratio = maximum / magnitude;
+  return { x: x * ratio, y: y * ratio };
+}
+
+function ensureGlyphLayout(context: CanvasRenderingContext2D, width: number, height: number): void {
+  const styleSource = root.value ?? document.documentElement;
+  const family = getComputedStyle(styleSource).getPropertyValue('--rx-font-mono').trim() || 'monospace';
+  const fontSize = Math.max(27, Math.min(84, width * 0.115, height * 0.29));
+  const signature = `${width}|${height}|${fontSize.toFixed(2)}|${family}`;
+  if (signature === glyphLayoutSignature && glyphAgents.length === GLYPH_COUNT) return;
+
+  const previous = glyphAgents;
+  glyphFontSize = fontSize;
+  glyphFontFamily = family;
+  glyphBackground = getColor('--rx-color-canvas-night-deep', '#080b12');
+  context.font = `800 ${glyphFontSize}px ${glyphFontFamily}`;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  const metrics = GLYPHS.map((character) => context.measureText(character));
+  const widths = metrics.map((metric) => metric.width);
+  const tracking = glyphFontSize * 0.055;
+  const totalWidth = widths.reduce((total, value) => total + value, 0) + tracking * Math.max(0, GLYPH_COUNT - 1);
+  let cursorX = (width - totalWidth) / 2;
+  const homeY = height * 0.48;
+  const scatterX = Math.min(width * 0.13, glyphFontSize * 1.55);
+  const scatterY = Math.min(height * 0.18, glyphFontSize * 0.9);
+
+  glyphAgents = GLYPHS.map((character, index) => {
+    const measuredWidth = widths[index] ?? glyphFontSize * 0.55;
+    const homeX = cursorX + measuredWidth / 2;
+    cursorX += measuredWidth + tracking;
+    const oldAgent = previous[index];
+    const phase = index * 2.399963229728653;
+    const offsetX = oldAgent ? oldAgent.x - oldAgent.homeX : Math.cos(phase) * scatterX;
+    const offsetY = oldAgent ? oldAgent.y - oldAgent.homeY : Math.sin(phase * 1.27) * scatterY;
+    return {
+      character,
+      index,
+      phase,
+      width: measuredWidth,
+      homeX,
+      homeY,
+      x: homeX + offsetX,
+      y: homeY + offsetY,
+      vx: oldAgent?.vx ?? Math.sin(phase + 0.7) * 16,
+      vy: oldAgent?.vy ?? Math.cos(phase + 0.3) * 16,
+      rotation: oldAgent?.rotation ?? Math.cos(phase) * 5,
+      trail: [],
+    };
+  });
+  glyphLayoutSignature = signature;
+}
+
+function applyGlyphSteering(agent: KineticGlyphAgent, frame: StageFrame, deltaSeconds: number): void {
+  const config = frame.config;
+  const scaledTime = frame.phase * config.timeScale;
+  const targetY = agent.homeY + Math.sin(scaledTime * 0.82 + agent.phase) * (1.2 + config.springElasticity * 1.7);
+  const dx = agent.homeX - agent.x;
+  const dy = targetY - agent.y;
+  const distanceToHome = Math.hypot(dx, dy);
+  const desiredSpeed = Math.min(MAX_GLYPH_SPEED, distanceToHome * (2.25 + config.springElasticity * 2.4));
+  const desiredVx = distanceToHome > 0.001 ? dx / distanceToHome * desiredSpeed : 0;
+  const desiredVy = distanceToHome > 0.001 ? dy / distanceToHome * desiredSpeed : 0;
+  const steering = limitVector(desiredVx - agent.vx, desiredVy - agent.vy, MAX_GLYPH_FORCE);
+  let ax = steering.x;
+  let ay = steering.y + (config.gravity - 9.81) * 1.25;
+
+  // Separation keeps glyphs legible when a pointer force pushes neighbours together.
+  let separationX = 0;
+  let separationY = 0;
+  let neighbourCount = 0;
+  for (const other of glyphAgents) {
+    if (other === agent) continue;
+    const separationDx = agent.x - other.x;
+    const separationDy = agent.y - other.y;
+    const separationDistance = Math.hypot(separationDx, separationDy);
+    const separationRadius = Math.max(10, Math.min(glyphFontSize * 0.42, (agent.width + other.width) * 0.29));
+    if (separationDistance <= 0.001 || separationDistance >= separationRadius) continue;
+    const strength = (separationRadius - separationDistance) / separationRadius;
+    separationX += separationDx / separationDistance * strength;
+    separationY += separationDy / separationDistance * strength;
+    neighbourCount += 1;
+  }
+  if (neighbourCount > 0) {
+    ax += separationX / neighbourCount * MAX_GLYPH_FORCE * 0.78;
+    ay += separationY / neighbourCount * MAX_GLYPH_FORCE * 0.78;
+  }
+
+  // Flee is a local inverse-distance force; the smoothed pointer comes from RetargetableMotion.
+  if (frame.pointer) {
+    const pointerX = frame.pointer.x * frame.size.width;
+    const pointerY = frame.pointer.y * frame.size.height;
+    const pointerDx = agent.x - pointerX;
+    const pointerDy = agent.y - pointerY;
+    const pointerDistance = Math.hypot(pointerDx, pointerDy);
+    const fleeRadius = Math.min(172, Math.max(94, frame.size.width * 0.2));
+    if (pointerDistance < fleeRadius) {
+      const direction = pointerDistance > 0.001
+        ? { x: pointerDx / pointerDistance, y: pointerDy / pointerDistance }
+        : { x: Math.cos(agent.phase), y: Math.sin(agent.phase) };
+      const influence = 1 - pointerDistance / fleeRadius;
+      const fleeForce = influence * influence * (390 + config.springElasticity * 480);
+      ax += direction.x * fleeForce + Math.cos(scaledTime * 1.4 + agent.phase) * influence * 18;
+      ay += direction.y * fleeForce + Math.sin(scaledTime * 1.25 + agent.phase) * influence * 18;
+    }
+  }
+
+  const acceleration = limitVector(ax, ay, MAX_GLYPH_FORCE * 1.8);
+  const damping = Math.exp(-(2.5 + config.airDrag * 18) * deltaSeconds);
+  agent.vx = (agent.vx + acceleration.x * deltaSeconds) * damping;
+  agent.vy = (agent.vy + acceleration.y * deltaSeconds) * damping;
+  const velocity = limitVector(agent.vx, agent.vy, MAX_GLYPH_SPEED);
+  agent.vx = velocity.x;
+  agent.vy = velocity.y;
+  agent.x += agent.vx * deltaSeconds;
+  agent.y += agent.vy * deltaSeconds;
+  agent.rotation = Math.max(-8, Math.min(8, agent.vx * 0.035 + (agent.x - agent.homeX) * 0.085));
+
+  if (Math.hypot(agent.vx, agent.vy) > 5 || frame.pointer) {
+    agent.trail.push({ x: agent.x, y: agent.y });
+    if (agent.trail.length > 8) agent.trail.shift();
+  } else if (agent.trail.length > 0) {
+    agent.trail.shift();
+  }
+}
+
+function drawKineticTypography(context: CanvasRenderingContext2D, frame: StageFrame, rawDeltaSeconds: number): void {
+  const { width, height } = frame.size;
+  if (width <= 0 || height <= 0) return;
+  ensureGlyphLayout(context, width, height);
+  const deltaSeconds = Math.min(0.04, Math.max(0.001, rawDeltaSeconds)) * frame.config.timeScale;
+
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = glyphBackground;
+  context.fillRect(0, 0, width, height);
+  const glow = context.createRadialGradient(width * 0.5, height * 0.48, 0, width * 0.5, height * 0.48, width * 0.62);
+  glow.addColorStop(0, alphaColor(palette.cyan, 0.095));
+  glow.addColorStop(0.48, alphaColor(palette.violet, 0.055));
+  glow.addColorStop(1, alphaColor(glyphBackground, 0));
+  context.fillStyle = glow;
+  context.fillRect(0, 0, width, height);
+
+  for (const agent of glyphAgents) applyGlyphSteering(agent, frame, deltaSeconds);
+
+  // Motion trails make the typography read as a moving system, not a static title with transforms.
+  context.lineCap = 'round';
+  context.lineJoin = 'round';
+  for (const agent of glyphAgents) {
+    if (agent.trail.length < 2) continue;
+    const color = agent.index % 3 === 0 ? palette.violet : palette.cyan;
+    for (let index = agent.trail.length - 1; index > 0; index -= 1) {
+      const from = agent.trail[index];
+      const to = agent.trail[index - 1];
+      if (!from || !to) continue;
+      context.beginPath();
+      context.moveTo(from.x, from.y);
+      context.lineTo(to.x, to.y);
+      context.strokeStyle = alphaColor(color, 0.045 + (agent.trail.length - index) * 0.022);
+      context.lineWidth = 0.65 + (agent.trail.length - index) * 0.08;
+      context.stroke();
+    }
+  }
+
+  context.font = `800 ${glyphFontSize}px ${glyphFontFamily}`;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  glyphAgents.forEach((agent) => {
+    const accent = agent.index === 2 || agent.index === 5 ? palette.cyan : agent.index % 3 === 0 ? palette.violet : '#eef3ff';
+    context.save();
+    context.translate(agent.x, agent.y);
+    context.rotate(agent.rotation * Math.PI / 180);
+    context.shadowColor = accent;
+    context.shadowBlur = frame.pointer ? 17 : 8;
+    context.globalAlpha = 0.24;
+    context.lineWidth = Math.max(1, glyphFontSize * 0.018);
+    context.strokeStyle = accent;
+    context.strokeText(agent.character, 0, 0);
+    context.shadowBlur = 0;
+    context.globalAlpha = 1;
+    context.fillStyle = accent;
+    context.fillText(agent.character, 0, 0);
+    context.restore();
+  });
+
+  if (frame.pointer) {
+    const pointerX = frame.pointer.x * width;
+    const pointerY = frame.pointer.y * height;
+    context.beginPath();
+    context.arc(pointerX, pointerY, 7 + frame.config.springElasticity * 5, 0, Math.PI * 2);
+    context.strokeStyle = alphaColor(palette.cyan, 0.3);
+    context.lineWidth = 1;
+    context.stroke();
+  }
+}
+function currentSpringOptions() {
+  return {
+    stiffness: 130 + props.config.springElasticity * 210,
+    damping: 12 + props.config.airDrag * 520,
+    mass: 1,
+  };
+}
+
+function publishSpringPointer(): void {
+  if (!isPointerActive.value) {
+    pointerSubject.next(null);
+    return;
+  }
+  const x = xMotion?.value$.value ?? -1;
+  const y = yMotion?.value$.value ?? -1;
+  if (x >= 0 && x <= 1 && y >= 0 && y <= 1) pointerSubject.next({ x, y });
+  else pointerSubject.next(null);
+}
+
+function retargetPointer(x: number, y: number): void {
+  if (prefersReducedMotion.value) return;
+  const options = currentSpringOptions();
+  xMotion?.to(x, options);
+  yMotion?.to(y, options);
+}
+
+function emitTelemetry(state: VisualLabTelemetry['state'], now = performance.now()): void {
+  emit('telemetry', {
+    fps: state === 'running' ? Math.round(smoothedFps * 10) / 10 : 0,
+    frameTimeMs: Math.round(latestDrawTimeMs * 1000) / 1000,
+    nodeCount: GLYPH_COUNT,
+    pointerX: latestPointer?.x ?? null,
+    pointerY: latestPointer?.y ?? null,
+    state,
+  });
+  lastTelemetryAt = now;
+}
+
+function resize(): void {
+  if (!canvas.value) return;
+  try {
+    const result = resizeCanvas(canvas.value);
+    canvasContext = result.context;
+    sizeSubject.next({ width: result.width, height: result.height });
+  } catch (error) {
+    console.warn('Visual Lab featured canvas could not resize.', error);
+  }
+}
+
+function syncPlayback(): void {
+  if (!phaseTween) return;
+  if (isVisible.value && !prefersReducedMotion.value) {
+    void phaseTween.play().catch(() => undefined);
+    emitTelemetry('running');
+  } else {
+    phaseTween.stop();
+    pointerSubject.next(null);
+    latestPointer = null;
+    lastFrameAt = 0;
+    smoothedFps = 0;
+    latestDrawTimeMs = 0;
+    emitTelemetry(prefersReducedMotion.value ? 'reduced-motion' : 'idle');
+  }
+}
+
+function onPointerMove(event: PointerEvent): void {
+  const element = root.value;
+  if (!element || prefersReducedMotion.value) return;
+  const rect = element.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) return;
+  const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+  isPointerActive.value = true;
+  retargetPointer(x, y);
+}
+
+function clearPointer(): void {
+  isPointerActive.value = false;
+  if (prefersReducedMotion.value) {
+    pointerSubject.next(null);
+    latestPointer = null;
+  } else {
+    retargetPointer(-1, -1);
+  }
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  if (prefersReducedMotion.value) return;
+  const step = event.shiftKey ? 0.12 : 0.04;
+  const current = latestPointer ?? { x: 0.5, y: 0.5 };
+  let x = current.x;
+  let y = current.y;
+  if (event.key === 'ArrowLeft') x -= step;
+  else if (event.key === 'ArrowRight') x += step;
+  else if (event.key === 'ArrowUp') y -= step;
+  else if (event.key === 'ArrowDown') y += step;
+  else if (event.key === 'Home' || event.key === 'Escape') {
+    event.preventDefault();
+    resetCenter();
+    return;
+  } else return;
+  event.preventDefault();
+  x = Math.max(0, Math.min(1, x));
+  y = Math.max(0, Math.min(1, y));
+  isPointerActive.value = true;
+  retargetPointer(x, y);
+}
+
+function resetCenter(): void {
+  isPointerActive.value = false;
+  xMotion?.stop();
+  yMotion?.stop();
+  xMotion?.to(-1);
+  yMotion?.to(-1);
+  pointerSubject.next(null);
+  latestPointer = null;
+  phaseTween?.seek(0);
+  if (!isVisible.value || prefersReducedMotion.value) syncPlayback();
+  else emitTelemetry('running');
+}
 
 defineExpose({ resetCenter });
+
+watch(() => ({ ...props.config }), (config) => {
+  configSubject.next(config);
+  if (xMotion && yMotion && latestPointer) retargetPointer(latestPointer.x, latestPointer.y);
+}, { deep: true });
+
+onMounted(() => {
+  if (!canvas.value) return;
+  palette = {
+    cyan: getColor('--rx-color-accent-cyan-rgb', '#67e8f9'),
+    violet: getColor('--rx-theme-primary', '#a78bfa'),
+  };
+  resize();
+  if (!canvasContext) {
+    canvasUnavailable.value = true;
+    emitTelemetry('idle');
+    return;
+  }
+  phaseTween = new Tween({
+    from: 0,
+    to: Math.PI * 2,
+    duration: 3200,
+    easing: 'linear',
+    repeat: Infinity,
+    motion: { preferences: props.preferences, pauseWhenHidden: true, reducedMotion: 'finish' },
+  });
+  void phaseTween.catch(() => undefined);
+  renderSubscription = bindCanvas(canvasContext!, combineLatest([phaseTween.value$, pointerSubject, configSubject, sizeSubject]).pipe(
+    map(([phase, pointer, config, size]): StageFrame => ({ phase, pointer, config, size })),
+  ), (context, frame) => {
+    const before = performance.now();
+    const deltaSeconds = lastFrameAt > 0 ? Math.min(0.04, Math.max(0.001, (before - lastFrameAt) / 1000)) : 1 / 60;
+    latestPointer = frame.pointer;
+    drawKineticTypography(context, frame, deltaSeconds);
+    const after = performance.now();
+    latestDrawTimeMs = Math.max(0, after - before);
+    if (lastFrameAt > 0) {
+      const delta = after - lastFrameAt;
+      if (delta > 0 && delta < 1000) {
+        const sample = 1000 / delta;
+        smoothedFps = smoothedFps === 0 ? sample : smoothedFps * 0.7 + sample * 0.3;
+      }
+    }
+    lastFrameAt = after;
+    if (after - lastTelemetryAt >= TELEMETRY_INTERVAL_MS) emitTelemetry(isVisible.value && !prefersReducedMotion.value ? 'running' : prefersReducedMotion.value ? 'reduced-motion' : 'idle', after);
+  }, { clearOnUnsubscribe: true });
+
+  xMotion = new RetargetableMotion({ initialValue: -1, ...currentSpringOptions() });
+  yMotion = new RetargetableMotion({ initialValue: -1, ...currentSpringOptions() });
+  xMotionSubscription = xMotion.value$.subscribe(publishSpringPointer);
+  yMotionSubscription = yMotion.value$.subscribe(publishSpringPointer);
+
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvas.value);
+  } else {
+    window.addEventListener('resize', resize, { passive: true });
+    cleanups.push(() => window.removeEventListener('resize', resize));
+  }
+
+  if (typeof IntersectionObserver !== 'undefined') {
+    visibilityObserver = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      isVisible.value = entry.isIntersecting && entry.intersectionRatio > 0.05;
+      syncPlayback();
+    }, { threshold: [0, 0.05, 0.25] });
+    visibilityObserver.observe(root.value ?? canvas.value);
+  } else {
+    isVisible.value = true;
+  }
+
+  const preferencesSubscription = props.preferences.state$.subscribe((state) => {
+    const changed = prefersReducedMotion.value !== state.reducedMotion;
+    prefersReducedMotion.value = state.reducedMotion;
+    if (!changed) return;
+    if (state.reducedMotion) {
+      clearPointer();
+      pointerSubject.next(null);
+    }
+    syncPlayback();
+  });
+  cleanups.push(() => preferencesSubscription.unsubscribe());
+  syncPlayback();
+});
+
+onBeforeUnmount(() => {
+  phaseTween?.stop();
+  xMotionSubscription?.unsubscribe();
+  yMotionSubscription?.unsubscribe();
+  xMotion?.dispose();
+  yMotion?.dispose();
+  xMotion = null;
+  yMotion = null;
+  xMotionSubscription = null;
+  yMotionSubscription = null;
+  resizeObserver?.disconnect();
+  visibilityObserver?.disconnect();
+  resizeObserver = null;
+  visibilityObserver = null;
+  renderSubscription?.unsubscribe();
+  renderSubscription = null;
+  phaseTween = null;
+  for (const cleanup of cleanups.splice(0).reverse()) cleanup();
+  pointerSubject.complete();
+  configSubject.complete();
+  sizeSubject.complete();
+  emitTelemetry('idle');
+});
 </script>
 
 <template>
@@ -32,19 +539,15 @@ defineExpose({ resetCenter });
     class="lab-feature-stage"
     :class="{ 'is-active': isVisible && !prefersReducedMotion, 'is-pointer-active': isPointerActive, 'is-static': prefersReducedMotion }"
     role="group"
-    :aria-label="copy.staticText.interactiveP5Singularity"
+    :aria-label="copy.staticText.interactiveKineticTypographyCanvas"
     tabindex="0"
     @pointermove="onPointerMove"
     @pointerleave="clearPointer"
     @focusout="clearPointer"
     @keydown="onKeydown"
   >
-    <div ref="canvasHost" class="lab-feature-stage__canvas-host" aria-hidden="true" />
-    <div v-if="canvasUnavailable" class="lab-feature-stage__fallback" role="status">{{ copy.staticText.p5PreviewUnavailable }}</div>
-    <div v-if="!canvasUnavailable" class="lab-feature-stage__credit">
-      {{ copy.staticText.poweredByP5js }}
-      <a href="https://p5js.org/" target="_blank" rel="noreferrer noopener">{{ copy.staticText.p5jsName }} <span aria-hidden="true">↗</span></a>
-    </div>
+    <canvas v-if="!canvasUnavailable" ref="canvas" class="lab-feature-stage__canvas" aria-hidden="true" />
+    <div v-else class="lab-feature-stage__fallback" role="status">{{ copy.staticText.canvas2DIsUnavailableInThisBrowserTheRestOfVisualLabRemainsAvailable }}</div>
     <div class="lab-feature-stage__vignette" aria-hidden="true" />
     <div v-if="!canvasUnavailable" class="lab-feature-stage__hint">
       {{ prefersReducedMotion ? copy.staticText.reducedMotion : isPointerActive ? copy.staticText.pointerSpringActive : isVisible ? copy.staticText.movePointerOrUseArrowKeys : copy.staticText.stagePausedOffscreen }}

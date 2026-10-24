@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useAppStore } from '../../stores/app';
 import { nextTick, onBeforeUnmount, onMounted, ref, watch, computed } from 'vue';
-import { MotionPreferences, cubicBezier } from '@lib';
-import { animateNumber, animateText, draggable, flip, type DraggableHandle } from '@lib/dom';
+import { MotionPreferences } from '@lib';
+import { animateNumber, draggable, flip, type DraggableHandle } from '@lib/dom';
+import { createKineticTypography, type KineticTypographyHandle } from './kineticTypographyMotion';
 import VisualLabSceneExplorer from './VisualLabSceneExplorer.vue';
 import type { VisualLabSceneDefinition } from './visualLabSceneTypes';
 
@@ -23,7 +24,7 @@ const layoutTarget = ref<HTMLElement | null>(null);
 const preferences = new MotionPreferences();
 const activeCleanups: Array<() => void> = [];
 let layoutAnimation: ReturnType<typeof flip> | null = null;
-let kineticTextAnimation: ReturnType<typeof animateText> | null = null;
+let kineticTypography: KineticTypographyHandle | null = null;
 let counterAnimations: Array<ReturnType<typeof animateNumber>> = [];
 let countersStarted = false;
 let draggableHandle: DraggableHandle | null = null;
@@ -47,10 +48,31 @@ const scenes: readonly VisualLabSceneDefinition[] = [
     id: 'typography', category: '13 / TYPOGRAPHY', title: copy.value.staticText.letTypeBecomeAVisualElement,
     description: copy.value.staticText.characterLevelTimingRotationAndOpacityProduceb687bb,
     stageLabel: copy.value.staticText.kineticTYPESTAGE, fileLabel: copy.value.staticText.staggeredTextTs, stageTag: copy.value.staticText.graphemeLEVELTIMING, ariaLabel: copy.value.staticText.animatedKineticTypographyReadingReactiveMotion,
-    snippet: `import { cubicBezier } from '@re-code/flux';
-import { animateText } from '@re-code/flux/dom';
+    snippet: `interface GlyphAgent {
+  x: number; y: number;
+  vx: number; vy: number;
+  homeX: number; homeY: number;
+}
 
-const text = animateText(element, {\n  duration: 720,\n  stagger: 26,\n  splitBy: 'graphemes',\n  fromOpacity: 0.08,\n  fromTransform: 'translateY(0.7em) rotate(5deg)',\n  easing: cubicBezier(0.16, 1, 0.3, 1),\n});\n\nvoid text.play().catch(() => undefined);\n// Replaying restarts the same character sequence.\ntext.restart();\nreturn () => text.dispose();`,
+function stepGlyph(glyph: GlyphAgent, dt: number): void {
+  // SEEK: steer towards the glyph's home position.
+  const dx = glyph.homeX - glyph.x;
+  const dy = glyph.homeY - glyph.y;
+  const distance = Math.hypot(dx, dy);
+  const speed = Math.min(164, distance * 5.2);
+  const desiredX = distance > 0 ? dx / distance * speed : 0;
+  const desiredY = distance > 0 ? dy / distance * speed : 0;
+  const forceX = desiredX - glyph.vx;
+  const forceY = desiredY - glyph.vy;
+
+  // Add SEPARATION and pointer FLEE forces before integration.
+  glyph.vx = (glyph.vx + forceX * dt) * Math.exp(-2.7 * dt);
+  glyph.vy = (glyph.vy + forceY * dt) * Math.exp(-2.7 * dt);
+  glyph.x += glyph.vx * dt;
+  glyph.y += glyph.vy * dt;
+}
+
+// Apply once per frame; cap accumulated force and velocity.`,
   },
   {
     id: 'layout', category: '14 / LAYOUT', title: copy.value.staticText.animateLayoutChangesNotJustTransforms,
@@ -63,25 +85,25 @@ const text = animateText(element, {\n  duration: 720,\n  stagger: 26,\n  splitBy
 function setupKineticText(): void {
   const target = kineticTitle.value;
   if (!target) return;
-  const textAnimation = animateText(target, {
-    duration: 720,
-    stagger: 26,
-    splitBy: 'graphemes',
-    fromOpacity: 0.08,
-    fromTransform: 'translateY(0.7em) rotate(5deg)',
-    easing: cubicBezier(0.16, 1, 0.3, 1),
-    motion: { preferences, pauseWhenHidden: true, reducedMotion: 'finish' },
+  const handle = createKineticTypography(target);
+  kineticTypography = handle;
+  let lastReducedMotion: boolean | null = null;
+  const motionSubscription = preferences.state$.subscribe((state) => {
+    if (state.reducedMotion === lastReducedMotion) return;
+    lastReducedMotion = state.reducedMotion;
+    if (state.reducedMotion) handle.settle(true);
+    else handle.play();
   });
-  kineticTextAnimation = textAnimation;
-  void textAnimation.play().catch(() => undefined);
   activeCleanups.push(() => {
-    kineticTextAnimation?.dispose();
-    kineticTextAnimation = null;
+    motionSubscription.unsubscribe();
+    handle.dispose();
+    if (kineticTypography === handle) kineticTypography = null;
   });
 }
 
 function replayKineticText(): void {
-  kineticTextAnimation?.restart();
+  if (preferences.snapshot.reducedMotion) return;
+  kineticTypography?.play();
 }
 
 function setupDraggable(): void {
@@ -242,7 +264,15 @@ onBeforeUnmount(() => {
         <span class="draggable-stage__hint">{{ copy.staticText.dragARROWKEYS }}</span>
         <UiButton class="visual-scene-explorer__stage-action" size="small" variant="tonal" color="primary" @click="resetDraggable">{{ copy.staticText.reset }} <UiIcon end>mdi-restore</UiIcon></UiButton>
       </div>
-      <div v-else-if="scene.id === 'typography'" ref="kineticTitle" class="kinetic-stage">{{ copy.staticText.reactiveMotion }}</div>
+      <div v-else-if="scene.id === 'typography'" class="kinetic-type-demo">
+        <div ref="kineticTitle" class="kinetic-stage">{{ copy.staticText.reactiveMotion }}</div>
+        <div class="kinetic-type-demo__footer">
+          <span>{{ copy.staticText.seekSeparateFlee }}</span>
+          <UiButton color="primary" variant="tonal" size="small" :disabled="preferences.snapshot.reducedMotion" @click="replayKineticText">
+            <UiIcon start>mdi-replay</UiIcon>{{ copy.staticText.replayKineticTypography }}
+          </UiButton>
+        </div>
+      </div>
       <div v-else-if="scene.id === 'layout'" class="layout-stage visual-scene-explorer__layout-stage">
         <div ref="layoutTarget" class="visual-scene-explorer__layout-target">
           <div v-for="number in [1, 2, 3, 4]" :key="number" class="layout-tile" :data-tile="number"><span>0{{ number }}</span><UiIcon size="18">{{ ['mdi-shape-outline', 'mdi-hexagon-outline', 'mdi-circle-outline', 'mdi-triangle-outline'][number - 1] }}</UiIcon></div>

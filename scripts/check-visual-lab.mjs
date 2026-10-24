@@ -117,6 +117,8 @@ console.log('✓ VisualShowcase sidebar: sticky, viewport-bounded, independently
 const homeView = await readFile(resolve(root, 'apps/docs/src/views/Home.vue'), 'utf8');
 const landingPreview = await readFile(resolve(root, 'apps/docs/src/components/LandingLabPreview.vue'), 'utf8');
 const landingPreviewStyles = await readFile(resolve(root, 'apps/docs/src/styles/components/landing-lab-preview.scss'), 'utf8');
+const landingResponsiveStyles = await readFile(resolve(root, 'apps/docs/src/styles/views/home/_responsive.scss'), 'utf8');
+const experimentCardStyles = await readFile(resolve(root, 'apps/docs/src/styles/components/_visual-experiment-card.scss'), 'utf8');
 assert(/<LandingLabPreview\b/.test(homeView), 'Home.vue: Visual Lab cards must use live LandingLabPreview components.');
 assert(homeView.includes('class=\"home-lab-card__inspect\"'), 'Home.vue: each preview needs a direct, keyboard-accessible link to its full scene.');
 for (const adapter of ['bindSvgPathMorph', 'bindCanvas', 'drawParticleConstellation', 'draggable']) {
@@ -127,7 +129,11 @@ for (const lifecycleContract of ['IntersectionObserver', 'MotionPreferences', 'o
 }
 assert(landingPreview.includes('cleanups.splice(0).reverse()'), 'LandingLabPreview.vue: preview cleanups should be executed in reverse acquisition order.');
 assert(landingPreviewStyles.includes('@media (prefers-reduced-motion: reduce)'), 'landing-lab-preview.scss: include reduced-motion styling.');
+assert(/\.landing-lab-preview\s*\{[^}]*height:\s*clamp\(10rem,\s*15vw,\s*13rem\)[^}]*min-height:\s*clamp\(10rem,\s*15vw,\s*13rem\)/s.test(landingPreviewStyles), 'landing-lab-preview.scss: every landing animation area must have a definite, shared height.');
+assert(/&__svg\s*\{[^}]*height:\s*100%[^}]*max-height:\s*100%/s.test(landingPreviewStyles), 'landing-lab-preview.scss: SVG artwork must fit inside the fixed preview area.');
+assert(/\.landing-lab-preview\s*\{[^}]*height:\s*12rem[^}]*min-height:\s*12rem/s.test(landingResponsiveStyles), 'home/_responsive.scss: landing preview heights must remain consistent at tablet widths.');
+assert(/&__art\s*\{[^}]*height:\s*12\.5rem[^}]*min-height:\s*12\.5rem/s.test(experimentCardStyles), '_visual-experiment-card.scss: experiment card animation areas must have a fixed, shared height.');
 assert(!homeView.includes('home-lab-art-particle') && !homeView.includes('home-lab-art-svg'), 'Home.vue: remove the old CSS-only gallery artwork.');
-console.log('✓ Home Visual Lab previews: SVG morph, Canvas particles, draggable motion, visibility pause, reduced-motion handling and teardown');
+console.log('✓ Home Visual Lab previews: equal-height SVG/Canvas/interaction stages, SVG morph, Canvas particles, visibility pause, reduced-motion handling and teardown');
 
 console.log('Visual Lab markup checks passed.');

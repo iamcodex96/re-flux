@@ -27,7 +27,9 @@
   &__art {
     position: relative;
     display: grid;
+    height: 12.5rem;
     min-height: 12.5rem;
+    box-sizing: border-box;
     place-items: center;
     overflow: hidden;
     border-bottom: var(--rx-border-width) solid rgba(var(--rx-theme-border-strong), 0.12);
@@ -193,8 +195,20 @@
     line-height: var(--rx-line-height-solid);
     text-align: center;
     white-space: nowrap;
+    transition: text-shadow var(--rx-motion-duration-standard) ease;
 
-    &::first-letter { color: rgb(var(--rx-theme-secondary)); }
+    [data-kinetic-glyph] {
+      display: inline-block;
+      transform-origin: 50% 58%;
+    }
+
+    &.is-kinetic-active [data-kinetic-glyph] { will-change: transform; }
+    [data-kinetic-glyph]:nth-child(5n + 1) { color: rgb(var(--rx-theme-secondary)); }
+    [data-kinetic-glyph]:nth-child(5n + 3) { color: rgb(var(--rx-color-accent-cyan-rgb)); }
+
+    &.is-kinetic-active {
+      text-shadow: 0 0 1.1rem rgba(var(--rx-color-accent-cyan-rgb), 0.12);
+    }
   }
 
   &--spline {

@@ -4,7 +4,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { map } from 'rxjs';
 import { MotionPreferences, Tween } from '@lib';
 import { bindCanvas, resizeCanvas } from '@lib/canvas';
-import { animateText } from '@lib/dom';
+import { createKineticTypography, type KineticTypographyHandle } from './kineticTypographyMotion';
 import { bindSvgAttributes, bindSvgPathDrawing, bindSvgPathMorph } from '@lib/svg';
 import { drawParticleConstellation } from '@demos/canvas';
 import VisualLabShaderPreview from './VisualLabShaderPreview.vue';
@@ -55,7 +55,7 @@ const linePath = 'M 22 128 C 68 28 96 30 129 92 S 193 148 228 72 S 270 38 288 49
 const cleanups: Array<() => void> = [];
 let pointerWithin = false;
 let focusWithin = false;
-let textAnimation: ReturnType<typeof animateText> | null = null;
+let kineticTypography: KineticTypographyHandle | null = null;
 let sceneTween: Tween<number> | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let canvasSize = { width: 1, height: 1 };
@@ -414,18 +414,8 @@ function playPreview(): void {
   if (props.kind === 'typography') {
     const target = typographyTarget.value;
     if (!target) return;
-    textAnimation?.dispose();
-    textAnimation = animateText(target, {
-      duration: 720,
-      stagger: 30,
-      splitBy: 'graphemes',
-      fromOpacity: 0,
-      fromTransform: 'translateY(0.75em) rotate(6deg)',
-      easing: 'easeOutCubic',
-      motion: { preferences: props.preferences, pauseWhenHidden: true, reducedMotion: 'finish' },
-    });
-    void textAnimation.catch(() => undefined);
-    textAnimation.play();
+    kineticTypography ??= createKineticTypography(target);
+    kineticTypography.play();
     return;
   }
   if (sceneTween) void sceneTween.restart().catch(() => undefined);
@@ -433,8 +423,7 @@ function playPreview(): void {
 
 function resetPreview(): void {
   if (props.kind === 'typography') {
-    textAnimation?.dispose();
-    textAnimation = null;
+    kineticTypography?.settle(motionReduced.value);
     return;
   }
   sceneTween?.stop();
@@ -480,8 +469,8 @@ onBeforeUnmount(() => {
   preferenceSubscription = null;
   pointerWithin = false;
   focusWithin = false;
-  textAnimation?.dispose();
-  textAnimation = null;
+  kineticTypography?.dispose();
+  kineticTypography = null;
   sceneTween?.stop();
   sceneTween = null;
   resizeObserver?.disconnect();

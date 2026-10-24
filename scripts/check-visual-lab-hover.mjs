@@ -6,14 +6,15 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const read = (path) => readFile(resolve(root, path), 'utf8');
 
-const [router, card, overview, stage, stageController, cardStyles, overviewStyles] = await Promise.all([
+const [router, card, overview, stage, cardStyles, overviewStyles, typographyPanel, typographyMotion] = await Promise.all([
   read('apps/docs/src/router/index.ts'),
   read('apps/docs/src/components/VisualLab/VisualExperimentCard.vue'),
   read('apps/docs/src/views/VisualLabOverview.vue'),
   read('apps/docs/src/components/VisualLab/VisualLabFeaturedStage.vue'),
-  read('apps/docs/src/components/VisualLab/useVisualLabFeaturedStage.ts'),
   read('apps/docs/src/styles/components/_visual-experiment-card.scss'),
   read('apps/docs/src/styles/views/visual-lab/_overview.scss'),
+  read('apps/docs/src/components/VisualLab/VisualInteractionsPanel.vue'),
+  read('apps/docs/src/components/VisualLab/kineticTypographyMotion.ts'),
 ]);
 
 function requireMatch(source, pattern, message) {
@@ -30,9 +31,8 @@ for (const [pattern, message] of [
   [/@pointerleave="onPointerLeave"/, 'Pointer leave must reset a preview.'],
   [/@focusin="onFocusIn"/, 'Keyboard focus must activate a preview.'],
   [/@focusout="onFocusOut"/, 'Keyboard focus leaving the card must reset a preview.'],
-  [/function playPreview\(\)[\s\S]*?textAnimation\s*=\s*animateText\(/, 'The typography card must create the real text reveal animation on activation.'],
-  [/fromOpacity:\s*0[\s\S]*?fromTransform:\s*['"]translateY\(0\.75em\) rotate\(6deg\)['"]/, 'Typography reveal must begin in a hidden, offset state.'],
-  [/textAnimation\?\.dispose\(\);\s*textAnimation\s*=\s*null/, 'Leaving the typography card must dispose the reveal and restore its original text.'],
+  [/function playPreview\(\)[\s\S]*?kineticTypography \?\?= createKineticTypography\(target\)/, 'The typography card must create the steering-based glyph simulation on activation.'],
+  [/kineticTypography\?\.settle\(motionReduced\.value\)/, 'Leaving the typography card must settle glyph agents and respect reduced motion.'],
   [/sceneTween\.restart\(\)/, 'Non-typography previews must restart their value-driven scene on activation.'],
   [/sceneTween\?\.stop\(\)/, 'Leaving a non-typography card must stop/reset its value stream.'],
   [/new MotionPreferences|MotionPreferences/, 'Cards must use motion preferences.'],
@@ -44,6 +44,12 @@ for (const [pattern, message] of [
   requireMatch(card, pattern, message);
 }
 
+for (const contract of ['homeDistance', 'MAX_FORCE', 'SEPARATION_DISTANCE', 'POINTER_RADIUS', 'requestAnimationFrame(tick)', "pointermove", "pointerleave", "visibilitychange", "aria-hidden", "target.replaceChildren(...originalNodes)"]) {
+  assert.ok(typographyMotion.includes(contract), `Kinetic typography steering helper is missing ${contract}.`);
+}
+requireMatch(typographyPanel, /createKineticTypography\(target\)[\s\S]*?state\.reducedMotion[\s\S]*?handle\.settle\(true\)/, 'The dedicated typography scene must use the shared steering helper and stop for reduced motion.');
+requireMatch(typographyPanel, /@click="replayKineticText"/, 'Kinetic typography must expose a replay action.');
+
 for (const kind of ['setupSvgPreview', 'setupCanvasPreview', 'VisualLabShaderPreview']) {
   assert.ok(card.includes(kind), `VisualExperimentCard.vue must initialize ${kind}.`);
 }
@@ -52,13 +58,13 @@ for (const kind of ['typography', 'spline', 'particles', 'cloth', 'dispersion', 
   assert.ok(card.includes(`'${kind}'`), `VisualExperimentCard.vue must support the ${kind} preview kind.`);
 }
 
-requireMatch(stage, /@pointermove="onPointerMove"[\s\S]*?@pointerleave="clearPointer"/, 'Kinetic Singularity must respond to pointer movement and clear the target on leave.');
-requireMatch(stageController, /phaseTween(?:\?\.|\.)play\(\)/, 'Kinetic Singularity must play the phase tween while visible.');
-requireMatch(stageController, /phaseTween\?\.stop\(\)/, 'Kinetic Singularity must stop while hidden or reduced-motion is enabled.');
-requireMatch(stageController, /performance\.now\(\)[\s\S]*?latestDrawTimeMs/, 'p5.js renderer telemetry must measure draw time.');
-requireMatch(stageController, /new RetargetableMotion/, 'Featured pointer displacement must use RetargetableMotion.');
-requireMatch(stageController, /xMotion\?\.to\(x, options\)[\s\S]*?yMotion\?\.to\(y, options\)/, 'Featured pointer movement must retarget both axes using the active spring options.');
-requireMatch(stageController, /renderSubscription\?\.unsubscribe\(\)/, 'The p5.js stage frame subscription must be unsubscribed on teardown.');
+requireMatch(stage, /@pointermove="onPointerMove"[\s\S]*?@pointerleave="clearPointer"/, 'Featured kinetic typography must respond to pointer movement and clear the target on leave.');
+requireMatch(stage, /phaseTween(?:\?\.|\.)play\(\)/, 'Featured typography must play the phase tween while visible.');
+requireMatch(stage, /phaseTween\?\.stop\(\)/, 'Featured typography must stop while hidden or reduced-motion is enabled.');
+requireMatch(stage, /performance\.now\(\)[\s\S]*?latestDrawTimeMs/, 'Featured Canvas telemetry must measure draw time.');
+requireMatch(stage, /new RetargetableMotion/, 'Featured pointer displacement must use RetargetableMotion.');
+requireMatch(stage, /xMotion\?\.to\(x, options\)[\s\S]*?yMotion\?\.to\(y, options\)/, 'Featured pointer movement must retarget both axes using the active spring options.');
+requireMatch(stage, /renderSubscription\?\.unsubscribe\(\)/, 'Featured Canvas binding must be unsubscribed on teardown.');
 requireMatch(stage, /role="group"/, 'The interactive featured stage must expose an interactive semantic role.');
 
 requireMatch(cardStyles, /&:focus-within/, 'Cards must have a visible keyboard focus treatment.');

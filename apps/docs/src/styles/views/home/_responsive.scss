@@ -103,7 +103,7 @@
   }
 
   .home-lab-card { scroll-snap-align: start; }
-  .landing-lab-preview { min-height: 12rem; }
+  .landing-lab-preview { height: 12rem; min-height: 12rem; }
 
   .home-code-motion-wrap { width: calc(100% - var(--rx-page-gutter) * 2); }
   .home-principles { padding-block: var(--rx-space-18); }

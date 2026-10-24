@@ -109,7 +109,7 @@ const activePage = computed(() => {
               :to="{ name: item.name }"
               class="playground-module-link"
               :class="{ 'is-active': route.name === item.name }"
-              :aria-current="route.name === item.name ? 'page' : undefined"
+              :aria-current="route.name === item.name ? 'page' : null"
             >
               <span class="playground-module-link__icon" aria-hidden="true">
                 <UiIcon :icon="item.icon" size="18" />
@@ -137,9 +137,9 @@ const activePage = computed(() => {
           <span>{{ activeModuleIndex }} / {{ String(moduleCount).padStart(2, '0') }}</span>
         </div>
       </div>
-      <div class="playground-layout__content">
+      <main class="playground-layout__content">
         <RouterView />
-      </div>
+      </main>
     </section>
   </UiContainer>
 </template>

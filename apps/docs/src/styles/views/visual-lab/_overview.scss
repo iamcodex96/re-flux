@@ -237,9 +237,7 @@
 
   &:focus-visible { outline: var(--rx-border-width-focus) solid rgb(var(--rx-theme-primary)); outline-offset: calc(var(--rx-border-width-focus) * -1); }
 
-  &__canvas-host { position: absolute; z-index: var(--rx-z-base); inset: 0; width: 100%; height: 100%; overflow: hidden; }
-
-  &__canvas { display: block; position: relative; width: 100% !important; height: 100% !important; min-height: 0 !important; }
+  &__canvas { display: block; width: 100%; height: 100%; min-height: 32rem; }
 }
 
 .lab-button {
@@ -448,9 +446,9 @@
 
 .lab-feature-stage {
   background:
-    radial-gradient(ellipse at 51% 48%, rgba(var(--rx-color-accent-cyan-rgb), 0.09), transparent 37%),
-    radial-gradient(ellipse at 74% 24%, rgba(var(--rx-theme-primary), 0.14), transparent 36%),
-    radial-gradient(ellipse at 20% 82%, rgba(var(--rx-theme-secondary), 0.09), transparent 34%),
+    radial-gradient(rgba(var(--rx-color-accent-cyan-rgb), 0.2) var(--rx-space-px), transparent var(--rx-space-px)) 0 0 / var(--rx-space-5) var(--rx-space-5),
+    radial-gradient(ellipse at 68% 92%, rgba(var(--rx-theme-secondary), 0.1), transparent 36%),
+    radial-gradient(ellipse at 18% 20%, rgba(var(--rx-theme-primary), 0.1), transparent 38%),
     var(--rx-color-canvas-night-deep);
   transition: box-shadow var(--rx-motion-duration-emphasis) var(--rx-motion-ease-standard);
 
@@ -462,31 +460,8 @@
     position: absolute;
     z-index: var(--rx-z-base);
     inset: 0;
-    background: radial-gradient(ellipse at center, transparent 42%, rgba(var(--rx-color-black-rgb), 0.38) 100%);
+    background: radial-gradient(ellipse at center, transparent 46%, rgba(var(--rx-color-black-rgb), 0.34) 100%);
     pointer-events: none;
-  }
-
-  &__credit {
-    position: absolute;
-    z-index: var(--rx-z-overlay-content);
-    left: var(--rx-space-4);
-    bottom: var(--rx-space-3);
-    display: inline-flex;
-    align-items: center;
-    gap: var(--rx-space-1);
-    padding: var(--rx-space-1) var(--rx-space-2);
-    border: var(--rx-border-width) solid rgba(var(--rx-theme-border-strong), 0.12);
-    border-radius: var(--rx-radius-xs);
-    background: rgba(var(--rx-theme-background), 0.72);
-    color: rgba(var(--rx-theme-on-background), 0.56);
-    font-family: var(--rx-font-mono);
-    font-size: var(--rx-font-size-2xs);
-    letter-spacing: var(--rx-tracking-label);
-    pointer-events: auto;
-
-    a { color: rgb(var(--rx-theme-secondary)); text-decoration: none; }
-    a:hover { color: rgb(var(--rx-theme-primary)); }
-    a:focus-visible { outline: var(--rx-border-width-focus) solid rgb(var(--rx-theme-primary)); outline-offset: var(--rx-space-fine); }
   }
 
   &__fallback {
@@ -581,7 +556,6 @@
 
 @media (max-width: breakpoints.$rx-breakpoint-mobile) {
   .lab-feature-stage__hint { right: var(--rx-space-2); bottom: var(--rx-space-2); max-width: calc(100% - var(--rx-space-4)); font-size: var(--rx-font-size-3xs); }
-  .lab-feature-stage__credit { left: var(--rx-space-2); bottom: var(--rx-space-2); font-size: var(--rx-font-size-3xs); }
   .lab-sandbox__live { margin-block-start: var(--rx-space-1); margin-inline-start: 0; }
   .lab-sandbox__actions { width: 100%; flex-direction: column; }
   .lab-sandbox__actions .lab-button { width: 100%; }

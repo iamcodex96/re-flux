@@ -31,7 +31,7 @@ const config = reactive<VisualLabStageConfig>({ ...defaultConfig });
 const stageTelemetry = reactive<VisualLabTelemetry>({
   fps: 0,
   frameTimeMs: 0,
-  nodeCount: 120,
+  nodeCount: Array.from('re;Flux').length,
   pointerX: null,
   pointerY: null,
   state: 'idle',
@@ -179,7 +179,7 @@ function generatedStreamCode(): string {
   const mass = 1;
   return `import { RetargetableMotion } from '@re-code/flux';
 
-// Settings exported from the live Visual Lab preview.
+// Settings exported from the live kinetic typography preview.
 export const visualLabConfig = ${JSON.stringify(config, null, 2)} as const;
 
 const springOptions = {
@@ -201,39 +201,74 @@ export function resetPointer(): void {
   pointerY.to(-1, springOptions);
 }
 
-// Samples one of the featured orbital ribbons using the current reactive motion state.
-export function sampleOrbitalPoint(
-  progress: number,
-  ribbon: number,
-  phaseInput: number,
-  width: number,
-  height: number,
-): { x: number; y: number } {
-  const phase = phaseInput * visualLabConfig.timeScale;
-  const unit = ((progress % 1) + 1) % 1;
-  const angle = unit * Math.PI * 2 + phase * 0.14 + ribbon * 0.42;
-  const resistance = 1 - Math.min(0.68, visualLabConfig.airDrag * 4.8);
-  const amplitude = (0.55 + visualLabConfig.springElasticity * 0.8) * resistance;
-  const x = width * 0.5
-    + Math.cos(angle) * width * (0.205 + ribbon * 0.012)
-    + Math.sin(angle * 3 + phase * 0.24 + ribbon * 0.74) * width * 0.062 * amplitude;
-  const y = height * 0.5
-    + Math.sin(angle * 2 + ribbon * 0.19) * height * (0.245 + ribbon * 0.018) * 0.72
-    + Math.cos(angle * 3 - phase * 0.17 + ribbon * 0.61) * height * 0.105 * amplitude
-    + (visualLabConfig.gravity / 25) * (unit - 0.5) * height * 0.09;
-
-  const targetX = pointerX.value$.value;
-  const targetY = pointerY.value$.value;
-  if (targetX >= 0 && targetX <= 1 && targetY >= 0 && targetY <= 1) {
-    const dx = targetX * width - x;
-    const dy = targetY * height - y;
-    const distance = Math.hypot(dx / Math.max(1, width), dy / Math.max(1, height));
-    const influence = Math.max(0, 1 - distance / 0.34) * visualLabConfig.springElasticity * 0.28;
-    return { x: x + dx * influence, y: y + dy * influence };
-  }
-  return { x, y };
+export interface GlyphAgent {
+  x: number; y: number;
+  vx: number; vy: number;
+  homeX: number; homeY: number;
+  rotation: number;
 }
 
+function limitVector(x: number, y: number, maximum: number): { x: number; y: number } {
+  const magnitude = Math.hypot(x, y);
+  if (magnitude === 0 || magnitude <= maximum) return { x, y };
+  return { x: x * maximum / magnitude, y: y * maximum / magnitude };
+}
+
+/** Step one glyph using seek, separation, pointer-flee and damped integration. */
+export function stepGlyphAgent(
+  agent: GlyphAgent,
+  neighbours: readonly GlyphAgent[],
+  deltaSeconds: number,
+  width: number,
+  height: number,
+): GlyphAgent {
+  const dt = Math.min(0.04, Math.max(0.001, deltaSeconds * visualLabConfig.timeScale));
+  const dx = agent.homeX - agent.x;
+  const dy = agent.homeY - agent.y;
+  const homeDistance = Math.hypot(dx, dy);
+  const desiredSpeed = Math.min(164, homeDistance * (2.25 + visualLabConfig.springElasticity * 2.4));
+  const desiredVx = homeDistance > 0.001 ? dx / homeDistance * desiredSpeed : 0;
+  const desiredVy = homeDistance > 0.001 ? dy / homeDistance * desiredSpeed : 0;
+  let ax = desiredVx - agent.vx;
+  let ay = desiredVy - agent.vy + (visualLabConfig.gravity - 9.81) * 1.25;
+
+  for (const other of neighbours) {
+    if (other === agent) continue;
+    const sx = agent.x - other.x;
+    const sy = agent.y - other.y;
+    const distance = Math.hypot(sx, sy);
+    const radius = 18;
+    if (distance > 0.001 && distance < radius) {
+      const strength = (radius - distance) / radius;
+      ax += sx / distance * strength * 420;
+      ay += sy / distance * strength * 420;
+    }
+  }
+
+  const pointerNormX = pointerX.value$.value;
+  const pointerNormY = pointerY.value$.value;
+  if (pointerNormX >= 0 && pointerNormX <= 1 && pointerNormY >= 0 && pointerNormY <= 1) {
+    const px = agent.x - pointerNormX * width;
+    const py = agent.y - pointerNormY * height;
+    const distance = Math.hypot(px, py);
+    const radius = Math.min(172, Math.max(94, width * 0.2));
+    if (distance < radius) {
+      const directionX = distance > 0.001 ? px / distance : 1;
+      const directionY = distance > 0.001 ? py / distance : 0;
+      const influence = 1 - distance / radius;
+      const strength = influence * influence * (390 + visualLabConfig.springElasticity * 480);
+      ax += directionX * strength;
+      ay += directionY * strength;
+    }
+  }
+
+  const limited = limitVector(ax, ay, 1116);
+  const damping = Math.exp(-(2.5 + visualLabConfig.airDrag * 18) * dt);
+  const velocity = limitVector((agent.vx + limited.x * dt) * damping, (agent.vy + limited.y * dt) * damping, 164);
+  const x = agent.x + velocity.x * dt;
+  const y = agent.y + velocity.y * dt;
+  return { ...agent, x, y, vx: velocity.x, vy: velocity.y, rotation: Math.max(-8, Math.min(8, velocity.x * 0.035 + (x - agent.homeX) * 0.085)) };
+}
 export function disposePointerStreams(): void {
   pointerX.dispose();
   pointerY.dispose();
@@ -301,8 +336,8 @@ onBeforeUnmount(() => {
       <div class="visual-lab-overview__brandline"><span class="visual-lab-overview__status-dot" /> {{ copy.staticText.kineticStreamEditorial }}</div>
       <div class="visual-lab-overview__runtime">
         <span class="visual-lab-overview__status-dot" />
-        <span>{{ stageTelemetry.state === 'reduced-motion' || reducedMotion ? copy.staticText.reducedMotion : stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? copy.staticText.p5DrawMetrics.replace('{fps}', stageTelemetry.fps.toFixed(1)).replace('{frameTime}', stageTelemetry.frameTimeMs.toFixed(2)) : stageTelemetry.state === 'running' ? copy.staticText.samplingRenderMetrics : copy.staticText.stageIdleMeasurementsPaused }}</span>
-        <span>·</span><span>{{ copy.staticText.p5JsCanvasSvgWebgl }}</span>
+        <span>{{ stageTelemetry.state === 'reduced-motion' || reducedMotion ? copy.staticText.reducedMotion : stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? copy.staticText.canvasDrawMetrics.replace('{fps}', stageTelemetry.fps.toFixed(1)).replace('{frameTime}', stageTelemetry.frameTimeMs.toFixed(2)) : stageTelemetry.state === 'running' ? copy.staticText.samplingRenderMetrics : copy.staticText.stageIdleMeasurementsPaused }}</span>
+        <span>·</span><span>{{ copy.staticText.canvas2dSvgWebgl }}</span>
       </div>
     </div>
 
@@ -327,25 +362,25 @@ onBeforeUnmount(() => {
 
     <section class="lab-feature" aria-labelledby="lab-feature-title">
       <div class="lab-feature__header">
-        <div class="lab-feature__titleline"><span class="visual-lab-overview__status-dot" /> {{ copy.staticText.featuredExperiment }} <span class="lab-feature__divider">/</span> {{ copy.staticText.exp094 }} <span class="lab-feature__divider">/</span> {{ copy.staticText.generativeFlowField }}</div>
-        <div class="lab-feature__badges"><span>{{ copy.staticText.p5jsCanvasBadge }}</span><span>{{ copy.staticText.retargetableSprings }}</span></div>
+        <div class="lab-feature__titleline"><span class="visual-lab-overview__status-dot" /> {{ copy.staticText.featuredExperiment }} <span class="lab-feature__divider">/</span> {{ copy.staticText.exp094 }} <span class="lab-feature__divider">/</span> {{ copy.staticText.kineticTypographyKicker }}</div>
+        <div class="lab-feature__badges"><span>{{ copy.staticText.canvas2d }}</span><span>{{ copy.staticText.retargetableSprings }}</span></div>
       </div>
       <div class="lab-feature__content">
         <VisualLabFeaturedStage ref="featuredStage" :config="config" :preferences="preferences" @telemetry="updateTelemetry" />
         <div class="lab-feature__intro">
-          <span class="lab-feature__live"><span class="visual-lab-overview__status-dot" /> {{ stageTelemetry.state === 'running' ? copy.staticText.liveP5jsStage : reducedMotion ? copy.staticText.staticPreview : copy.staticText.stageReady }}</span>
-          <h1 id="lab-feature-title">{{ copy.staticText.kineticSingularity }}</h1>
-          <p>{{ copy.staticText.kineticSingularityDescription }}</p>
+          <span class="lab-feature__live"><span class="visual-lab-overview__status-dot" /> {{ stageTelemetry.state === 'running' ? copy.staticText.liveCanvasStage : reducedMotion ? copy.staticText.staticPreview : copy.staticText.stageReady }}</span>
+          <h1 id="lab-feature-title">{{ copy.staticText.kineticTypographyHeroTitle }}</h1>
+          <p>{{ copy.staticText.glyphsUseSteeringForcesToReturnHomeSeparateFromNeighboursAndReactToThePointer }}</p>
           <div class="lab-feature__actions">
             <RouterLink to="/visuals/canvas" class="lab-button lab-button--primary">{{ copy.staticText.exploreCanvasDemos }} <span aria-hidden="true">↗</span></RouterLink>
             <RouterLink to="/docs/interactions" class="lab-button lab-button--quiet">{{ copy.staticText.springDynamics }}</RouterLink>
           </div>
         </div>
-        <div class="lab-feature__readout" :aria-label="copy.staticText.liveRendererMeasurements">
-          <div><span>{{ copy.staticText.renderTarget }}</span><strong>{{ copy.staticText.p5jsCanvas }}</strong></div>
+        <div class="lab-feature__readout" :aria-label="copy.staticText.liveCanvasMeasurements">
+          <div><span>{{ copy.staticText.renderTarget }}</span><strong>{{ copy.staticText.canvas2d2 }}</strong></div>
           <div><span>{{ copy.staticText.fpsSample }}</span><strong>{{ stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? stageTelemetry.fps.toFixed(1) : '—' }}</strong></div>
-          <div><span>{{ copy.staticText.p5DrawTime }}</span><strong>{{ stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? `${stageTelemetry.frameTimeMs.toFixed(2)} ms` : stageTelemetry.state === 'running' ? copy.staticText.sampling : copy.staticText.paused }}</strong></div>
-          <div><span>{{ copy.staticText.fieldParticles }}</span><strong>{{ stageTelemetry.nodeCount }}</strong></div>
+          <div><span>{{ copy.staticText.canvasDrawTime }}</span><strong>{{ stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? `${stageTelemetry.frameTimeMs.toFixed(2)} ms` : stageTelemetry.state === 'running' ? copy.staticText.sampling : copy.staticText.paused }}</strong></div>
+          <div><span>{{ copy.staticText.glyphAgents }}</span><strong>{{ stageTelemetry.nodeCount }}</strong></div>
           <div><span>{{ copy.staticText.pointerVector }}</span><strong>{{ stageTelemetry.pointerX === null || stageTelemetry.pointerY === null ? copy.staticText.inactive : `x ${stageTelemetry.pointerX.toFixed(2)} · y ${stageTelemetry.pointerY.toFixed(2)}` }}</strong></div>
         </div>
       </div>
@@ -382,7 +417,7 @@ onBeforeUnmount(() => {
       <div class="lab-sandbox__intro">
         <span class="lab-kicker">{{ copy.staticText.previewConfiguration }}</span>
         <h2 id="lab-sandbox-title">{{ copy.staticText.globalEngineSandbox }} <span class="lab-sandbox__live">{{ copy.staticText.livePreview }}</span></h2>
-        <p>{{ copy.staticText.generativeFieldConfigurationDescription }}</p>
+        <p>{{ copy.staticText.theseControlsTuneFeaturedGlyphForcesTheyAreLocalPreviewParametersNotGlobalEngineDefaultsExportCreatesARunnableSteeringExampleFromTheCurrentSettings }}</p>
       </div>
       <div class="lab-sandbox__controls">
         <label class="lab-control">
@@ -412,7 +447,7 @@ onBeforeUnmount(() => {
           <button v-for="preset in presets" :key="preset.id" type="button" :class="{ 'is-active': activePreset === preset.id }" @click="applyPreset(preset.id)">{{ preset.label }}</button>
         </div>
         <div class="lab-sandbox__actions">
-          <button type="button" class="lab-button lab-button--quiet" @click="resetCenter">{{ copy.staticText.resetCenter }}</button>
+          <button type="button" class="lab-button lab-button--quiet" @click="resetCenter">{{ copy.staticText.resetTypography }}</button>
           <button type="button" class="lab-button lab-button--primary" @click="downloadStream">{{ downloaded ? copy.staticText.streamDownloaded : copy.staticText.exportStream }}</button>
           <button type="button" class="lab-button lab-button--quiet" @click="copyConfig">{{ copied ? copy.staticText.codeCopied : copyError ? copy.staticText.clipboardUnavailable : copy.staticText.copyCode }}</button>
         </div>

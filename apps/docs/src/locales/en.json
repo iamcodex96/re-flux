@@ -146,7 +146,6 @@
           "second": "Second",
           "from": "from",
           "timelineProgress": "Timeline progress",
-          "liveWorkbench": "LIVE WORKBENCH",
           "livePreviewUpper": "LIVE PREVIEW",
           "velocity": "Velocity",
           "all": "All",
@@ -160,7 +159,8 @@
           "clipboardUnavailable": "Clipboard unavailable",
           "modelUpper": "MODEL",
           "typescriptBindingUpper": "TYPESCRIPT BINDING",
-          "to": "To"
+          "to": "To",
+          "liveWorkbench": "LIVE WORKBENCH"
         },
         "messages": {
           "optionsImmutable": "Options are immutable after creation. To change duration, delay, or easing, stop the animation and create a new instance.",
@@ -194,14 +194,15 @@
           "seek": "Seek",
           "applyOptions": "Apply options",
           "resetPositions": "Reset positions",
-          "resetCenter": "Reset center",
+          "resetTypography": "Reset typography",
           "openPlayground": "Open playground",
           "readDocumentation": "Read the documentation",
           "viewTypeScript": "View the TypeScript",
           "exportStream": "Export stream (.ts)",
           "replay": "Replay",
           "copied": "Copied",
-          "copySnippet": "Copy snippet"
+          "copySnippet": "Copy snippet",
+          "resetCenter": "Reset center"
         },
         "values": {
           "zeroMilliseconds": "0 ms",
@@ -2397,9 +2398,11 @@
           "experimentCategories": "Experiment categories",
           "featuredExperiment": "FEATURED EXPERIMENT",
           "exp094": "EXP-094",
+          "kineticTypographyKicker": "KINETIC TYPOGRAPHY / STEERING STUDY",
           "canvas2d": "CANVAS 2D",
           "retargetableSprings": "RETARGETABLE SPRINGS",
-          "aResponsive239MeshPointerDisplacementIsSmoothedByRetargetableSpringStreamsTuneThePreviewBelowAndWatchTheFieldReact": "A responsive 23 × 9 mesh. Pointer displacement is smoothed by retargetable spring streams; tune the preview below and watch the field react.",
+          "kineticTypographyHeroTitle": "Letters with a will of their own",
+          "glyphsUseSteeringForcesToReturnHomeSeparateFromNeighboursAndReactToThePointer": "Inspired by The Nature of Code, each glyph seeks its home position, separates from neighbours and responds to the cursor with a soft repelling force.",
           "exploreCanvasDemos": "Explore Canvas demos",
           "springDynamics": "@ref:app.view.common.terms.springDynamics",
           "liveCanvasMeasurements": "Live Canvas measurements",
@@ -2407,6 +2410,7 @@
           "canvas2d2": "@ref:app.view.common.terms.canvas2D",
           "fpsSample": "FPS SAMPLE",
           "canvasDrawTime": "CANVAS DRAW TIME",
+          "glyphAgents": "GLYPH AGENTS",
           "pointerVector": "POINTER VECTOR",
           "batchExecutionRuntimes": "// BATCH EXECUTION RUNTIMES",
           "experimentalLabModules": "Experimental Lab Modules",
@@ -2415,6 +2419,7 @@
           "previewConfiguration": "// PREVIEW CONFIGURATION",
           "globalEngineSandbox": "Global Engine Sandbox",
           "livePreview": "@ref:app.view.common.labels.livePreviewUpper",
+          "theseControlsTuneFeaturedGlyphForcesTheyAreLocalPreviewParametersNotGlobalEngineDefaultsExportCreatesARunnableSteeringExampleFromTheCurrentSettings": "Tune the featured glyphs’ time scale, gravity, spring response and air drag. These are local preview parameters, not global engine defaults. Export a runnable steering example using the current settings.",
           "timeScale": "Time scale",
           "text01Slower": "0.1× slower",
           "text2Faster": "2× faster",
@@ -2429,7 +2434,7 @@
           "highResistance": "High resistance",
           "previewPresets": "Preview presets",
           "physicsPresets": "PHYSICS PRESETS:",
-          "resetCenter": "@ref:app.view.common.actions.resetCenter",
+          "resetTypography": "@ref:app.view.common.actions.resetTypography",
           "openRepositoryInCodesandbox": "Open repository in CodeSandbox",
           "openRepositoryInStackblitz": "Open repository in StackBlitz",
           "allExperiments": "All experiments",
@@ -2439,7 +2444,7 @@
           "canvasParticles": "Canvas particles",
           "kineticTypographyRx": "Kinetic Typography Rx",
           "staggeredGlyphs": "STAGGERED GLYPHS",
-          "textEntersByGraphemeUsingReFluxStaggerTimingLeaveTheCardToRestoreTheOriginalReadableText": "Text enters by grapheme using re;Flux stagger timing. Leave the card to restore the original readable text.",
+          "textEntersByGraphemeUsingReFluxStaggerTimingLeaveTheCardToRestoreTheOriginalReadableText": "Inspired by The Nature of Code, each glyph steers toward home, separates from neighbours and responds to the cursor with a repelling force.",
           "morphingTopographySplines": "Morphing Topography Splines",
           "bZierContinuum": "BÉZIER CONTINUUM",
           "aNormalizedSvgPathMorphsBetweenCompatibleGeometriesAndResetsToItsOriginalOutlineOnPointerLeave": "A normalized SVG path morphs between compatible geometries and resets to its original outline on pointer leave.",
@@ -2536,21 +2541,7 @@
           "experimentsHoverOrKeyboardFocusToPlayLeaveToReset": "experiments · Hover or keyboard-focus to play; leave to reset.",
           "text": "×",
           "exportStream": "@ref:app.view.common.actions.exportStream",
-          "canvasDrawMetrics": "{fps} FPS · {frameTime} ms canvas draw",
-          "kineticSingularity": "Kinetic Singularity",
-          "aLuminousOrbitalFieldTwistsAroundAKineticCoreMoveThePointerToBendTheRibbonsAndWatchSpringRetargetedParticlesRespondInRealTime": "A luminous orbital field twists around a kinetic core. Move the pointer to bend the ribbons and watch spring-retargeted particles respond in real time.",
-          "fieldParticles": "FIELD PARTICLES",
-          "theseControlsTuneTheFeaturedCanvasKineticFieldTheyAreLocalPreviewParametersNotGlobalEngineDefaultsExportCreatesARunnableRetargetablemotionExampleFromTheCurrentSettings": "These controls tune the featured Canvas kinetic field. They are local preview parameters, not global engine defaults. Export creates a runnable RetargetableMotion example from the current settings.",
-          "p5JsCanvasSvgWebgl": "P5.JS / CANVAS / SVG / WEBGL",
-          "generativeFlowField": "GENERATIVE FLOW FIELD",
-          "kineticSingularityDescription": "Luminous orbital ribbons and flowing particle trails bend around a spring-retargeted core. Move the pointer to reshape the field, then tune the motion below.",
-          "liveRendererMeasurements": "Live renderer measurements",
-          "p5jsCanvas": "p5.js Canvas",
-          "p5jsCanvasBadge": "P5.JS / GENERATIVE CANVAS",
-          "p5DrawTime": "P5.JS DRAW TIME",
-          "p5DrawMetrics": "{fps} FPS · {frameTime} MS P5.JS DRAW",
-          "liveP5jsStage": "LIVE P5.JS STAGE",
-          "generativeFieldConfigurationDescription": "These controls tune the generative field. They are local preview parameters, not global engine defaults. Export creates a reusable RetargetableMotion controller and orbital point sampler from the current settings."
+          "canvasDrawMetrics": "{fps} FPS · {frameTime} ms canvas draw"
         }
       },
       "visualShowcase": {
@@ -2592,7 +2583,6 @@
       "playgroundLayout": {
         "staticText": {
           "playground": "@ref:app.view.common.terms.playground",
-          "chooseAnExperiment": "Choose an experiment",
           "onlyTheSelectedPlaygroundIsMountedLeavinga7a1cc": "Only the selected playground is mounted. Leaving a page releases its active streams, observers and animation subscriptions.",
           "playgroundNavigation": "Playground navigation",
           "animation": "@ref:app.view.common.terms.animation",
@@ -2819,15 +2809,11 @@
       "visualLabFeaturedStage": {
         "staticText": {
           "canvas2DIsUnavailableInThisBrowserTheRestOfVisualLabRemainsAvailable": "Canvas 2D is unavailable in this browser. The rest of Visual Lab remains available.",
+          "interactiveKineticTypographyCanvas": "Interactive kinetic typography canvas. Move the pointer or use arrow keys to repel glyphs from the cursor. Press Home or Escape to reset.",
           "reducedMotion": "@ref:app.view.common.labels.reducedMotion",
           "pointerSpringActive": "POINTER SPRING ACTIVE",
           "movePointerOrUseArrowKeys": "MOVE POINTER OR USE ARROW KEYS",
-          "stagePausedOffscreen": "STAGE PAUSED OFFSCREEN",
-          "interactiveCanvasKineticFieldPreview": "Interactive Canvas kinetic field preview. Move the pointer or use arrow keys to bend the spring-retargeted orbital ribbons. Press Home or Escape to reset.",
-          "interactiveP5Singularity": "Interactive generative art canvas powered by p5.js. Move the pointer or use arrow keys to bend the orbital ribbons. Press Home or Escape to reset.",
-          "p5PreviewUnavailable": "The p5.js renderer could not be loaded. The rest of Visual Lab remains available.",
-          "poweredByP5js": "Powered by",
-          "p5jsName": "p5.js"
+          "stagePausedOffscreen": "STAGE PAUSED OFFSCREEN"
         }
       },
       "visualLabShaderPreview": {
@@ -2904,11 +2890,13 @@
           "numberFORMATSTREAMS": "NUMBER + FORMAT STREAMS",
           "threeAnimatedPerformanceMetricCounters": "Three animated performance metric counters",
           "letTypeBecomeAVisualElement": "Let type become a visual element.",
-          "characterLevelTimingRotationAndOpacityProduceb687bb": "Character-level timing, rotation and opacity produce a reveal that feels more tactile than a single translation.",
+          "characterLevelTimingRotationAndOpacityProduceb687bb": "Each glyph acts as an autonomous agent: seek pulls it home, separation keeps neighbours legible, and pointer forces push nearby letters away.",
           "kineticTYPESTAGE": "KINETIC TYPE STAGE",
-          "staggeredTextTs": "staggered-text.ts",
-          "graphemeLEVELTIMING": "GRAPHEME-LEVEL TIMING",
-          "animatedKineticTypographyReadingReactiveMotion": "Animated kinetic typography reading Reactive motion",
+          "staggeredTextTs": "steering-typography.ts",
+          "graphemeLEVELTIMING": "SEEK · SEPARATE · FLEE",
+          "animatedKineticTypographyReadingReactiveMotion": "Kinetic typography where individual letters steer back to their home positions and react to a pointer.",
+          "seekSeparateFlee": "SEEK / SEPARATE / FLEE",
+          "replayKineticTypography": "Replay typography",
           "animateLayoutChangesNotJustTransforms": "Animate layout changes, not just transforms.",
           "reorderTheseTilesFLIPMeasuresTheirOldfd3e11": "Reorder these tiles. FLIP measures their old and new geometry, then animates the inverse transform back to identity.",
           "flipLAYOUTSTAGE": "FLIP LAYOUT STAGE",

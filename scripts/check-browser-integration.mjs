@@ -198,13 +198,19 @@ try {
   });
 
   await runCase('Canvas teardown cancels queued writes and clears pixels without leaking coordinator work', async (page) => {
-    await page.evaluate(() => window.__reFluxBrowserTest.startCanvasBinding());
-    await page.evaluate(() => window.__reFluxBrowserTest.emitCanvasColor('rgb(255, 0, 0)'));
-    const queued = await page.evaluate(() => window.__reFluxBrowserTest.canvasState());
+    // Keep queue inspection and teardown in one browser task. Separate page.evaluate calls allow
+    // requestAnimationFrame to run between them, making this cancellation contract timing-dependent.
+    const { queued, cancelled } = await page.evaluate(() => {
+      const browserTest = window.__reFluxBrowserTest;
+      browserTest.startCanvasBinding();
+      browserTest.emitCanvasColor('rgb(255, 0, 0)');
+      const queued = browserTest.canvasState();
+      browserTest.stopCanvasBinding();
+      const cancelled = browserTest.canvasState();
+      return { queued, cancelled };
+    });
     assert.equal(queued.coordinator.pendingWriteTasks, 1);
 
-    await page.evaluate(() => window.__reFluxBrowserTest.stopCanvasBinding());
-    const cancelled = await page.evaluate(() => window.__reFluxBrowserTest.canvasState());
     assert.equal(cancelled.draws, 0, 'A queued draw must not execute after its binding is disposed.');
     assert.deepEqual(cancelled.pixel, [0, 0, 0, 0]);
     assert.equal(cancelled.coordinator.isIdle, true);
