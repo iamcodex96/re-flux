@@ -30,6 +30,13 @@ const playgroundGroups = computed(() => [
     ],
   },
   {
+    key: 'motion-simulation',
+    title: copy.value.staticText.motionSimulation,
+    items: [
+      { name: 'playground-steering', title: copy.value.staticText.steeringAndFlowFields, subtitle: copy.value.staticText.autonomousAgentsAndForceFields, icon: 'mdi-vector-polyline' },
+    ],
+  },
+  {
     key: 'rendering-api',
     title: copy.value.staticText.renderingAPI,
     items: [
@@ -109,7 +116,7 @@ const activePage = computed(() => {
               :to="{ name: item.name }"
               class="playground-module-link"
               :class="{ 'is-active': route.name === item.name }"
-              :aria-current="route.name === item.name ? 'page' : null"
+              :aria-current="route.name === item.name ? 'page' : undefined"
             >
               <span class="playground-module-link__icon" aria-hidden="true">
                 <UiIcon :icon="item.icon" size="18" />

@@ -57,7 +57,7 @@ try {
       console.log('✓ ESM import ' + specifier);
     }
     const root = await import('@re-code/flux');
-    for (const name of ['Animation', 'Timeline', 'Tween']) {
+    for (const name of ['Animation', 'Timeline', 'Tween', 'seek', 'flee', 'addVectors', 'limitVector', 'stepSteeringAgent', 'followFlowField', 'createFlowField', 'sampleFlowField']) {
       if (typeof root[name] !== 'function') throw new Error('Root export missing ' + name);
     }
   `;
@@ -68,8 +68,14 @@ import * as root from '@re-code/flux';
 import * as core from '@re-code/flux/core';
 import * as values from '@re-code/flux/values';
 import * as physics from '@re-code/flux/physics';
+import * as steering from '@re-code/flux/steering';
+import * as flowField from '@re-code/flux/flow-field';
+import { createFlowField, sampleFlowField, type FlowField } from '@re-code/flux/flow-field';
+import { stepSteeringAgent, followFlowField } from '@re-code/flux/steering';
 import * as operators from '@re-code/flux/operators';
 import * as utils from '@re-code/flux/utils';
+import { seek, separate, type SteeringAgent } from '@re-code/flux/steering';
+import { limitVector, type Vector2 } from '@re-code/flux/utils';
 import * as dom from '@re-code/flux/dom';
 import * as svg from '@re-code/flux/svg';
 import * as canvas from '@re-code/flux/canvas';
@@ -82,7 +88,11 @@ import { Tween } from '@re-code/flux/values';
 const animation = new Animation({ duration: 100 });
 const timeline = new Timeline().add(animation);
 const tween = new Tween({ from: 0, to: 1, duration: 100 });
-void [root, core, values, physics, operators, utils, dom, svg, canvas, three, canvasEffects, timeline, tween];
+void [root, core, values, physics, steering, flowField, operators, utils, dom, svg, canvas, three, canvasEffects, timeline, tween, seek, separate, limitVector, stepSteeringAgent, followFlowField, createFlowField, sampleFlowField];
+const vector: Vector2 = { x: 1, y: 2 };
+const steeringAgent: SteeringAgent = { x: 0, y: 0, vx: 0, vy: 0 };
+const flow: FlowField = createFlowField({ columns: 2, rows: 2, cellSize: 10, vectorAtCell: () => ({ x: 1, y: 0 }) });
+void [vector, steeringAgent, flow, sampleFlowField(flow, vector), followFlowField(steeringAgent, flow), stepSteeringAgent(steeringAgent, vector, 1 / 60)];
 `;
   await writeFile(path.join(consumerRoot, 'consumer.ts'), typeFixture);
   await writeFile(path.join(consumerRoot, 'tsconfig.json'), JSON.stringify({

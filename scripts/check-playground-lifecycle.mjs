@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const componentFiles = [
   'apps/docs/src/components/Playground/MotionPanels/TweenPanel.vue',
+  'apps/docs/src/components/Playground/MotionPanels/SteeringPanel.vue',
   'apps/docs/src/views/AnimationPlayground.vue',
   'apps/docs/src/views/TimelinePlayground.vue',
   'apps/docs/src/views/EasingsPlayground.vue',

@@ -57,6 +57,11 @@ export const router = createRouter({
           meta: { playgroundPage: 'adaptive' },
         },
         {
+          path: 'steering', name: 'playground-steering',
+          component: () => import('../components/Playground/MotionPanels/SteeringPanel.vue'),
+          meta: { playgroundPage: 'steering' },
+        },
+        {
           path: 'canvas', name: 'playground-canvas',
           component: () => import('../components/Playground/MotionPanels/CanvasPanel.vue'),
           meta: { playgroundPage: 'canvas' },

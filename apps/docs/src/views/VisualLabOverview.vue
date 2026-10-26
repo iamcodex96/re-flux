@@ -16,7 +16,7 @@ const copied = ref(false);
 const copyError = ref(false);
 const downloaded = ref(false);
 const reducedMotion = ref(preferences.snapshot.reducedMotion);
-const featuredStage = ref<{ resetCenter: () => void } | null>(null);
+const featuredStage = ref<{ resetCenter: () => void; replayTypography: () => void } | null>(null);
 let copyStatusTimer: ReturnType<typeof setTimeout> | null = null;
 let downloadStatusTimer: ReturnType<typeof setTimeout> | null = null;
 const preferenceSubscription = preferences.state$.subscribe((state) => { reducedMotion.value = state.reducedMotion; });
@@ -173,11 +173,20 @@ function resetCenter(): void {
   featuredStage.value?.resetCenter();
 }
 
+function replayTypography(): void {
+  featuredStage.value?.replayTypography();
+}
+
 function generatedStreamCode(): string {
   const stiffness = Math.round(130 + config.springElasticity * 210);
   const damping = Number((12 + config.airDrag * 520).toFixed(2));
   const mass = 1;
   return `import { RetargetableMotion } from '@re-code/flux';
+import type { Vector2 } from '@re-code/flux/utils';
+import {
+  combineSteering, flee, seek, separate, stepSteeringAgent,
+  type SteeringAgent, type WeightedSteeringForce,
+} from '@re-code/flux/steering';
 
 // Settings exported from the live kinetic typography preview.
 export const visualLabConfig = ${JSON.stringify(config, null, 2)} as const;
@@ -201,74 +210,62 @@ export function resetPointer(): void {
   pointerY.to(-1, springOptions);
 }
 
-export interface GlyphAgent {
-  x: number; y: number;
-  vx: number; vy: number;
-  homeX: number; homeY: number;
-  rotation: number;
+export interface GlyphAgent extends SteeringAgent {
+  readonly homeX: number;
+  readonly homeY: number;
+  readonly rotation: number;
 }
 
-function limitVector(x: number, y: number, maximum: number): { x: number; y: number } {
-  const magnitude = Math.hypot(x, y);
-  if (magnitude === 0 || magnitude <= maximum) return { x, y };
-  return { x: x * maximum / magnitude, y: y * maximum / magnitude };
-}
-
-/** Step one glyph using seek, separation, pointer-flee and damped integration. */
+/** Step one glyph using shared steering forces and time-based integration. */
 export function stepGlyphAgent(
   agent: GlyphAgent,
-  neighbours: readonly GlyphAgent[],
+  neighbours: readonly SteeringAgent[],
   deltaSeconds: number,
   width: number,
   height: number,
 ): GlyphAgent {
-  const dt = Math.min(0.04, Math.max(0.001, deltaSeconds * visualLabConfig.timeScale));
-  const dx = agent.homeX - agent.x;
-  const dy = agent.homeY - agent.y;
-  const homeDistance = Math.hypot(dx, dy);
+  const dt = Math.min(0.04, Math.max(0, deltaSeconds * visualLabConfig.timeScale));
+  const body: SteeringAgent = { x: agent.x, y: agent.y, vx: agent.vx, vy: agent.vy };
+  const home: Vector2 = { x: agent.homeX, y: agent.homeY };
+  const homeDistance = Math.hypot(home.x - body.x, home.y - body.y);
   const desiredSpeed = Math.min(164, homeDistance * (2.25 + visualLabConfig.springElasticity * 2.4));
-  const desiredVx = homeDistance > 0.001 ? dx / homeDistance * desiredSpeed : 0;
-  const desiredVy = homeDistance > 0.001 ? dy / homeDistance * desiredSpeed : 0;
-  let ax = desiredVx - agent.vx;
-  let ay = desiredVy - agent.vy + (visualLabConfig.gravity - 9.81) * 1.25;
-
-  for (const other of neighbours) {
-    if (other === agent) continue;
-    const sx = agent.x - other.x;
-    const sy = agent.y - other.y;
-    const distance = Math.hypot(sx, sy);
-    const radius = 18;
-    if (distance > 0.001 && distance < radius) {
-      const strength = (radius - distance) / radius;
-      ax += sx / distance * strength * 420;
-      ay += sy / distance * strength * 420;
-    }
-  }
+  const forces: WeightedSteeringForce[] = [
+    { force: seek(body, home, { maxSpeed: desiredSpeed, maxForce: 620 }) },
+    { force: separate(body, neighbours, { distance: 18, maxSpeed: 164, maxForce: 484 }) },
+    { force: { x: 0, y: (visualLabConfig.gravity - 9.81) * 1.25 } },
+  ];
 
   const pointerNormX = pointerX.value$.value;
   const pointerNormY = pointerY.value$.value;
   if (pointerNormX >= 0 && pointerNormX <= 1 && pointerNormY >= 0 && pointerNormY <= 1) {
-    const px = agent.x - pointerNormX * width;
-    const py = agent.y - pointerNormY * height;
-    const distance = Math.hypot(px, py);
+    const pointer: Vector2 = { x: pointerNormX * width, y: pointerNormY * height };
+    const distance = Math.hypot(body.x - pointer.x, body.y - pointer.y);
     const radius = Math.min(172, Math.max(94, width * 0.2));
     if (distance < radius) {
-      const directionX = distance > 0.001 ? px / distance : 1;
-      const directionY = distance > 0.001 ? py / distance : 0;
       const influence = 1 - distance / radius;
-      const strength = influence * influence * (390 + visualLabConfig.springElasticity * 480);
-      ax += directionX * strength;
-      ay += directionY * strength;
+      forces.push({
+        force: flee(body, pointer, {
+          radius,
+          maxSpeed: 164,
+          maxForce: influence * influence * (390 + visualLabConfig.springElasticity * 480),
+        }),
+      });
     }
   }
 
-  const limited = limitVector(ax, ay, 1116);
-  const damping = Math.exp(-(2.5 + visualLabConfig.airDrag * 18) * dt);
-  const velocity = limitVector((agent.vx + limited.x * dt) * damping, (agent.vy + limited.y * dt) * damping, 164);
-  const x = agent.x + velocity.x * dt;
-  const y = agent.y + velocity.y * dt;
-  return { ...agent, x, y, vx: velocity.x, vy: velocity.y, rotation: Math.max(-8, Math.min(8, velocity.x * 0.035 + (x - agent.homeX) * 0.085)) };
+  const steeringForce = combineSteering(forces, 1116);
+  const next = stepSteeringAgent(body, steeringForce, dt, {
+    maxSpeed: 164,
+    linearDamping: 2.5 + visualLabConfig.airDrag * 18,
+    maxDeltaSeconds: 0.04,
+  });
+  return {
+    ...agent,
+    ...next,
+    rotation: Math.max(-8, Math.min(8, next.vx * 0.035 + (next.x - agent.homeX) * 0.085)),
+  };
 }
+
 export function disposePointerStreams(): void {
   pointerX.dispose();
   pointerY.dispose();
@@ -341,6 +338,35 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
+    <section class="lab-feature" aria-labelledby="lab-feature-title">
+      <div class="lab-feature__header">
+        <div class="lab-feature__titleline"><span class="visual-lab-overview__status-dot" /> {{ copy.staticText.featuredExperiment }} <span class="lab-feature__divider">/</span> {{ copy.staticText.exp094 }} <span class="lab-feature__divider">/</span> {{ copy.staticText.kineticTypographyKicker }}</div>
+        <div class="lab-feature__badges"><span>{{ copy.staticText.canvas2d }}</span><span>{{ copy.staticText.retargetableSprings }}</span></div>
+      </div>
+      <div class="lab-feature__content">
+        <VisualLabFeaturedStage ref="featuredStage" :config="config" :preferences="preferences" @telemetry="updateTelemetry" />
+        <div class="lab-feature__intro">
+          <span class="lab-feature__live"><span class="visual-lab-overview__status-dot" /> {{ stageTelemetry.state === 'running' ? copy.staticText.liveCanvasStage : reducedMotion ? copy.staticText.staticPreview : copy.staticText.stageReady }}</span>
+          <h1 id="lab-feature-title">{{ copy.staticText.kineticTypographyHeroTitle }}</h1>
+          <p>{{ copy.staticText.glyphsUseSteeringForcesToReturnHomeSeparateFromNeighboursAndReactToThePointer }}</p>
+          <div class="lab-feature__actions">
+            <button type="button" class="lab-button lab-button--primary" :disabled="reducedMotion" @click="replayTypography">
+              <span aria-hidden="true">↻</span> {{ copy.staticText.replayTypographyAnimation }}
+            </button>
+            <RouterLink to="/visuals/canvas" class="lab-button lab-button--quiet">{{ copy.staticText.exploreCanvasDemos }} <span aria-hidden="true">↗</span></RouterLink>
+            <RouterLink to="/docs/interactions" class="lab-button lab-button--quiet">{{ copy.staticText.springDynamics }}</RouterLink>
+          </div>
+        </div>
+        <div class="lab-feature__readout" :aria-label="copy.staticText.liveCanvasMeasurements">
+          <div><span>{{ copy.staticText.renderTarget }}</span><strong>{{ copy.staticText.canvas2d2 }}</strong></div>
+          <div><span>{{ copy.staticText.fpsSample }}</span><strong>{{ stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? stageTelemetry.fps.toFixed(1) : '—' }}</strong></div>
+          <div><span>{{ copy.staticText.canvasDrawTime }}</span><strong>{{ stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? `${stageTelemetry.frameTimeMs.toFixed(2)} ms` : stageTelemetry.state === 'running' ? copy.staticText.sampling : copy.staticText.paused }}</strong></div>
+          <div><span>{{ copy.staticText.glyphAgents }}</span><strong>{{ stageTelemetry.nodeCount }}</strong></div>
+          <div><span>{{ copy.staticText.pointerVector }}</span><strong>{{ stageTelemetry.pointerX === null || stageTelemetry.pointerY === null ? copy.staticText.inactive : `x ${stageTelemetry.pointerX.toFixed(2)} · y ${stageTelemetry.pointerY.toFixed(2)}` }}</strong></div>
+        </div>
+      </div>
+    </section>
+
     <section class="lab-explorer" :aria-label="copy.staticText.filterVisualLabExperiments">
       <div class="lab-explorer__filters" role="group" :aria-label="copy.staticText.experimentCategories">
         <button
@@ -358,32 +384,6 @@ onBeforeUnmount(() => {
         </button>
       </div>
       <p class="lab-explorer__hint">{{ visibleExperiments.length }} {{ copy.staticText.of }} {{ experiments.length }} {{ copy.staticText.experimentsHoverOrKeyboardFocusToPlayLeaveToReset }}</p>
-    </section>
-
-    <section class="lab-feature" aria-labelledby="lab-feature-title">
-      <div class="lab-feature__header">
-        <div class="lab-feature__titleline"><span class="visual-lab-overview__status-dot" /> {{ copy.staticText.featuredExperiment }} <span class="lab-feature__divider">/</span> {{ copy.staticText.exp094 }} <span class="lab-feature__divider">/</span> {{ copy.staticText.kineticTypographyKicker }}</div>
-        <div class="lab-feature__badges"><span>{{ copy.staticText.canvas2d }}</span><span>{{ copy.staticText.retargetableSprings }}</span></div>
-      </div>
-      <div class="lab-feature__content">
-        <VisualLabFeaturedStage ref="featuredStage" :config="config" :preferences="preferences" @telemetry="updateTelemetry" />
-        <div class="lab-feature__intro">
-          <span class="lab-feature__live"><span class="visual-lab-overview__status-dot" /> {{ stageTelemetry.state === 'running' ? copy.staticText.liveCanvasStage : reducedMotion ? copy.staticText.staticPreview : copy.staticText.stageReady }}</span>
-          <h1 id="lab-feature-title">{{ copy.staticText.kineticTypographyHeroTitle }}</h1>
-          <p>{{ copy.staticText.glyphsUseSteeringForcesToReturnHomeSeparateFromNeighboursAndReactToThePointer }}</p>
-          <div class="lab-feature__actions">
-            <RouterLink to="/visuals/canvas" class="lab-button lab-button--primary">{{ copy.staticText.exploreCanvasDemos }} <span aria-hidden="true">↗</span></RouterLink>
-            <RouterLink to="/docs/interactions" class="lab-button lab-button--quiet">{{ copy.staticText.springDynamics }}</RouterLink>
-          </div>
-        </div>
-        <div class="lab-feature__readout" :aria-label="copy.staticText.liveCanvasMeasurements">
-          <div><span>{{ copy.staticText.renderTarget }}</span><strong>{{ copy.staticText.canvas2d2 }}</strong></div>
-          <div><span>{{ copy.staticText.fpsSample }}</span><strong>{{ stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? stageTelemetry.fps.toFixed(1) : '—' }}</strong></div>
-          <div><span>{{ copy.staticText.canvasDrawTime }}</span><strong>{{ stageTelemetry.state === 'running' && stageTelemetry.fps > 0 ? `${stageTelemetry.frameTimeMs.toFixed(2)} ms` : stageTelemetry.state === 'running' ? copy.staticText.sampling : copy.staticText.paused }}</strong></div>
-          <div><span>{{ copy.staticText.glyphAgents }}</span><strong>{{ stageTelemetry.nodeCount }}</strong></div>
-          <div><span>{{ copy.staticText.pointerVector }}</span><strong>{{ stageTelemetry.pointerX === null || stageTelemetry.pointerY === null ? copy.staticText.inactive : `x ${stageTelemetry.pointerX.toFixed(2)} · y ${stageTelemetry.pointerY.toFixed(2)}` }}</strong></div>
-        </div>
-      </div>
     </section>
 
     <section class="lab-modules" aria-labelledby="lab-modules-title">

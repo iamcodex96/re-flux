@@ -22,6 +22,20 @@ const cases = [
     forbidden: ['dist/adapters/dom/', 'dist/adapters/svg.js', 'dist/adapters/canvas.js', 'dist/adapters/three.js', 'dist/effects/canvas.js', 'dist/operators/', 'dist/physics/'],
   },
   {
+    name: 'steering',
+    entry: path.join(entries, 'steering.ts'),
+    entryModule: 'dist/steering.js',
+    required: ['dist/steering.js'],
+    forbidden: ['dist/adapters/', 'dist/effects/', 'dist/core/', 'dist/values/'],
+  },
+  {
+    name: 'flow-field',
+    entry: path.join(entries, 'flow-field.ts'),
+    entryModule: 'dist/flowField.js',
+    required: ['dist/flowField.js'],
+    forbidden: ['dist/adapters/', 'dist/effects/', 'dist/core/', 'dist/physics/', 'dist/values/'],
+  },
+  {
     name: 'dom',
     entry: path.join(entries, 'dom.ts'),
     entryModule: 'dist/adapters/dom.js',

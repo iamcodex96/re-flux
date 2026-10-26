@@ -4,10 +4,10 @@ import { resolveLocaleReferences } from './lib/locale.mjs';
 
 const root = new URL('../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
-const [packageSource, readme, home, gettingStarted, localeSource, docsView, viteConfig, workflow, publishingGuide, changelog, benchmarkGuide, benchmarkRunner, adaptersBenchmark] = await Promise.all([
+const [packageSource, readme, home, gettingStarted, localeSource, docsView, appView, viteConfig, workflow, publishingGuide, changelog, benchmarkGuide, benchmarkRunner, adaptersBenchmark] = await Promise.all([
   read('package.json'), read('README.md'), read('apps/docs/src/views/Home.vue'),
   read('apps/docs/src/components/DocsComponents/DocsGettingStarted.vue'),
-  read('apps/docs/src/locales/en.json'), read('apps/docs/src/views/Docs.vue'), read('apps/docs/vite.config.ts'),
+  read('apps/docs/src/locales/en.json'), read('apps/docs/src/views/Docs.vue'), read('apps/docs/src/App.vue'), read('apps/docs/vite.config.ts'),
   read('.github/workflows/publish-npm.yml'), read('guidelines/PUBLISHING.md'), read('CHANGELOG.md'),
   read('benchmarks/README.md'), read('benchmarks/run-all.bench.mjs'), read('benchmarks/adapters.bench.mjs'),
 ]);
@@ -16,7 +16,7 @@ const locale = resolveLocaleReferences(JSON.parse(localeSource));
 const installCommand = locale.app.view.docs.ui.installCommand;
 
 assert.match(readme, /npm install @re-code\/flux rxjs/, 'README must install the RxJS peer dependency.');
-assert.match(readme, /rxjs` is a peer dependency/i, 'README must explain the RxJS peer dependency.');
+assert.match(readme, /RxJS is a peer dependency/i, 'README must explain the RxJS peer dependency.');
 assert.match(home, /store\.app\.view\.docs\.ui\.installCommand/, 'Landing install command must come from locale data.');
 assert.equal(installCommand, 'npm install @re-code/flux rxjs', 'The localized landing install command must include RxJS.');
 assert.match(gettingStarted, /pnpm add @re-code\/flux rxjs/);
@@ -29,6 +29,10 @@ assert.match(viteConfig, /__RE_FLUX_VERSION__:\s*JSON\.stringify\(libraryPackage
 assert.match(docsView, /`v\$\{__RE_FLUX_VERSION__\}`/, 'Docs version badge must use the injected root package version.');
 assert.doesNotMatch(docsView, /v0\.2\.0/, 'Docs view must not hard-code an old release version.');
 assert.equal(locale.app.view.docs.ui.version, undefined, 'Locale data must not retain an unused hard-coded release badge.');
+assert.match(appView, /copy\.strictTypeScript/, 'Footer must use the established Strict TypeScript badge instead of an unverified compiler minimum.');
+assert.doesNotMatch(appView, /copy\.typescript54/, 'Footer must not reference the obsolete TypeScript 5.4+ badge.');
+assert.equal(locale.app.view.navigation.typescript54, undefined, 'Locale data must not retain the obsolete TypeScript 5.4+ badge.');
+assert.match(readme, /API reference, detailed guides, and interactive Playground and Visual Lab examples/i, 'README should link readers to the website for full documentation rather than duplicate the full API guide.');
 
 assert.match(workflow, /DIST_TAG="\$\{VERSION#\*-\}"/, 'Publishing workflow must derive a dist-tag from prerelease versions.');
 assert.match(workflow, /DIST_TAG="latest"/, 'Stable releases must use the latest dist-tag.');

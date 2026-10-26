@@ -61,3 +61,10 @@ export { retargetMotion } from './operators/retargetMotion.js';
 export { smoothStream } from './operators/smoothStream.js';
 export { adaptiveTween } from './operators/adaptiveTween.js';
 
+export { addVectors, subtractVectors, scaleVector, vectorMagnitudeSquared, vectorMagnitude, normalizeVector, limitVector, distanceBetween, dotProduct, vectorFromAngle, lerpVector } from './utils/vector2.js';
+export type { Vector2 } from './utils/vector2.js';
+export { seek, arrive, flee, separate, combineSteering, stepSteeringAgent, followFlowField } from './steering.js';
+export type { SteeringAgent, SteeringOptions, ArriveOptions, FleeOptions, SeparationOptions, SteeringStepOptions, FlowFollowingOptions, WeightedSteeringForce } from './steering.js';
+
+export { createFlowField, sampleFlowField } from './flowField.js';
+export type { FlowField, FlowFieldCell, FlowFieldOptions, FlowFieldEdgeMode } from './flowField.js';

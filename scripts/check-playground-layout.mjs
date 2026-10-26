@@ -16,9 +16,11 @@ assert.ok(layout.includes('playground-hero'), 'Playground needs a prominent, loc
 assert.ok(layout.includes('playground-directory'), 'Playground needs an integrated module directory above the workbench.');
 assert.ok(layout.includes('playground-module-link'), 'Playground module links must use the redesigned tab-card treatment.');
 assert.ok(layout.includes('playground-workspace'), 'Playground needs a clear workbench boundary.');
+assert.ok(layout.includes(":aria-current=\"route.name === item.name ? 'page' : undefined\""), 'RouterLink aria-current must use undefined when inactive so Vue Router props pass vue-tsc.');
 assert.ok(layout.includes('activePage.description'), 'The current module description must remain visible.');
-assert.equal((layout.match(/name: 'playground-[^']+'/g) ?? []).length, 11, 'The redesign must preserve navigation to all eleven playground modules.');
+assert.equal((layout.match(/name: 'playground-[^']+'/g) ?? []).length, 12, 'The redesigned workbench must expose all twelve playground modules.');
 assert.ok(shellStyles.includes('.playground-module-group--reactive-motion'), 'Reactive motion modules need a dedicated denser group layout.');
+assert.ok(layout.includes('playground-steering') && layout.includes('motion-simulation'), 'The steering and flow-field playground must be included in the module directory.');
 assert.ok(shellStyles.includes('prefers-reduced-motion: reduce'), 'Navigation transitions must respect reduced-motion preferences.');
 assert.equal((layout.match(/<\/template>/g) ?? []).length, 1, 'PlaygroundLayout.vue must contain one valid root template and no nested/stray template close.');
 assert.ok(shellStyles.includes('grid-template-columns: minmax(0, 1fr) minmax(0, 1.75fr)'), 'Desktop module directory must group core, reactive, and rendering modules.');

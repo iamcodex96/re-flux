@@ -2,6 +2,11 @@
 
 ### Added
 
+- Add shared 2D vector utilities and renderer-independent steering behaviors, including arrival, fleeing, separation, and weighted force composition.
+- Add elapsed-time steering integration with speed limits, exponential damping, and optional frame-gap caps.
+- Add immutable flow-field grids, clamped/wrapped/zero-edge sampling, and flow-field-following steering behavior.
+- Add an interactive Playground steering lab with flow-following, seek and arrive modes, adjustable swarm parameters, pointer/keyboard targeting, and pause/reset lifecycle handling.
+- Add a Canvas Visual Lab flow-field scene and use shared steering/integration primitives in the autonomous swarm and kinetic-typography studies.
 - Add selectable scene tabs and matching copyable TypeScript examples to the SVG, Canvas, DOM interaction, and Scroll Visual Lab panels.
 - Promote the Fluid Noise Field WebGL shader to the Home hero and refine it into a softly domain-warped, loopable teal/violet field.
 - Add release checks for package-consumer behavior and the complete documentation contract suite.
@@ -10,9 +15,13 @@
 
 ### Changed
 
+- Align the Bubble Chamber Visual Lab background with the cyan/violet brand palette and regenerate its seeded artwork when the featured typography is replayed.
+- Animate Bubble Chamber bubble rings with staggered tracing arcs and move dotted orbital paths using phase-driven drift and dash offsets.
+- Restore the Visual Lab experiment-card section to the centered content-width layout while keeping the featured hero full-bleed.
 - Defer below-the-fold landing demonstrations until the user scrolls near them, while allowing the hero shader to load after the initial render without requiring scroll.
 - Restore natural mobile documentation scrolling and align the sticky toolbar and header dimensions.
 - Centralize the documentation API catalog in locale data and derive the displayed documentation version from the root package version.
+- Clarify the public flow-field subpath in API-reference guidance, remove an unverified TypeScript minimum from the footer badge, and keep the README focused on installation and a quick start.
 - Make npm publication select a prerelease dist-tag from the package version and reserve `latest` for stable versions.
 - Standardize install instructions so projects install the RxJS peer dependency when it is not already available.
 

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useAppStore } from '../../stores/app';
 import { combineLatest, BehaviorSubject, map, type Subscription } from 'rxjs';
-import { onBeforeUnmount, onMounted, ref, watch , computed} from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { MotionPreferences, RetargetableMotion, Tween } from '@lib';
+import { combineSteering, flee, seek, separate, stepSteeringAgent, type SteeringAgent, type WeightedSteeringForce } from '@lib/steering';
+import { distanceBetween, vectorFromAngle } from '@lib/utils';
+import { createBubbleChamberLayer, drawBubbleChamberDrift, drawBubbleChamberMotion, type BubbleChamberPalette } from './bubbleChamberBackground';
 import { bindCanvas, resizeCanvas } from '@lib/canvas';
 import type { VisualLabStageConfig, VisualLabTelemetry } from './visualLabTypes';
 
@@ -52,7 +55,17 @@ let xMotion: RetargetableMotion | null = null;
 let yMotion: RetargetableMotion | null = null;
 let xMotionSubscription: Subscription | null = null;
 let yMotionSubscription: Subscription | null = null;
-let palette = { cyan: '#67e8f9', violet: '#a78bfa' };
+let palette: BubbleChamberPalette = {
+  cyan: '#67e8f9',
+  violet: '#a78bfa',
+  background: '#080b16',
+};
+let backgroundSeed = createBackgroundSeed();
+
+function createBackgroundSeed(previousSeed?: number): number {
+  const nextSeed = Math.floor(Math.random() * 0xffff_ffff) >>> 0;
+  return previousSeed !== undefined && nextSeed === previousSeed ? (nextSeed + 1) >>> 0 : nextSeed;
+}
 let lastFrameAt = 0;
 let lastTelemetryAt = 0;
 let smoothedFps = 0;
@@ -101,26 +114,28 @@ let glyphAgents: KineticGlyphAgent[] = [];
 let glyphLayoutSignature = '';
 let glyphFontSize = 48;
 let glyphFontFamily = 'monospace';
-let glyphBackground = '#080b12';
+let bubbleBackgroundLayer: HTMLCanvasElement | null = null;
+let bubbleBackgroundSignature = '';
 
-function limitVector(x: number, y: number, maximum: number): PointerPosition {
-  const magnitude = Math.hypot(x, y);
-  if (magnitude === 0 || magnitude <= maximum) return { x, y };
-  const ratio = maximum / magnitude;
-  return { x: x * ratio, y: y * ratio };
+function ensureBubbleBackground(width: number, height: number): HTMLCanvasElement | null {
+  const signature = `${Math.ceil(width)}|${Math.ceil(height)}|${backgroundSeed}|${palette.cyan}|${palette.violet}|${palette.background}`;
+  if (!bubbleBackgroundLayer || signature !== bubbleBackgroundSignature) {
+    bubbleBackgroundLayer = createBubbleChamberLayer(width, height, backgroundSeed, palette);
+    bubbleBackgroundSignature = signature;
+  }
+  return bubbleBackgroundLayer;
 }
 
 function ensureGlyphLayout(context: CanvasRenderingContext2D, width: number, height: number): void {
   const styleSource = root.value ?? document.documentElement;
   const family = getComputedStyle(styleSource).getPropertyValue('--rx-font-mono').trim() || 'monospace';
-  const fontSize = Math.max(27, Math.min(84, width * 0.115, height * 0.29));
+  const fontSize = Math.max(27, Math.min(116, width * 0.1, height * 0.24));
   const signature = `${width}|${height}|${fontSize.toFixed(2)}|${family}`;
   if (signature === glyphLayoutSignature && glyphAgents.length === GLYPH_COUNT) return;
 
   const previous = glyphAgents;
   glyphFontSize = fontSize;
   glyphFontFamily = family;
-  glyphBackground = getColor('--rx-color-canvas-night-deep', '#080b12');
   context.font = `800 ${glyphFontSize}px ${glyphFontFamily}`;
   context.textAlign = 'center';
   context.textBaseline = 'middle';
@@ -159,69 +174,62 @@ function ensureGlyphLayout(context: CanvasRenderingContext2D, width: number, hei
   glyphLayoutSignature = signature;
 }
 
-function applyGlyphSteering(agent: KineticGlyphAgent, frame: StageFrame, deltaSeconds: number): void {
+function applyGlyphSteering(
+  agent: KineticGlyphAgent,
+  body: SteeringAgent,
+  neighbours: readonly SteeringAgent[],
+  frame: StageFrame,
+  deltaSeconds: number,
+): void {
   const config = frame.config;
   const scaledTime = frame.phase * config.timeScale;
   const targetY = agent.homeY + Math.sin(scaledTime * 0.82 + agent.phase) * (1.2 + config.springElasticity * 1.7);
-  const dx = agent.homeX - agent.x;
-  const dy = targetY - agent.y;
-  const distanceToHome = Math.hypot(dx, dy);
+  const target = { x: agent.homeX, y: targetY };
+  const distanceToHome = distanceBetween(body, target);
   const desiredSpeed = Math.min(MAX_GLYPH_SPEED, distanceToHome * (2.25 + config.springElasticity * 2.4));
-  const desiredVx = distanceToHome > 0.001 ? dx / distanceToHome * desiredSpeed : 0;
-  const desiredVy = distanceToHome > 0.001 ? dy / distanceToHome * desiredSpeed : 0;
-  const steering = limitVector(desiredVx - agent.vx, desiredVy - agent.vy, MAX_GLYPH_FORCE);
-  let ax = steering.x;
-  let ay = steering.y + (config.gravity - 9.81) * 1.25;
+  const seekForce = seek(body, target, { maxSpeed: desiredSpeed, maxForce: MAX_GLYPH_FORCE });
+  const forces: WeightedSteeringForce[] = [
+    { force: seekForce },
+    { force: { x: 0, y: (config.gravity - 9.81) * 1.25 } },
+  ];
 
-  // Separation keeps glyphs legible when a pointer force pushes neighbours together.
-  let separationX = 0;
-  let separationY = 0;
-  let neighbourCount = 0;
-  for (const other of glyphAgents) {
-    if (other === agent) continue;
-    const separationDx = agent.x - other.x;
-    const separationDy = agent.y - other.y;
-    const separationDistance = Math.hypot(separationDx, separationDy);
-    const separationRadius = Math.max(10, Math.min(glyphFontSize * 0.42, (agent.width + other.width) * 0.29));
-    if (separationDistance <= 0.001 || separationDistance >= separationRadius) continue;
-    const strength = (separationRadius - separationDistance) / separationRadius;
-    separationX += separationDx / separationDistance * strength;
-    separationY += separationDy / separationDistance * strength;
-    neighbourCount += 1;
-  }
-  if (neighbourCount > 0) {
-    ax += separationX / neighbourCount * MAX_GLYPH_FORCE * 0.78;
-    ay += separationY / neighbourCount * MAX_GLYPH_FORCE * 0.78;
-  }
+  // The shared separation behavior replaces the former per-glyph neighbour loop.
+  const separationRadius = Math.max(10, Math.min(glyphFontSize * 0.42, agent.width * 0.58));
+  const separation = separate(body, neighbours, {
+    distance: separationRadius,
+    maxSpeed: MAX_GLYPH_SPEED,
+    maxForce: MAX_GLYPH_FORCE * 0.78,
+  });
+  forces.push({ force: separation });
 
-  // Flee is a local inverse-distance force; the smoothed pointer comes from RetargetableMotion.
+  // The smoothed pointer comes from RetargetableMotion; flee is shared with the DOM demo.
   if (frame.pointer) {
-    const pointerX = frame.pointer.x * frame.size.width;
-    const pointerY = frame.pointer.y * frame.size.height;
-    const pointerDx = agent.x - pointerX;
-    const pointerDy = agent.y - pointerY;
-    const pointerDistance = Math.hypot(pointerDx, pointerDy);
+    const pointer = { x: frame.pointer.x * frame.size.width, y: frame.pointer.y * frame.size.height };
+    const pointerDistance = distanceBetween(body, pointer);
     const fleeRadius = Math.min(172, Math.max(94, frame.size.width * 0.2));
     if (pointerDistance < fleeRadius) {
-      const direction = pointerDistance > 0.001
-        ? { x: pointerDx / pointerDistance, y: pointerDy / pointerDistance }
-        : { x: Math.cos(agent.phase), y: Math.sin(agent.phase) };
       const influence = 1 - pointerDistance / fleeRadius;
       const fleeForce = influence * influence * (390 + config.springElasticity * 480);
-      ax += direction.x * fleeForce + Math.cos(scaledTime * 1.4 + agent.phase) * influence * 18;
-      ay += direction.y * fleeForce + Math.sin(scaledTime * 1.25 + agent.phase) * influence * 18;
+      const escape = flee(body, pointer, { radius: fleeRadius, maxSpeed: MAX_GLYPH_SPEED, maxForce: fleeForce });
+      forces.push({ force: escape });
+      if (pointerDistance <= 0.001) forces.push({ force: vectorFromAngle(agent.phase, fleeForce) });
+      forces.push({ force: {
+        x: Math.cos(scaledTime * 1.4 + agent.phase) * influence * 18,
+        y: Math.sin(scaledTime * 1.25 + agent.phase) * influence * 18,
+      } });
     }
   }
 
-  const acceleration = limitVector(ax, ay, MAX_GLYPH_FORCE * 1.8);
-  const damping = Math.exp(-(2.5 + config.airDrag * 18) * deltaSeconds);
-  agent.vx = (agent.vx + acceleration.x * deltaSeconds) * damping;
-  agent.vy = (agent.vy + acceleration.y * deltaSeconds) * damping;
-  const velocity = limitVector(agent.vx, agent.vy, MAX_GLYPH_SPEED);
-  agent.vx = velocity.x;
-  agent.vy = velocity.y;
-  agent.x += agent.vx * deltaSeconds;
-  agent.y += agent.vy * deltaSeconds;
+  const steeringForce = combineSteering(forces, MAX_GLYPH_FORCE * 1.8);
+  const next = stepSteeringAgent(body, steeringForce, deltaSeconds, {
+    maxSpeed: MAX_GLYPH_SPEED,
+    linearDamping: 2.5 + config.airDrag * 18,
+    maxDeltaSeconds: 0.04,
+  });
+  agent.x = next.x;
+  agent.y = next.y;
+  agent.vx = next.vx;
+  agent.vy = next.vy;
   agent.rotation = Math.max(-8, Math.min(8, agent.vx * 0.035 + (agent.x - agent.homeX) * 0.085));
 
   if (Math.hypot(agent.vx, agent.vy) > 5 || frame.pointer) {
@@ -239,16 +247,25 @@ function drawKineticTypography(context: CanvasRenderingContext2D, frame: StageFr
   const deltaSeconds = Math.min(0.04, Math.max(0.001, rawDeltaSeconds)) * frame.config.timeScale;
 
   context.clearRect(0, 0, width, height);
-  context.fillStyle = glyphBackground;
-  context.fillRect(0, 0, width, height);
-  const glow = context.createRadialGradient(width * 0.5, height * 0.48, 0, width * 0.5, height * 0.48, width * 0.62);
-  glow.addColorStop(0, alphaColor(palette.cyan, 0.095));
-  glow.addColorStop(0.48, alphaColor(palette.violet, 0.055));
-  glow.addColorStop(1, alphaColor(glyphBackground, 0));
-  context.fillStyle = glow;
-  context.fillRect(0, 0, width, height);
+  const backgroundLayer = ensureBubbleBackground(width, height);
+  if (backgroundLayer) context.drawImage(backgroundLayer, 0, 0, width, height);
+  const scenePhase = frame.phase * frame.config.timeScale;
+  drawBubbleChamberMotion(context, width, height, scenePhase, backgroundSeed, palette);
+  drawBubbleChamberDrift(context, width, height, scenePhase, backgroundSeed, palette);
 
-  for (const agent of glyphAgents) applyGlyphSteering(agent, frame, deltaSeconds);
+  // Every agent reads the same per-frame snapshot, so steering is independent of iteration order.
+  const steeringBodies: SteeringAgent[] = glyphAgents.map((agent) => ({
+    x: agent.x,
+    y: agent.y,
+    vx: agent.vx,
+    vy: agent.vy,
+  }));
+  for (let index = 0; index < glyphAgents.length; index += 1) {
+    const agent = glyphAgents[index];
+    const body = steeringBodies[index];
+    if (!agent || !body) continue;
+    applyGlyphSteering(agent, body, steeringBodies, frame, deltaSeconds);
+  }
 
   // Motion trails make the typography read as a moving system, not a static title with transforms.
   context.lineCap = 'round';
@@ -421,7 +438,25 @@ function resetCenter(): void {
   else emitTelemetry('running');
 }
 
-defineExpose({ resetCenter });
+function replayTypography(): void {
+  backgroundSeed = createBackgroundSeed(backgroundSeed);
+  bubbleBackgroundLayer = null;
+  bubbleBackgroundSignature = '';
+  glyphAgents = [];
+  glyphLayoutSignature = '';
+  lastFrameAt = 0;
+  smoothedFps = 0;
+  latestDrawTimeMs = 0;
+  isPointerActive.value = false;
+  latestPointer = null;
+  pointerSubject.next(null);
+  xMotion?.to(-1);
+  yMotion?.to(-1);
+  phaseTween?.seek(0);
+  if (isVisible.value && !prefersReducedMotion.value) void phaseTween?.play().catch(() => undefined);
+}
+
+defineExpose({ resetCenter, replayTypography });
 
 watch(() => ({ ...props.config }), (config) => {
   configSubject.next(config);
@@ -433,6 +468,7 @@ onMounted(() => {
   palette = {
     cyan: getColor('--rx-color-accent-cyan-rgb', '#67e8f9'),
     violet: getColor('--rx-theme-primary', '#a78bfa'),
+    background: getColor('--rx-color-canvas-night-deep', '#080b16'),
   };
   resize();
   if (!canvasContext) {
@@ -525,6 +561,10 @@ onBeforeUnmount(() => {
   renderSubscription?.unsubscribe();
   renderSubscription = null;
   phaseTween = null;
+  bubbleBackgroundLayer = null;
+  bubbleBackgroundSignature = '';
+  glyphAgents = [];
+  glyphLayoutSignature = '';
   for (const cleanup of cleanups.splice(0).reverse()) cleanup();
   pointerSubject.complete();
   configSubject.complete();

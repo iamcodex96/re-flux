@@ -1,3 +1,6 @@
+import { combineSteering, flee, seek, separate, stepSteeringAgent, type SteeringAgent, type WeightedSteeringForce } from '@lib/steering';
+import { distanceBetween } from '@lib/utils';
+
 /**
  * Small autonomous glyph agents inspired by steering behaviours in The Nature of Code.
  * This is a docs-only study: each character seeks its home position, separates from nearby
@@ -37,13 +40,6 @@ const POINTER_RADIUS = 116;
 const SEPARATION_DISTANCE = 17;
 const REST_POSITION_EPSILON = 0.22;
 const REST_VELOCITY_EPSILON = 2.4;
-
-function clampMagnitude(x: number, y: number, maximum: number): PointerPoint {
-  const magnitude = Math.hypot(x, y);
-  if (magnitude <= maximum || magnitude === 0) return { x, y };
-  const ratio = maximum / magnitude;
-  return { x: x * ratio, y: y * ratio };
-}
 
 function splitGraphemes(text: string): string[] {
   type Segment = { readonly segment: string };
@@ -141,7 +137,7 @@ export function createKineticTypography(target: HTMLElement): KineticTypographyH
     target.classList.remove('is-kinetic-active');
   };
 
-  const stepAgent = (agent: GlyphAgent, dt: number): void => {
+  const stepAgent = (agent: GlyphAgent, body: SteeringAgent, neighbours: readonly SteeringAgent[], dt: number): void => {
     if (!agent.character.trim()) {
       agent.x = 0;
       agent.y = 0;
@@ -151,67 +147,46 @@ export function createKineticTypography(target: HTMLElement): KineticTypographyH
       return;
     }
 
-    // Seek: compute a desired velocity towards the glyph's original layout position.
-    const homeDistance = Math.hypot(agent.x, agent.y);
+    const home = { x: agent.homeX, y: agent.homeY };
+    const homeDistance = distanceBetween(body, home);
     const desiredSpeed = Math.min(MAX_SPEED, homeDistance * 5.2);
-    let desiredVx = 0;
-    let desiredVy = 0;
-    if (homeDistance > 0.001) {
-      desiredVx = (-agent.x / homeDistance) * desiredSpeed;
-      desiredVy = (-agent.y / homeDistance) * desiredSpeed;
-    }
-    const seek = clampMagnitude(desiredVx - agent.vx, desiredVy - agent.vy, MAX_FORCE);
-    let ax = seek.x;
-    let ay = seek.y;
+    const seekForce = seek(body, home, { maxSpeed: desiredSpeed, maxForce: MAX_FORCE });
+    const forces: WeightedSteeringForce[] = [{ force: seekForce }];
 
-    // Separation: keep characters from piling up when neighbouring glyphs are displaced.
-    const positionX = agent.homeX + agent.x;
-    const positionY = agent.homeY + agent.y;
-    let separationX = 0;
-    let separationY = 0;
-    let neighbours = 0;
-    for (const other of agents) {
-      if (other === agent || !other.character.trim()) continue;
-      const dx = positionX - (other.homeX + other.x);
-      const dy = positionY - (other.homeY + other.y);
-      const distance = Math.hypot(dx, dy);
-      if (distance <= 0.001 || distance >= SEPARATION_DISTANCE) continue;
-      const strength = (SEPARATION_DISTANCE - distance) / SEPARATION_DISTANCE;
-      separationX += (dx / distance) * strength;
-      separationY += (dy / distance) * strength;
-      neighbours += 1;
-    }
-    if (neighbours > 0) {
-      const separation = clampMagnitude(separationX / neighbours * MAX_FORCE, separationY / neighbours * MAX_FORCE, MAX_FORCE * 0.8);
-      ax += separation.x;
-      ay += separation.y;
-    }
+    // Shared separation behavior replaces the former per-demo neighbour loop.
+    const separation = separate(body, neighbours, {
+      distance: SEPARATION_DISTANCE,
+      maxSpeed: MAX_SPEED,
+      maxForce: MAX_FORCE * 0.8,
+    });
+    forces.push({ force: separation });
 
-    // Flee: a soft inverse-distance force pushes nearby glyphs away from the pointer.
+    // Flee is shared with other motion experiments; wandering remains demo-specific.
     if (pointer) {
-      const dx = positionX - pointer.x;
-      const dy = positionY - pointer.y;
-      const distance = Math.hypot(dx, dy);
-      if (distance < POINTER_RADIUS) {
-        const direction = distance > 0.001 ? { x: dx / distance, y: dy / distance } : { x: Math.cos(agent.phase), y: Math.sin(agent.phase) };
-        const influence = 1 - distance / POINTER_RADIUS;
+      const pointerDistance = distanceBetween(body, pointer);
+      if (pointerDistance < POINTER_RADIUS) {
+        const influence = 1 - pointerDistance / POINTER_RADIUS;
         const force = influence * influence * 920;
-        ax += direction.x * force;
-        ay += direction.y * force;
+        const escape = flee(body, pointer, { maxSpeed: MAX_SPEED, maxForce: force, radius: POINTER_RADIUS });
+        forces.push({ force: escape });
         // A little wandering gives the steering response a living, non-mechanical quality.
-        ax += Math.cos(elapsed * 1.45 + agent.phase) * influence * 26;
-        ay += Math.sin(elapsed * 1.3 + agent.phase) * influence * 26;
+        forces.push({ force: {
+          x: Math.cos(elapsed * 1.45 + agent.phase) * influence * 26,
+          y: Math.sin(elapsed * 1.3 + agent.phase) * influence * 26,
+        } });
       }
     }
 
-    const acceleration = clampMagnitude(ax, ay, MAX_FORCE * 1.8);
-    agent.vx = (agent.vx + acceleration.x * dt) * Math.exp(-2.7 * dt);
-    agent.vy = (agent.vy + acceleration.y * dt) * Math.exp(-2.7 * dt);
-    const velocity = clampMagnitude(agent.vx, agent.vy, MAX_SPEED);
-    agent.vx = velocity.x;
-    agent.vy = velocity.y;
-    agent.x += agent.vx * dt;
-    agent.y += agent.vy * dt;
+    const steeringForce = combineSteering(forces, MAX_FORCE * 1.8);
+    const next = stepSteeringAgent(body, steeringForce, dt, {
+      maxSpeed: MAX_SPEED,
+      linearDamping: 2.7,
+      maxDeltaSeconds: 0.032,
+    });
+    agent.x = next.x - agent.homeX;
+    agent.y = next.y - agent.homeY;
+    agent.vx = next.vx;
+    agent.vy = next.vy;
     agent.rotation = Math.max(-9, Math.min(9, agent.x * 0.19 + agent.vx * 0.018));
     setTransform(agent);
   };
@@ -226,7 +201,18 @@ export function createKineticTypography(target: HTMLElement): KineticTypographyH
     const dt = lastTimestamp === 0 ? 1 / 60 : Math.min(0.032, Math.max(0.001, (timestamp - lastTimestamp) / 1000));
     lastTimestamp = timestamp;
     elapsed += dt;
-    agents.forEach((agent) => stepAgent(agent, dt));
+    // Use one immutable position/velocity snapshot per frame so agent updates don't depend on array order.
+    const bodyByAgent = new Map<GlyphAgent, SteeringAgent>(agents.map((agent) => [agent, {
+      x: agent.homeX + agent.x,
+      y: agent.homeY + agent.y,
+      vx: agent.vx,
+      vy: agent.vy,
+    }] as const));
+    const neighbours = agents
+      .filter((agent) => agent.character.trim().length > 0)
+      .map((agent) => bodyByAgent.get(agent)!)
+      .filter((body): body is SteeringAgent => body !== undefined);
+    agents.forEach((agent) => stepAgent(agent, bodyByAgent.get(agent)!, neighbours, dt));
 
     if (pointer === null && isResting()) {
       snapHome();

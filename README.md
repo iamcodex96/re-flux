@@ -2,9 +2,7 @@
 
 **Reactive animations for TypeScript.**
 
-re;Flux is a lightweight, modular animation library built with TypeScript and RxJS. Its headless core provides composable animations, timelines, and reactive motion primitives; rendering adapters connect them to the DOM, SVG, Canvas, and Three.js.
-
-For DOM animations, call `animate(targets, options)` from `@re-code/flux/dom`; CSS properties belong inside the required `options.properties` map, while timing defaults sit alongside it.
+re;Flux is a lightweight, modular animation library built with TypeScript and RxJS. Its headless core provides composable animations, timelines, reactive values, spring motion, and frame coordination. Optional adapters connect motion to the DOM, SVG, Canvas 2D, and Three.js; separate steering and flow-field modules support autonomous-agent simulations.
 
 ## Installation
 
@@ -12,7 +10,7 @@ For DOM animations, call `animate(targets, options)` from `@re-code/flux/dom`; C
 npm install @re-code/flux rxjs
 ```
 
-`rxjs` is a peer dependency and must be available in your application. If your project already depends on a compatible RxJS 7.x release satisfying the package requirement (>=7.8.0), you do not need to install it again.
+RxJS is a peer dependency. Install it in your application if it is not already available at a compatible version (`^7.8.0`).
 
 ## Quick start
 
@@ -34,20 +32,13 @@ const entrance = animate('.card', {
 entrance.play();
 ```
 
-## Why re;Flux?
-
-- **Reactive:** compose animation behavior with RxJS.
-- **Composable:** combine individual motions with timelines.
-- **Modular:** import only the core or adapters you need.
-- **Type-safe:** built for strict TypeScript projects.
-
 ## Documentation
 
-**[Read the documentation](https://iamcodex96.github.io/re-flux/)** for the API reference, examples, and interactive playgrounds.
+The [documentation site](https://iamcodex96.github.io/re-flux/) contains the API reference, detailed guides, and interactive Playground and Visual Lab examples. Use the explicit package subpaths to import only the modules you need, including `@re-code/flux/steering`, `@re-code/flux/flow-field`, and the rendering adapters.
 
 ## Development
 
-The package requires Node.js `>=22`; repository CI validates on Node.js 22 and 24. Development uses npm workspaces and a committed `package-lock.json` for reproducible installs.
+The package requires Node.js `>=22`; CI validates Node.js 22 and 24. Development uses npm workspaces and the committed lockfile for reproducible installs.
 
 ```bash
 npm ci

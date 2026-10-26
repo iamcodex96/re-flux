@@ -7,7 +7,7 @@ import { resolveLocaleReferences } from './lib/locale.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const read = (path) => readFile(resolve(root, path), 'utf8');
-const [overview, stage, card, shaderPreview, shadersPanel, router, showcase, styles, cardStyles, shadersStyles, home, localeSource] = await Promise.all([
+const [overview, stage, card, shaderPreview, shadersPanel, router, showcase, styles, cardStyles, shadersStyles, home, localeSource, bubbleBackground] = await Promise.all([
   read('apps/docs/src/views/VisualLabOverview.vue'),
   read('apps/docs/src/components/VisualLab/VisualLabFeaturedStage.vue'),
   read('apps/docs/src/components/VisualLab/VisualExperimentCard.vue'),
@@ -20,6 +20,7 @@ const [overview, stage, card, shaderPreview, shadersPanel, router, showcase, sty
   read('apps/docs/src/styles/views/visual-lab/_shaders.scss'),
   read('apps/docs/src/views/Home.vue'),
   read('apps/docs/src/locales/en.json'),
+  read('apps/docs/src/components/VisualLab/bubbleChamberBackground.ts'),
 ]);
 const locale = resolveLocaleReferences(JSON.parse(localeSource));
 const shaderCopy = locale.app.view.visualLabShaderPreview.staticText;
@@ -71,9 +72,23 @@ assert.match(shaderPreview, /timeSubscription\?\.unsubscribe\(\)/, 'WebGL unifor
 assert.match(shaderPreview, /gl\.deleteProgram\(program\)/, 'WebGL program must be released at teardown.');
 assert.doesNotMatch(shaderPreview, /smoothstep\(\s*1\.1\s*,\s*0\.15\s*,|smoothstep\(\s*0\.22\s*,\s*0\.0\s*,|smoothstep\(\s*0\.16\s*,\s*0\.0\s*,/, 'GLSL smoothstep edges must be ordered.');
 
-for (const contract of ["const GLYPH_TEXT = 're;Flux'", 'function drawKineticTypography', 'function applyGlyphSteering', 'MAX_GLYPH_FORCE', 'new RetargetableMotion', 'bindCanvas', 'IntersectionObserver', 'performance.now()', 'latestDrawTimeMs', 'emitTelemetry', 'reducedMotion', 'if (!isPointerActive.value)', 'renderSubscription?.unsubscribe()']) {
+for (const contract of ["const GLYPH_TEXT = 're;Flux'", 'function drawKineticTypography', 'function applyGlyphSteering', 'const steeringBodies: SteeringAgent[] = glyphAgents.map', 'applyGlyphSteering(agent, body, steeringBodies, frame, deltaSeconds)', 'createBubbleChamberLayer', 'drawBubbleChamberDrift', 'function replayTypography', 'MAX_GLYPH_FORCE', 'new RetargetableMotion', 'bindCanvas', 'IntersectionObserver', 'performance.now()', 'latestDrawTimeMs', 'emitTelemetry', 'reducedMotion', 'if (!isPointerActive.value)', 'renderSubscription?.unsubscribe()']) {
   assert.ok(stage.includes(contract), `Featured kinetic typography is missing ${contract}.`);
 }
+
+assert.match(overview, /<button[^>]*@click="replayTypography"[\s\S]*?copy\.staticText\.replayTypographyAnimation/, 'The featured kinetic typography hero must provide a locale-backed replay button.');
+assert.match(overview, /<section class="lab-feature"[\s\S]*?<section class="lab-explorer"/, 'The featured hero must lead the experiment filters, matching the home page story hierarchy.');
+assert.match(styles, /&__content\s*\{[^}]*min-height:\s*clamp\(40rem,\s*calc\(100svh/s, 'The featured Visual Lab stage must be sized as a full hero.');
+assert.match(bubbleBackground, /function drawGrain[\s\S]*?function drawOrbitTrails[\s\S]*?function drawBubble[\s\S]*?function drawGalaxy/, 'The procedural background must include grain, orbital curves, bubbles and particle galaxies.');
+assert.match(bubbleBackground, /export function drawBubbleChamberMotion[\s\S]*?drawOrbitTrails\([\s\S]*?phase[\s\S]*?drawBubble\([\s\S]*?revealProgress/, 'The Bubble Chamber background must animate dashed orbit trails and progressively traced bubble rings.');
+assert.match(stage, /drawBubbleChamberMotion\(context, width, height, scenePhase, backgroundSeed, palette\)/, 'The featured typography stage must draw animated Bubble Chamber rings and moving lines each frame.');
+assert.match(bubbleBackground, /export function drawBubbleChamberDrift/, 'The Bubble Chamber background must include a lightweight animated dust layer.');
+assert.match(bubbleBackground, /export function createBubbleChamberLayer\([\s\S]*?seed = 1124,[\s\S]*?theme: BubbleChamberPalette/, 'The Bubble Chamber artwork must accept an explicit seed and the active UI palette.');
+assert.match(bubbleBackground, /theme\.cyan[\s\S]*?theme\.violet[\s\S]*?theme\.background/, 'The Bubble Chamber palette must be based on re;Flux theme colors rather than warm unrelated accents.');
+assert.doesNotMatch(bubbleBackground, /#F28B50|#F2E088|#D96B43/i, 'The Bubble Chamber background must not reintroduce the old orange/yellow palette.');
+assert.ok(bubbleBackground.includes('const rgb = color.match(/^rgba?\\(([^)]+)\\)$/i)?.[1];'), 'Theme RGB colors must support alpha blending for the procedural renderer.');
+assert.match(stage, /function replayTypography\(\): void \{[\s\S]*?backgroundSeed = createBackgroundSeed(?:\(backgroundSeed\))?;[\s\S]*?bubbleBackgroundLayer = null;[\s\S]*?bubbleBackgroundSignature = '';/, 'Replay must regenerate the procedural background as well as the typography animation.');
+assert.match(styles, /\.lab-modules \{[\s\S]*?width: min\(calc\(100% - var\(--rx-page-gutter\) \* 2\), var\(--rx-content-wide\)\);[\s\S]*?margin-inline: auto;/, 'Visual Lab experiment cards must remain in their previous centered, content-width section rather than stretching across the hero canvas.');
 
 for (const contract of ['@pointerenter="onPointerEnter"', '@pointerleave="onPointerLeave"', '@focusin="onFocusIn"', '@focusout="onFocusOut"', 'playPreview()', 'resetPreview()', 'createKineticTypography(', 'VisualLabShaderPreview', 'onBeforeUnmount']) {
   assert.ok(card.includes(contract), `Experiment card is missing ${contract}.`);
@@ -94,4 +109,4 @@ assert.match(stage, /function getColor[\s\S]*?return `rgb\(\$\{value\}\)`/, 'Can
 const publicText = `${overview}\n${stage}\n${shaderPreview}\n${shadersPanel}`;
 assert.doesNotMatch(publicText, /212\.0\s*FPS|0\s*ALLOC(?:ATION)?\s*LEAK|50K\s*COMPUTE|100%\s*GC/i, 'Do not publish fabricated benchmark or leak counters.');
 
-console.log('✓ Visual Lab complete: 17 categorized catalog entries, hero-owned fluid noise field, category counts, hover/focus reset, measured telemetry, interactive sandbox, WebGL shaders/fallback, routing, cleanup and responsive styles');
+console.log('✓ Visual Lab complete: 17 categorized catalog entries, home-style kinetic typography hero, Bubble Chamber background, replay control, category counts, measured telemetry, interactive sandbox, WebGL fallbacks, routing, cleanup and responsive styles');

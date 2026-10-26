@@ -6,7 +6,8 @@ import { MotionPreferences, Tween } from '@lib';
 import { bindCanvas, resizeCanvas } from '@lib/canvas';
 import { createKineticTypography, type KineticTypographyHandle } from './kineticTypographyMotion';
 import { bindSvgAttributes, bindSvgPathDrawing, bindSvgPathMorph } from '@lib/svg';
-import { drawParticleConstellation } from '@demos/canvas';
+import { drawParticleConstellation, createSteeringSwarm, stepSteeringSwarm, drawSteeringSwarm } from '@demos/canvas';
+import type { SteeringSwarmSimulation } from '@demos/canvas';
 import VisualLabShaderPreview from './VisualLabShaderPreview.vue';
 import type { VisualExperimentCategory, VisualExperimentKind, VisualLabShaderKind } from './visualLabTypes';
 
@@ -61,6 +62,8 @@ let resizeObserver: ResizeObserver | null = null;
 let canvasSize = { width: 1, height: 1 };
 let canvasContext: CanvasRenderingContext2D | null = null;
 let latestCanvasPhase = 0;
+let swarmSimulation: SteeringSwarmSimulation | null = null;
+let lastSwarmTimestamp = 0;
 let latestPalette = { cyan: '#67e8f9', violet: '#a78bfa', magenta: '#e879f9', amber: '#f6b96e' };
 let preferenceSubscription: { unsubscribe(): void } | null = null;
 
@@ -138,35 +141,6 @@ function drawCloth(context: CanvasRenderingContext2D, phase: number, size: { wid
       context.fill();
     }
   }
-}
-
-function drawSwarm(context: CanvasRenderingContext2D, phase: number, size: { width: number; height: number }): void {
-  const { width, height } = size;
-  const centerX = width * (0.5 + Math.sin(phase * 0.34) * 0.08);
-  const centerY = height * (0.5 + Math.cos(phase * 0.28) * 0.08);
-  const points = Array.from({ length: 38 }, (_, index) => {
-    const seed = index * 2.399963229728653;
-    const orbit = 0.08 + (index % 9) * 0.037;
-    const angle = seed + phase * (0.22 + (index % 5) * 0.035);
-    return {
-      x: centerX + Math.cos(angle) * width * orbit,
-      y: centerY + Math.sin(angle * 1.1) * height * orbit * 0.7,
-      accent: index % 6 === 0,
-    };
-  });
-  context.lineWidth = 0.8;
-  points.forEach((point, index) => {
-    const next = points[(index + 1) % points.length];
-    if (!next) return;
-    context.beginPath(); context.moveTo(point.x, point.y); context.lineTo(next.x, next.y);
-    context.strokeStyle = withAlpha(latestPalette.cyan, 0.18); context.stroke();
-  });
-  points.forEach((point) => {
-    context.beginPath(); context.arc(point.x, point.y, point.accent ? 2.4 : 1.5, 0, Math.PI * 2);
-    context.fillStyle = point.accent ? latestPalette.violet : latestPalette.cyan; context.fill();
-  });
-  context.beginPath(); context.arc(centerX, centerY, 4.5, 0, Math.PI * 2);
-  context.fillStyle = latestPalette.amber; context.fill();
 }
 
 function drawLattice(context: CanvasRenderingContext2D, phase: number, size: { width: number; height: number }): void {
@@ -301,7 +275,7 @@ function drawRadial(context: CanvasRenderingContext2D, phase: number, size: { wi
   context.strokeStyle = withAlpha(latestPalette.violet, 0.42); context.lineWidth = 1; context.stroke();
 }
 
-function drawCanvasPreview(context: CanvasRenderingContext2D, phase: number, size: { width: number; height: number }): void {
+function drawCanvasPreview(context: CanvasRenderingContext2D, phase: number, size: { width: number; height: number }, advanceSimulation = true): void {
   context.clearRect(0, 0, size.width, size.height);
   if (props.kind === 'particles') {
     drawParticleConstellation(context, phase, size, {
@@ -312,7 +286,31 @@ function drawCanvasPreview(context: CanvasRenderingContext2D, phase: number, siz
       linkColor: withAlpha(latestPalette.cyan, 0.34),
     });
   } else if (props.kind === 'cloth') drawCloth(context, phase, size);
-  else if (props.kind === 'swarm') drawSwarm(context, phase, size);
+  else if (props.kind === 'swarm') {
+    if (!swarmSimulation || swarmSimulation.width !== size.width || swarmSimulation.height !== size.height) {
+      swarmSimulation = createSteeringSwarm(size.width, size.height, 28);
+      lastSwarmTimestamp = 0;
+    }
+    if (advanceSimulation) {
+      const now = performance.now();
+      const deltaSeconds = lastSwarmTimestamp === 0 ? 1 / 60 : Math.min(0.04, Math.max(0.001, (now - lastSwarmTimestamp) / 1000));
+      lastSwarmTimestamp = now;
+      stepSteeringSwarm(swarmSimulation, deltaSeconds, {
+        mode: 'flow',
+        target: { x: size.width * (0.5 + Math.sin(phase * 0.35) * 0.12), y: size.height * (0.5 + Math.cos(phase * 0.28) * 0.1) },
+        maxSpeed: 54,
+        maxForce: 48,
+      });
+    }
+    drawSteeringSwarm(context, swarmSimulation, {
+      showField: true,
+      agentColor: withAlpha(latestPalette.cyan, 0.92),
+      accentColor: latestPalette.violet,
+      fieldColor: withAlpha(latestPalette.cyan, 0.28),
+      linkColor: withAlpha(latestPalette.cyan, 0.12),
+      targetColor: latestPalette.amber,
+    });
+  }
   else if (props.kind === 'lattice') drawLattice(context, phase, size);
   else if (props.kind === 'spring-follower') drawSpringFollower(context, phase, size);
   else if (props.kind === 'inertia') drawInertia(context, phase, size);
@@ -398,7 +396,7 @@ function setupCanvasPreview(): void {
         if (!canvasTarget.value) return;
         const resized = resizeCanvas(canvasTarget.value);
         canvasSize = { width: resized.width, height: resized.height };
-        if (canvasContext) drawCanvasPreview(canvasContext, latestCanvasPhase, canvasSize);
+        if (canvasContext) drawCanvasPreview(canvasContext, latestCanvasPhase, canvasSize, false);
       });
       resizeObserver.observe(canvasTarget.value);
     }
@@ -427,6 +425,11 @@ function resetPreview(): void {
     return;
   }
   sceneTween?.stop();
+  if (props.kind === 'swarm' && canvasContext) {
+    swarmSimulation = createSteeringSwarm(canvasSize.width, canvasSize.height, 28);
+    lastSwarmTimestamp = 0;
+    drawCanvasPreview(canvasContext, latestCanvasPhase, canvasSize, false);
+  }
 }
 
 function syncActivation(): void {

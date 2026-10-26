@@ -40,6 +40,15 @@
       "@lib/three": [
         "../../src/adapters/three.ts"
       ],
+      "@lib/steering": [
+        "../../src/steering.ts"
+      ],
+      "@lib/flow-field": [
+        "../../src/flowField.ts"
+      ],
+      "@lib/utils": [
+        "../../src/utils.ts"
+      ],
       "@lib/effects/canvas": [
         "../../src/effects/canvas.ts"
       ],

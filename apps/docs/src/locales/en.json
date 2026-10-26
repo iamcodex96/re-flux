@@ -121,7 +121,8 @@
           "springPhysics": "Spring physics",
           "frameCoordinator": "Frame coordinator",
           "adaptiveTween": "Adaptive tween",
-          "canvasAdapter": "Canvas adapter"
+          "canvasAdapter": "Canvas adapter",
+          "steeringAndFlowFields": "Steering & Flow Fields"
         },
         "labels": {
           "parameters": "Parameters",
@@ -195,6 +196,7 @@
           "applyOptions": "Apply options",
           "resetPositions": "Reset positions",
           "resetTypography": "Reset typography",
+          "replayTypography": "Replay typography",
           "openPlayground": "Open playground",
           "readDocumentation": "Read the documentation",
           "viewTypeScript": "View the TypeScript",
@@ -241,10 +243,14 @@
           "timing": "timing",
           "lifecycle": "lifecycle",
           "scheduler": "scheduler",
-          "utilities": "utilities"
+          "utilities": "utilities",
+          "steering": "steering"
         },
         "packages": {
-          "fluxPackage": "@re-code/flux"
+          "fluxPackage": "@re-code/flux",
+          "fluxUtilsPackage": "@re-code/flux/utils",
+          "fluxSteeringPackage": "@re-code/flux/steering",
+          "fluxFlowFieldPackage": "@re-code/flux/flow-field"
         },
         "apiSymbols": {
           "typedTween": "Tween<T>",
@@ -266,7 +272,10 @@
           "render": "render()"
         },
         "apiTypes": {
-          "number": "number"
+          "number": "number",
+          "vector2": "Vector2",
+          "flowField": "FlowField",
+          "steeringAgent": "SteeringAgent"
         }
       },
       "docs": {
@@ -1244,8 +1253,8 @@
         "apiReference": {
           "eyebrow": "Public runtime API",
           "title": "Public Runtime API Reference",
-          "description": "Search the runtime exports available from @re-code/flux, including animation primitives, composition helpers, stream operators, spring physics, frame scheduling, easing functions, and math utilities. Type-only exports are referenced by their related signatures, while renderer adapters have dedicated documentation.",
-          "importNotice": "This index includes every runtime export from the root package. It does not list type-only exports as separate rows; those types appear in related signatures and examples. Adapter-specific functions are imported from the explicit /dom, /svg, /canvas, /three, and /effects/canvas subpaths.",
+          "description": "Search the runtime exports available from @re-code/flux, including animation primitives, composition helpers, stream operators, spring physics, steering behaviors, frame scheduling, easing functions, and vector utilities. Type-only exports are referenced by their related signatures, while renderer adapters have dedicated documentation.",
+          "importNotice": "This index includes every runtime export from the root package. It does not list type-only exports as separate rows; those types appear in related signatures and examples. Vector helpers are available from /utils, steering behaviors from /steering, and flow-field construction/sampling from /flow-field. Adapter-specific functions use the explicit /dom, /svg, /canvas, /three, and /effects/canvas subpaths.",
           "searchLabel": "Search API entries",
           "searchPlaceholder": "Search names, signatures or descriptions…",
           "categoryFilterLabel": "Filter API by category",
@@ -1305,6 +1314,10 @@
             {
               "value": "@ref:app.view.common.apiCategories.utilities",
               "label": "Utilities"
+            },
+            {
+              "value": "@ref:app.view.common.apiCategories.steering",
+              "label": "Steering"
             }
           ],
           "entries": [
@@ -1649,6 +1662,186 @@
               "category": "@ref:app.view.common.apiCategories.utilities",
               "description": "Creates a resolver that distributes numeric values across a collection.",
               "importPath": "@ref:app.view.common.packages.fluxPackage"
+            },
+            {
+              "name": "addVectors()",
+              "signature": "addVectors(left: Vector2, right: Vector2)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Adds two vectors component-wise.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "addVectors"
+            },
+            {
+              "name": "subtractVectors()",
+              "signature": "subtractVectors(left: Vector2, right: Vector2)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Subtracts the right vector from the left vector.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "subtractVectors"
+            },
+            {
+              "name": "scaleVector()",
+              "signature": "scaleVector(vector: Vector2, scalar: number)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Scales both vector components by a scalar.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "scaleVector"
+            },
+            {
+              "name": "vectorMagnitudeSquared()",
+              "signature": "vectorMagnitudeSquared(vector: Vector2)",
+              "result": "@ref:app.view.common.apiTypes.number",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Returns squared vector magnitude without calculating a square root.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "vectorMagnitudeSquared"
+            },
+            {
+              "name": "vectorMagnitude()",
+              "signature": "vectorMagnitude(vector: Vector2)",
+              "result": "@ref:app.view.common.apiTypes.number",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Returns the Euclidean magnitude of a vector.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "vectorMagnitude"
+            },
+            {
+              "name": "normalizeVector()",
+              "signature": "normalizeVector(vector: Vector2)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Returns a unit vector, preserving zero vectors as zero.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "normalizeVector"
+            },
+            {
+              "name": "limitVector()",
+              "signature": "limitVector(vector: Vector2, maximumMagnitude: number)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Caps vector magnitude while preserving direction.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "limitVector"
+            },
+            {
+              "name": "distanceBetween()",
+              "signature": "distanceBetween(left: Vector2, right: Vector2)",
+              "result": "@ref:app.view.common.apiTypes.number",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Returns Euclidean distance between two points or vectors.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "distanceBetween"
+            },
+            {
+              "name": "dotProduct()",
+              "signature": "dotProduct(left: Vector2, right: Vector2)",
+              "result": "@ref:app.view.common.apiTypes.number",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Returns the dot product of two vectors.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "dotProduct"
+            },
+            {
+              "name": "vectorFromAngle()",
+              "signature": "vectorFromAngle(angle: number, magnitude?: number)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Creates a vector from an angle in radians and an optional magnitude.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "vectorFromAngle"
+            },
+            {
+              "name": "lerpVector()",
+              "signature": "lerpVector(from: Vector2, to: Vector2, progress: number)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.utilities",
+              "description": "Linearly interpolates two vectors without clamping progress.",
+              "importPath": "@ref:app.view.common.packages.fluxUtilsPackage",
+              "exportName": "lerpVector"
+            },
+            {
+              "name": "seek()",
+              "signature": "seek(agent: SteeringAgent, target: Vector2, options?: SteeringOptions)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.steering",
+              "description": "Returns a force that steers an agent toward a target at its desired maximum speed.",
+              "importPath": "@ref:app.view.common.packages.fluxSteeringPackage",
+              "exportName": "seek"
+            },
+            {
+              "name": "arrive()",
+              "signature": "arrive(agent: SteeringAgent, target: Vector2, options?: ArriveOptions)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.steering",
+              "description": "Steers toward a target and slows down inside a configurable radius.",
+              "importPath": "@ref:app.view.common.packages.fluxSteeringPackage",
+              "exportName": "arrive"
+            },
+            {
+              "name": "flee()",
+              "signature": "flee(agent: SteeringAgent, target: Vector2, options?: FleeOptions)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.steering",
+              "description": "Returns a force that steers away from a target, optionally within a radius.",
+              "importPath": "@ref:app.view.common.packages.fluxSteeringPackage",
+              "exportName": "flee"
+            },
+            {
+              "name": "separate()",
+              "signature": "separate(agent: SteeringAgent, neighbours: Iterable<SteeringAgent>, options?: SeparationOptions)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.steering",
+              "description": "Steers an agent away from nearby neighbours to reduce crowding.",
+              "importPath": "@ref:app.view.common.packages.fluxSteeringPackage",
+              "exportName": "separate"
+            },
+            {
+              "name": "combineSteering()",
+              "signature": "combineSteering(forces: Iterable<WeightedSteeringForce>, maxForce?: number)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.steering",
+              "description": "Combines weighted steering forces and limits the resultant magnitude.",
+              "importPath": "@ref:app.view.common.packages.fluxSteeringPackage",
+              "exportName": "combineSteering"
+            },
+            {
+              "name": "stepSteeringAgent()",
+              "exportName": "stepSteeringAgent",
+              "signature": "stepSteeringAgent(agent: SteeringAgent, steeringForce: Vector2, deltaSeconds: number, options?: SteeringStepOptions)",
+              "result": "@ref:app.view.common.apiTypes.steeringAgent",
+              "category": "@ref:app.view.common.apiCategories.steering",
+              "description": "Integrates steering acceleration into a new position and velocity using elapsed seconds, optional exponential damping, and an optional delta cap.",
+              "importPath": "@ref:app.view.common.packages.fluxSteeringPackage"
+            },
+            {
+              "name": "followFlowField()",
+              "exportName": "followFlowField",
+              "signature": "followFlowField(agent: SteeringAgent, field: FlowField, options?: FlowFollowingOptions)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.steering",
+              "description": "Returns a bounded steering force toward the direction stored at an agent’s flow-field cell.",
+              "importPath": "@ref:app.view.common.packages.fluxSteeringPackage"
+            },
+            {
+              "name": "createFlowField()",
+              "exportName": "createFlowField",
+              "signature": "createFlowField(options: FlowFieldOptions)",
+              "result": "@ref:app.view.common.apiTypes.flowField",
+              "category": "@ref:app.view.common.apiCategories.steering",
+              "description": "Builds an immutable vector grid by computing one direction vector at each cell centre.",
+              "importPath": "@ref:app.view.common.packages.fluxFlowFieldPackage"
+            },
+            {
+              "name": "sampleFlowField()",
+              "exportName": "sampleFlowField",
+              "signature": "sampleFlowField(field: FlowField, position: Vector2, edgeMode?: FlowFieldEdgeMode)",
+              "result": "@ref:app.view.common.apiTypes.vector2",
+              "category": "@ref:app.view.common.apiCategories.steering",
+              "description": "Returns the nearest flow-field cell vector with explicit clamp, wrap, or zero edge behavior.",
+              "importPath": "@ref:app.view.common.packages.fluxFlowFieldPackage"
             }
           ]
         },
@@ -1707,7 +1900,6 @@
         "re": "@ref:app.view.common.terms.brandMark",
         "reFlux": "@ref:app.view.common.terms.brandName",
         "reactiveMotionArchitectureForInterfacesGraphicsAndd28742": "Reactive motion architecture for interfaces, graphics, and interactive experiences.",
-        "typescript54": "TypeScript 5.4+",
         "rxjs78": "RxJS 7.8+",
         "mitLicense": "MIT License",
         "engine": "Engine",
@@ -2405,6 +2597,7 @@
           "glyphsUseSteeringForcesToReturnHomeSeparateFromNeighboursAndReactToThePointer": "Inspired by The Nature of Code, each glyph seeks its home position, separates from neighbours and responds to the cursor with a soft repelling force.",
           "exploreCanvasDemos": "Explore Canvas demos",
           "springDynamics": "@ref:app.view.common.terms.springDynamics",
+          "replayTypographyAnimation": "@ref:app.view.common.actions.replayTypography",
           "liveCanvasMeasurements": "Live Canvas measurements",
           "renderTarget": "RENDER TARGET",
           "canvas2d2": "@ref:app.view.common.terms.canvas2D",
@@ -2459,7 +2652,7 @@
           "aRealWebglFragmentShaderSeparatesSpectralBandsAndRecombinesThemIntoAChromaticField": "A real WebGL fragment shader separates spectral bands and recombines them into a chromatic field.",
           "vectorFieldSwarm": "Vector Field Swarm",
           "agentField": "AGENT FIELD",
-          "aConstellationOfAgentsFollowsOrbitalPathsAroundAMovingCenterDrivenByASingleContinuousPhaseValue": "A constellation of agents follows orbital paths around a moving center, driven by a single continuous phase value.",
+          "aConstellationOfAgentsFollowsOrbitalPathsAroundAMovingCenterDrivenByASingleContinuousPhaseValue": "A real agent simulation combines flow-field following with local separation, bounded force integration and short motion trails.",
           "springFollowerField": "Spring Follower Field",
           "followerResponse": "FOLLOWER RESPONSE",
           "aChainOfFollowersTracesAMovingTargetWithPhaseDelayedMotionIllustratingHowCoordinatedValuesCanShapeAScene": "A chain of followers traces a moving target with phase-delayed motion, illustrating how coordinated values can shape a scene.",
@@ -2604,6 +2797,9 @@
           "retargetAndSmooth": "Retarget and smooth",
           "adaptiveTween": "@ref:app.view.common.terms.adaptiveTween",
           "cadenceAwareMotion": "Cadence-aware motion",
+          "motionSimulation": "Motion simulation",
+          "steeringAndFlowFields": "@ref:app.view.common.terms.steeringAndFlowFields",
+          "autonomousAgentsAndForceFields": "Autonomous agents and force fields",
           "renderingAPI": "Rendering & API",
           "canvasAdapter": "@ref:app.view.common.terms.canvasAdapter",
           "renderAValueStream": "Render a value stream",
@@ -2657,6 +2853,10 @@
           "canvas": {
             "title": "@ref:app.view.common.terms.canvasAdapter",
             "description": "Drive a Canvas draw callback from a headless Tween and stop it cleanly."
+          },
+          "steering": {
+            "title": "@ref:app.view.common.terms.steeringAndFlowFields",
+            "description": "Combine seek, arrive, separation and flow-field forces, then step autonomous agents with frame-based integration."
           },
           "api": {
             "title": "Keyframes & DOM API",
@@ -2826,7 +3026,8 @@
       "visualCanvasPanel": {
         "staticText": {
           "canvasDATA": "CANVAS / DATA",
-          "selectOneLiveCanvasExperimentAtA97820f": "Select one live Canvas experiment at a time. A re;Flux value stream drives each draw pass, while the rendering callback stays deterministic for its input.",
+          "canvasLabHeading": "Data into pixels",
+          "selectOneLiveCanvasExperimentAtA97820f": "Select one live Canvas experiment at a time. A re;Flux value stream drives each draw pass; agent studies integrate explicit state using the elapsed frame time.",
           "animateDataNotOnlyCoordinates": "Animate data, not only coordinates.",
           "theDrawingHelperConsumesNormalizedSamplesThisf05d9f": "The drawing helper consumes normalized samples. This example synthesizes frequency bins; in a real scene, feed values from Web Audio or application telemetry.",
           "liveCANVASSTAGE": "@ref:app.view.common.labels.liveCanvasStageUpper",
@@ -2857,7 +3058,37 @@
           "aRadialSpectrumPatternChangesItsBars34d809": "A radial spectrum pattern changes its bars, accent rhythm and rings from a single stream. It can later consume audio amplitudes or application metrics instead of a procedural phase.",
           "radialSpectrumTs": "radial-spectrum.ts",
           "dataSHAPESINSPACE": "DATA SHAPES IN SPACE",
-          "anAnimatedCircularSpectrumMadeOfCyanAndVioletRadialBars": "An animated circular spectrum made of cyan and violet radial bars"
+          "anAnimatedCircularSpectrumMadeOfCyanAndVioletRadialBars": "An animated circular spectrum made of cyan and violet radial bars",
+          "steeringAgentsFollowAFlowField": "Steering agents follow a flow field.",
+          "theFieldStoresADirectionPerCellEachAgentCombinesFieldFollowingWithLocalSeparationAndUsesElapsedTimeForIntegration": "Each cell stores a direction. Agents combine field following with local separation, integrate elapsed frame time and wrap at the field edges.",
+          "steeringFlowFieldTs": "steering-flow-field.ts",
+          "seekSeparateIntegrate": "FOLLOW FIELD · SEPARATE · INTEGRATE",
+          "flowFieldSwarmPreviewDescription": "Live flow-field simulation: arrows show desired directions while agents follow the field, avoid crowding and leave short trails.",
+          "movePointerToRetargetSeekingAgents": "Move the pointer over the preview to add target attraction while agents continue following the flow field."
+        }
+      },
+      "motionPanelSteering": {
+        "staticText": {
+          "natureOfCodeInspiredMotion": "NATURE OF CODE / AUTONOMOUS AGENTS",
+          "steeringAndFlowFields": "@ref:app.view.common.terms.steeringAndFlowFields",
+          "inspectAutonomousAgentsCombiningFlowSteeringAndSeparation": "Tune an agent swarm live. Compare a directional flow field with point-seeking and arrival behaviors, while local separation prevents agents from collapsing into one point.",
+          "behaviorMode": "Behavior mode",
+          "followFlowField": "Follow flow field",
+          "seekTarget": "Seek target",
+          "arriveAtTarget": "Arrive at target",
+          "agentCount": "Agent count",
+          "maximumSpeed": "Maximum speed",
+          "steeringForce": "Maximum force",
+          "interactiveSteeringSimulation": "Interactive steering simulation with agents, trails, local neighbor links and a directional vector field",
+          "flowFieldInstructions": "The arrows show the field direction. Move the pointer or focus the canvas and use the arrow keys to add target attraction while agents continue following the field.",
+          "targetInstructions": "Move the pointer or focus the canvas and use the arrow keys to set the target. Seek steers toward it; arrive reduces its desired speed inside a slowing radius.",
+          "startSimulation": "Start simulation",
+          "pauseSimulation": "Pause simulation",
+          "resetSimulation": "Reset agents",
+          "running": "@ref:app.view.common.states.running",
+          "paused": "@ref:app.view.common.states.paused",
+          "agents": "agents",
+          "frames": "frames"
         }
       },
       "visualInteractionsPanel": {
@@ -2896,7 +3127,7 @@
           "graphemeLEVELTIMING": "SEEK · SEPARATE · FLEE",
           "animatedKineticTypographyReadingReactiveMotion": "Kinetic typography where individual letters steer back to their home positions and react to a pointer.",
           "seekSeparateFlee": "SEEK / SEPARATE / FLEE",
-          "replayKineticTypography": "Replay typography",
+          "replayKineticTypography": "@ref:app.view.common.actions.replayTypography",
           "animateLayoutChangesNotJustTransforms": "Animate layout changes, not just transforms.",
           "reorderTheseTilesFLIPMeasuresTheirOldfd3e11": "Reorder these tiles. FLIP measures their old and new geometry, then animates the inverse transform back to identity.",
           "flipLAYOUTSTAGE": "FLIP LAYOUT STAGE",

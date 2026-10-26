@@ -21,6 +21,7 @@ module.exports = {
     'src/core/**/*.ts',
     'src/values/**/*.ts',
     'src/physics/**/*.ts',
+    'src/steering.ts',
     'src/operators/**/*.ts',
     'src/adapters/**/*.ts',
     'src/effects/**/*.ts',

@@ -164,7 +164,7 @@ watch(() => route.fullPath, async () => {
               <span class="site-brand__word">{{ copy.reFlux }}<span class="site-brand__period">.</span></span>
             </RouterLink>
             <p>{{ copy.reactiveMotionArchitectureForInterfacesGraphicsAndd28742 }}</p>
-            <div class="site-footer__badges"><span>{{ copy.typescript54 }}</span><span>{{ copy.rxjs78 }}</span><span>{{ copy.mitLicense }}</span></div>
+            <div class="site-footer__badges"><span>{{ copy.strictTypeScript }}</span><span>{{ copy.rxjs78 }}</span><span>{{ copy.mitLicense }}</span></div>
           </div>
 
           <div class="site-footer__group">

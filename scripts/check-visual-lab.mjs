@@ -23,6 +23,7 @@ const checks = [
       'Animate data, not only coordinates.',
       'Burst, trail and fade — without a mutable particle engine.',
       'Emergent motion from simple rules.',
+      'Steering agents follow a flow field.',
       'Waveforms as live data.',
       'Animate geometry in three dimensions.',
       'Procedural data becomes an instrument.',

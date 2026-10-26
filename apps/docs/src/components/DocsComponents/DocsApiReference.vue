@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { useAppStore } from '../../stores/app';
 
-type ApiCategory = 'core' | 'values' | 'composition' | 'physics' | 'streams' | 'gestures' | 'timing' | 'lifecycle' | 'scheduler' | 'utilities';
+type ApiCategory = 'core' | 'values' | 'composition' | 'physics' | 'streams' | 'gestures' | 'timing' | 'lifecycle' | 'scheduler' | 'utilities' | 'steering';
 type ApiCategoryFilter = 'all' | ApiCategory;
 type ApiCategoryOption = { value: ApiCategoryFilter; label: string };
 type ApiEntry = { name: string; exportName: string; signature: string; result: string; category: ApiCategory; description: string; importPath: string };

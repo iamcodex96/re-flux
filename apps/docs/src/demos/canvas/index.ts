@@ -9,3 +9,5 @@ export type { RadialSpectrumOptions } from './radial-spectrum.js';
 export { drawFireworks } from './fireworks.js';
 export type { FireworksOptions } from './fireworks.js';
 export type { CanvasDemoSize } from './types.js';
+export { createSteeringSwarm, stepSteeringSwarm, drawSteeringSwarm } from './steeringSwarm.js';
+export type { SteeringDemoMode, SteeringSwarmAgent, SteeringSwarmSimulation, SteeringSwarmDrawOptions, SteeringSwarmStepOptions } from './steeringSwarm.js';

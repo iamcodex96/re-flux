@@ -12,6 +12,7 @@ const [indexSource, localeSource, componentSource] = await Promise.all([
 const locale = resolveLocaleReferences(JSON.parse(localeSource));
 const api = locale.app?.view?.docs?.apiReference;
 assert.ok(api && Array.isArray(api.entries) && Array.isArray(api.categories), 'API entries and categories must live in the locale file.');
+assert.match(api.importNotice, /flow-field/, 'API reference import guidance must include the dedicated flow-field subpath.');
 
 const rootRuntimeExports = new Set();
 for (const match of indexSource.matchAll(/export\s+(?!type\b)\{([\s\S]*?)\}\s+from/g)) {
