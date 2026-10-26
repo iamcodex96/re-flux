@@ -28,6 +28,8 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
           cache: npm
+      - name: Verify npm Trusted Publishing runtime
+        run: node scripts/check-trusted-publishing-runtime.mjs
       - name: Install locked dependencies
         run: npm ci
       - name: Install Chromium for browser integration
