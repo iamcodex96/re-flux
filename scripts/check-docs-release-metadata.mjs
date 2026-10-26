@@ -5,12 +5,38 @@ import ts from 'typescript';
 
 const root = new URL('../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
-const [packageSource, docsPackageSource, lockSource, readme, home, gettingStarted, installHelperSource, localeSource, docsView, appView, viteConfig, workflow, publishingGuide, publishingRuntimeCheck, changelog, benchmarkGuide, benchmarkRunner, adaptersBenchmark] = await Promise.all([
-  read('package.json'), read('apps/docs/package.json'), read('package-lock.json'), read('README.md'), read('apps/docs/src/views/Home.vue'),
-  read('apps/docs/src/components/DocsComponents/DocsGettingStarted.vue'), read('apps/docs/src/utils/packageInstall.ts'),
-  read('apps/docs/src/locales/en.json'), read('apps/docs/src/views/Docs.vue'), read('apps/docs/src/App.vue'), read('apps/docs/vite.config.ts'),
-  read('benchmarks/README.md'), read('benchmarks/run-all.bench.mjs'), read('benchmarks/adapters.bench.mjs'),
-]);
+
+// Load sources by explicit name instead of positional array destructuring. This
+// keeps each contract attached to its intended file when the audit grows.
+const sourcePaths = {
+  packageSource: 'package.json',
+  docsPackageSource: 'apps/docs/package.json',
+  lockSource: 'package-lock.json',
+  readme: 'README.md',
+  home: 'apps/docs/src/views/Home.vue',
+  gettingStarted: 'apps/docs/src/components/DocsComponents/DocsGettingStarted.vue',
+  installHelperSource: 'apps/docs/src/utils/packageInstall.ts',
+  localeSource: 'apps/docs/src/locales/en.json',
+  docsView: 'apps/docs/src/views/Docs.vue',
+  appView: 'apps/docs/src/App.vue',
+  viteConfig: 'apps/docs/vite.config.ts',
+  workflow: '.github/workflows/publish-npm.yml',
+  publishingGuide: 'guidelines/PUBLISHING.md',
+  publishingRuntimeCheck: 'scripts/check-trusted-publishing-runtime.mjs',
+  changelog: 'CHANGELOG.md',
+  benchmarkGuide: 'benchmarks/README.md',
+  benchmarkRunner: 'benchmarks/run-all.bench.mjs',
+  adaptersBenchmark: 'benchmarks/adapters.bench.mjs',
+};
+const loadedSources = Object.fromEntries(await Promise.all(
+  Object.entries(sourcePaths).map(async ([name, path]) => [name, await read(path)]),
+));
+const {
+  packageSource, docsPackageSource, lockSource, readme, home, gettingStarted,
+  installHelperSource, localeSource, docsView, appView, viteConfig, workflow,
+  publishingGuide, publishingRuntimeCheck, changelog, benchmarkGuide,
+  benchmarkRunner, adaptersBenchmark,
+} = loadedSources;
 const packageJson = JSON.parse(packageSource);
 const docsPackageJson = JSON.parse(docsPackageSource);
 const packageLock = JSON.parse(lockSource);
@@ -53,6 +79,7 @@ assert.doesNotMatch(appView, /copy\.typescript54/, 'Footer must not reference th
 assert.equal(locale.app.view.navigation.typescript54, undefined, 'Locale data must not retain the obsolete TypeScript 5.4+ badge.');
 assert.match(readme, /API reference, detailed guides, and interactive Playground and Visual Lab examples/i, 'README should link readers to the website for full documentation rather than duplicate the full API guide.');
 
+assert.match(workflow, /name: Publish to npm/, 'Publishing workflow source must be loaded from .github/workflows/publish-npm.yml.');
 assert.match(workflow, /DIST_TAG="\$\{VERSION#\*-\}"/, 'Publishing workflow must derive a dist-tag from prerelease versions.');
 assert.match(workflow, /DIST_TAG="latest"/, 'Stable releases must use the latest dist-tag.');
 assert.match(workflow, /npm publish --provenance --access public --tag "\$DIST_TAG"/, 'npm publish must pass an explicit dist-tag.');
