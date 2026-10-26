@@ -5,6 +5,7 @@ import { createScrollTrigger, type ScrollTriggerController } from '@lib/dom';
 import { MotionPreferences, RetargetableMotion } from '@lib';
 import type { Subscription } from 'rxjs';
 import { useAppStore } from '../stores/app';
+import { versionInstallCommand } from '../utils/packageInstall';
 import LandingTelemetryStage from '../components/LandingTelemetryStage.vue';
 import LandingCodeMotion from '../components/LandingCodeMotion.vue';
 import LandingLabPreview, { type LandingLabPreviewKind } from '../components/LandingLabPreview.vue';
@@ -33,7 +34,7 @@ const springTargetFactor = ref(0.72);
 const installCopied = ref(false);
 const installCopyError = ref(false);
 const activeStageName = computed(() => copy.value.story.steps[activeStep.value]?.stage ?? copy.value.staticText.motionComposition);
-const installCommand = computed(() => store.app.view.docs.ui.installCommand);
+const installCommand = computed(() => versionInstallCommand(store.app.view.docs.ui.installCommand, __RE_FLUX_VERSION__));
 
 function getPreviewKind(kind: string): LandingLabPreviewKind {
   if (kind === 'canvas' || kind === 'interaction') return kind;

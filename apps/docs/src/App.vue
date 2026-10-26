@@ -27,6 +27,7 @@ function isActive(to: string): boolean {
   if (to === '/visuals') return isVisualRoute.value;
   if (to === '/playground') return isPlaygroundRoute.value;
   if (to === '/docs') return isDocsRoute.value;
+  if (to === '/benchmarks') return route.name === 'benchmarks';
   return route.path === to;
 }
 

@@ -8,7 +8,6 @@ export type VisualExperimentKind =
   | 'particles'
   | 'cloth'
   | 'swarm'
-  | 'lattice'
   | 'spring-follower'
   | 'inertia'
   | 'soft-body'

@@ -5,7 +5,7 @@ export const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: () => import('../views/Home.vue') },
-    { path: '/benchmarks', name: 'benchmarks', component: () => import('../views/BrowserBenchmarks.vue') },
+    { path: '/benchmarks', alias: '/bench', name: 'benchmarks', component: () => import('../views/BrowserBenchmarks.vue') },
     {
       path: '/playground',
       component: () => import('../components/Playground/PlaygroundLayout.vue'),
@@ -85,8 +85,8 @@ export const router = createRouter({
     {
       path: '/docs',
       component: () => import('../views/Docs.vue'),
-      redirect: { name: 'docs-introduction' },
       children: [
+        { path: '', redirect: { name: 'docs-introduction' } },
         {
           path: 'introduction', name: 'docs-introduction',
           component: () => import('../components/DocsComponents/DocsGettingStarted.vue'),

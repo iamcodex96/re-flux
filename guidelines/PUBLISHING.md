@@ -18,7 +18,9 @@ The `publish-npm.yml` workflow publishes on version tags using npm Trusted Publi
 - **Workflow file:** `publish-npm.yml`
 - **GitHub environment:** `npm`
 
-The workflow requests `id-token: write` and publishes with provenance. It reads the release version from the root `package.json`: prereleases such as `0.5.0-beta.0` publish with `--tag beta`, while stable versions publish with `--tag latest`. Do not add a long-lived npm token to GitHub Actions secrets when using Trusted Publishing. If npm's trusted publisher configuration has not been created, the publish job will fail rather than fall back to a token.
+The workflow requests `id-token: write` and publishes with provenance. It reads the release version from the root `package.json`: prereleases such as `0.5.0-beta.0` publish with `--tag beta`, while stable versions publish with `--tag latest`. The publishing runner must use Node.js >=22.14.0 and npm >=11.5.1; the workflow selects Node.js 24 and checks the installed versions before running.
+
+In npm's trusted publisher settings, select GitHub Actions, owner `iamcodex96`, repository `re-flux`, workflow file `publish-npm.yml`, and environment `npm`. **Explicitly allow direct `npm publish` for this trusted publisher.** Some newer trusted-publisher configurations default to staged publishing only; this repository's workflow uses `npm publish`, not `npm stage publish`. Do not add a long-lived npm token to GitHub Actions secrets when using Trusted Publishing. If the trusted publisher is missing or does not allow direct publishing, the publish job will fail rather than fall back to a token.
 
 ## Create a release
 

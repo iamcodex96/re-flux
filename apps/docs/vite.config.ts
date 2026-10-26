@@ -1,15 +1,28 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+import { createGithubPagesRouteFallbackHtml } from '../../scripts/lib/github-pages-route-fallback.mjs';
 import vue from '@vitejs/plugin-vue';
 
 const libraryPackage = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as { version: string };
 const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 're-flux';
 const base = process.env.VITE_BASE_PATH ?? (process.env.GITHUB_ACTIONS ? `/${repositoryName}/` : '/');
 
+const githubPagesRouteFallback: Plugin = {
+  name: 'github-pages-hash-route-fallback',
+  apply: 'build' as const,
+  generateBundle() {
+    this.emitFile({
+      type: 'asset',
+      fileName: '404.html',
+      source: createGithubPagesRouteFallbackHtml(base),
+    });
+  },
+};
+
 export default defineConfig({
   base,
-  plugins: [vue()],
+  plugins: [vue(), githubPagesRouteFallback],
   define: {
     __RE_FLUX_VERSION__: JSON.stringify(libraryPackage.version),
   },

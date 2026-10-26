@@ -2,22 +2,17 @@
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { useAppStore } from '../../stores/app';
 import DocsArchitecturePipeline from './DocsArchitecturePipeline.vue';
+import { installCommandForManager, type PackageManager } from '../../utils/packageInstall';
 
 const appStore = useAppStore();
 const copy = computed(() => appStore.app.view.docs);
 const ui = computed(() => copy.value.ui);
 const install = computed(() => copy.value.installPanel);
-type PackageManager = 'pnpm' | 'npm' | 'yarn' | 'bun';
 const packageManagers: PackageManager[] = ['pnpm', 'npm', 'yarn', 'bun'];
 const activeManager = ref<PackageManager>('pnpm');
 const copied = ref(false);
 let copyFeedbackTimeout: number | undefined;
-const command = computed(() => ({
-  pnpm: 'pnpm add @re-code/flux rxjs',
-  npm: 'npm install @re-code/flux rxjs',
-  yarn: 'yarn add @re-code/flux rxjs',
-  bun: 'bun add @re-code/flux rxjs',
-}[activeManager.value]));
+const command = computed(() => installCommandForManager(activeManager.value, __RE_FLUX_VERSION__));
 
 async function copyCommand(): Promise<void> {
   try {

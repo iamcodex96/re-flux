@@ -40,7 +40,7 @@ const motionReduced = ref(props.preferences.snapshot.reducedMotion);
 
 const shaderKinds: readonly VisualLabShaderKind[] = ['dispersion', 'shader-aurora', 'shader-spectrum'];
 const canvasKinds: readonly VisualExperimentKind[] = [
-  'particles', 'cloth', 'swarm', 'lattice', 'spring-follower', 'inertia', 'soft-body', 'frequency', 'radial',
+  'particles', 'cloth', 'swarm', 'spring-follower', 'inertia', 'soft-body', 'frequency', 'radial',
 ];
 const svgKinds: readonly VisualExperimentKind[] = ['spline', 'path-draw', 'liquid-svg', 'motion-path', 'morph-grid'];
 const isShaderKind = computed(() => shaderKinds.includes(props.kind as VisualLabShaderKind));
@@ -141,43 +141,6 @@ function drawCloth(context: CanvasRenderingContext2D, phase: number, size: { wid
       context.fill();
     }
   }
-}
-
-function drawLattice(context: CanvasRenderingContext2D, phase: number, size: { width: number; height: number }): void {
-  const { width, height } = size;
-  const columns = 13;
-  const rows = 7;
-  const points: Array<Array<{ x: number; y: number }>> = [];
-  for (let row = 0; row < rows; row += 1) {
-    const line: Array<{ x: number; y: number }> = [];
-    for (let column = 0; column < columns; column += 1) {
-      const x = width * (0.08 + column / (columns - 1) * 0.84);
-      const y = height * (0.12 + row / (rows - 1) * 0.76);
-      line.push({ x, y: y + Math.sin(phase + column * 0.35 + row * 0.32) * 5 });
-    }
-    points.push(line);
-  }
-  context.lineWidth = 0.8;
-  for (let row = 0; row < rows; row += 1) {
-    const line = points[row];
-    if (!line) continue;
-    context.beginPath();
-    line.forEach((point, index) => index === 0 ? context.moveTo(point.x, point.y) : context.lineTo(point.x, point.y));
-    context.strokeStyle = withAlpha(latestPalette.cyan, 0.35); context.stroke();
-  }
-  for (let row = 0; row < rows - 1; row += 1) {
-    for (let column = 0; column < columns - 1; column += 1) {
-      const first = points[row]?.[column]; const nextRow = points[row + 1];
-      const diagonal = nextRow?.[column + 1];
-      if (!first || !diagonal) continue;
-      context.beginPath(); context.moveTo(first.x, first.y); context.lineTo(diagonal.x, diagonal.y);
-      context.strokeStyle = withAlpha(latestPalette.violet, 0.25); context.stroke();
-    }
-  }
-  points.flat().forEach((point, index) => {
-    context.beginPath(); context.arc(point.x, point.y, index % 6 === 0 ? 2 : 1.2, 0, Math.PI * 2);
-    context.fillStyle = index % 6 === 0 ? latestPalette.cyan : latestPalette.violet; context.fill();
-  });
 }
 
 function drawSpringFollower(context: CanvasRenderingContext2D, phase: number, size: { width: number; height: number }): void {
@@ -311,7 +274,6 @@ function drawCanvasPreview(context: CanvasRenderingContext2D, phase: number, siz
       targetColor: latestPalette.amber,
     });
   }
-  else if (props.kind === 'lattice') drawLattice(context, phase, size);
   else if (props.kind === 'spring-follower') drawSpringFollower(context, phase, size);
   else if (props.kind === 'inertia') drawInertia(context, phase, size);
   else if (props.kind === 'soft-body') drawSoftBody(context, phase, size);

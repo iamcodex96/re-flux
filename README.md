@@ -2,6 +2,8 @@
 
 **Reactive animations for TypeScript.**
 
+> **Public beta — `0.5.0-beta.0`.** re;Flux is being released for early feedback. The API may change before `1.0.0`. To test this prerelease, install the beta dist-tag with `npm install @re-code/flux@beta rxjs`. Please share reproducible bugs, API feedback, and documentation issues through [GitHub Issues](https://github.com/iamcodex96/re-flux/issues).
+
 re;Flux is a lightweight, modular animation library built with TypeScript and RxJS. Its headless core provides composable animations, timelines, reactive values, spring motion, and frame coordination. Optional adapters connect motion to the DOM, SVG, Canvas 2D, and Three.js; separate steering and flow-field modules support autonomous-agent simulations.
 
 ## Installation
