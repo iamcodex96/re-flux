@@ -68,8 +68,7 @@
 }
 
 .site-shell--home {
-  // The landing experience intentionally keeps its dark brand palette regardless
-  // of the documentation theme selected by the visitor.
+  // The landing experience uses the same dark brand palette as the rest of the app.
   --rx-theme-background: var(--rx-brand-background-rgb);
   --rx-theme-on-background: var(--rx-brand-text-rgb);
   --rx-theme-surface: var(--rx-brand-surface-rgb);
@@ -85,8 +84,7 @@
   --rx-medium-emphasis-opacity: 0.68;
   --rx-low-emphasis-opacity: 0.46;
 
-  // Re-declare semantic aliases in this subtree so they resolve against the
-  // brand channels above rather than the selected documentation theme.
+  // Re-declare semantic aliases in this subtree so they resolve against the brand channels above.
   --rx-color-background: var(--rx-brand-background);
   --rx-color-surface: var(--rx-brand-surface);
   --rx-color-surface-raised: var(--rx-brand-surface-raised);
@@ -106,8 +104,7 @@
   --rx-gradient-brand-reverse: linear-gradient(100deg, var(--rx-brand-primary) 10%, var(--rx-color-accent-blue) 58%, var(--rx-brand-secondary) 100%);
   --rx-gradient-secondary-primary: linear-gradient(120deg, var(--rx-brand-secondary), var(--rx-brand-primary) 75%);
 
-  // Re-declare semantic aliases in this subtree so they resolve against the
-  // brand channels above rather than the selected documentation theme.
+  // Re-declare semantic aliases in this subtree so they resolve against the brand channels above.
   --rx-color-background: var(--rx-brand-background);
   --rx-color-surface: var(--rx-brand-surface);
   --rx-color-surface-raised: var(--rx-brand-surface-raised);
@@ -232,7 +229,6 @@
 }
 
 .site-github-link,
-.site-theme-toggle,
 .site-menu-toggle {
   display: inline-grid;
   width: 2.25rem;
@@ -405,6 +401,5 @@
 @media (prefers-reduced-motion: reduce) {
   .site-navigation__link,
   .site-github-link,
-  .site-theme-toggle,
   .site-menu-toggle { transition: none; }
 }

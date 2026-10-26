@@ -1,0 +1,307 @@
+diff --git a/apps/docs/index.html b/apps/docs/index.html
+index a7ff1b0..cc23f7a 100644
+--- a/apps/docs/index.html
++++ b/apps/docs/index.html
+@@ -1,10 +1,10 @@
+ <!doctype html>
+-<html lang="en">
++<html lang="en" data-rx-theme="dark" style="color-scheme: dark;">
+   <head>
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     <meta name="description" content="re;Flux: headless, reactive animation powered by RxJS streams." />
+-    <meta name="theme-color" content="#10131d" />
++    <meta name="theme-color" content="#0c0e13" />
+     <link rel="preconnect" href="https://fonts.googleapis.com" />
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..700&amp;display=swap" rel="stylesheet" />
+diff --git a/apps/docs/src/App.vue b/apps/docs/src/App.vue
+index 2034006..eaf4748 100644
+--- a/apps/docs/src/App.vue
++++ b/apps/docs/src/App.vue
+@@ -1,14 +1,11 @@
+ <script setup lang="ts">
+-import { computed, nextTick, onMounted, ref, watch } from 'vue';
++import { computed, nextTick, ref, watch } from 'vue';
+ import { RouterLink, RouterView, useRoute } from 'vue-router';
+ import { useAppStore } from './stores/app';
+ 
+-type ThemeName = 'dark' | 'light';
+ const route = useRoute();
+ const appStore = useAppStore();
+ const copy = computed(() => appStore.app.view.navigation);
+-const themeName = ref<ThemeName>('dark');
+-const isDark = computed(() => themeName.value === 'dark');
+ const isHomeRoute = computed(() => route.path === '/');
+ const isDocsRoute = computed(() => route.path.startsWith('/docs'));
+ const isVisualRoute = computed(() => route.path.startsWith('/visuals'));
+@@ -31,36 +28,6 @@ function isActive(to: string): boolean {
+   return route.path === to;
+ }
+ 
+-function persistTheme(name: ThemeName): void {
+-  try {
+-    window.localStorage.setItem('re-flux-theme', name);
+-  } catch {
+-    // Theme switching still works if browser storage is disabled.
+-  }
+-}
+-
+-function applyTheme(name: ThemeName): void {
+-  themeName.value = name;
+-  if (typeof document === 'undefined') return;
+-  document.documentElement.dataset.rxTheme = name;
+-  document.documentElement.style.colorScheme = name;
+-
+-  const background = getComputedStyle(document.documentElement).getPropertyValue('--rx-theme-background').trim();
+-  let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+-  if (!meta) {
+-    meta = document.createElement('meta');
+-    meta.name = 'theme-color';
+-    document.head.append(meta);
+-  }
+-  meta.content = background ? `rgb(${background})` : (name === 'dark' ? '#0c0e13' : '#f7f8fc');
+-}
+-
+-function toggleTheme(): void {
+-  const next = isDark.value ? 'light' : 'dark';
+-  applyTheme(next);
+-  persistTheme(next);
+-}
+-
+ function skipToMainContent(): void {
+   const main = document.getElementById('main-content');
+   if (!main) return;
+@@ -71,25 +38,6 @@ function skipToMainContent(): void {
+   });
+ }
+ 
+-onMounted(() => {
+-  let savedTheme: string | null = null;
+-  try {
+-    savedTheme = window.localStorage.getItem('re-flux-theme');
+-  } catch {
+-    // Fall back to the operating-system preference when storage is unavailable.
+-  }
+-
+-  if (savedTheme === 'dark' || savedTheme === 'light') {
+-    applyTheme(savedTheme);
+-  } else if (savedTheme === 'rxDark' || savedTheme === 'rxLight') {
+-    applyTheme(savedTheme === 'rxLight' ? 'light' : 'dark');
+-  } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+-    applyTheme('light');
+-  } else {
+-    applyTheme('dark');
+-  }
+-});
+-
+ watch(() => route.fullPath, async () => {
+   mobileMenuOpen.value = false;
+   await nextTick();
+@@ -127,17 +75,6 @@ watch(() => route.fullPath, async () => {
+           <a class="site-github-link" href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener" :aria-label="copy.staticText.githubAriaLabel" :title="copy.githubSource">
+             <UiIcon icon="mdi-github" />
+           </a>
+-          <button
+-            v-if="!isHomeRoute"
+-            class="site-theme-toggle"
+-            type="button"
+-            :aria-label="isDark ? copy.switchToLightTheme : copy.switchToDarkTheme"
+-            :title="isDark ? copy.switchToLightTheme : copy.switchToDarkTheme"
+-            :aria-pressed="isDark"
+-            @click="toggleTheme"
+-          >
+-            <UiIcon :icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'" />
+-          </button>
+           <button
+             class="site-menu-toggle"
+             type="button"
+diff --git a/apps/docs/src/locales/en.json b/apps/docs/src/locales/en.json
+index c83f08c..06f4416 100644
+--- a/apps/docs/src/locales/en.json
++++ b/apps/docs/src/locales/en.json
+@@ -1891,8 +1891,6 @@
+         "skipToMainContent": "Skip to main content",
+         "mainNavigationAriaLabel": "Main navigation",
+         "documentation": "@ref:app.view.common.terms.documentation",
+-        "switchToLightTheme": "Switch to light theme",
+-        "switchToDarkTheme": "Switch to dark theme",
+         "footerTagline": "Deterministic motion, powered by RxJS.",
+         "strictTypeScript": "Strict TypeScript",
+         "vue": "Vue 3",
+diff --git a/apps/docs/src/styles/abstracts/_tokens.scss b/apps/docs/src/styles/abstracts/_tokens.scss
+index 71c378f..706c56a 100644
+--- a/apps/docs/src/styles/abstracts/_tokens.scss
++++ b/apps/docs/src/styles/abstracts/_tokens.scss
+@@ -256,11 +256,9 @@
+   --rx-gradient-accent-horizontal: linear-gradient(90deg, var(--rx-color-secondary), var(--rx-color-primary));
+ }
+ 
+-// The color primitives below derive from theme channel tokens, so switching themes
+-// updates component styles without duplicating the palette in every theme block.
++// The color primitives derive from the single dark theme palette.
+ :root,
+-.rx-theme--dark,
+-.rx-theme--light {
++.rx-theme--dark {
+   --rx-color-background: rgb(var(--rx-theme-background));
+   --rx-color-surface: rgb(var(--rx-theme-surface));
+   --rx-color-surface-raised: rgb(var(--rx-theme-surface-variant));
+@@ -325,31 +323,3 @@
+   --rx-high-emphasis-opacity: 0.96;
+   --rx-opacity-subdued: 0.72;
+ }
+-
+-:root[data-rx-theme='light'],
+-.rx-theme--light {
+-  color-scheme: light;
+-  --rx-theme-background: 247, 248, 252;
+-  --rx-theme-on-background: 23, 27, 41;
+-  --rx-theme-surface: 255, 255, 255;
+-  --rx-theme-surface-variant: 236, 238, 246;
+-  --rx-theme-surface-sunken: 239, 241, 248;
+-  --rx-theme-primary: 92, 74, 199;
+-  --rx-theme-primary-strong: 64, 50, 163;
+-  --rx-theme-secondary: 8, 126, 120;
+-  --rx-theme-info: 49, 86, 182;
+-  --rx-theme-success: 23, 109, 72;
+-  --rx-theme-warning: 138, 67, 0;
+-  --rx-theme-error: 180, 35, 50;
+-  --rx-theme-on-primary: 255, 255, 255;
+-  --rx-theme-on-secondary: 255, 255, 255;
+-  --rx-theme-on-surface: 23, 27, 41;
+-  --rx-theme-on-warning: 255, 255, 255;
+-  --rx-theme-on-error: 255, 255, 255;
+-  --rx-theme-border-strong: 128, 130, 138;
+-  --rx-theme-border-muted: 128, 130, 138;
+-  --rx-border-color: 128, 130, 138;
+-  --rx-medium-emphasis-opacity: 0.82;
+-  --rx-low-emphasis-opacity: 0.66;
+-  --rx-high-emphasis-opacity: 0.92;
+-}
+diff --git a/apps/docs/src/styles/components/app.scss b/apps/docs/src/styles/components/app.scss
+index 931e998..22076b3 100644
+--- a/apps/docs/src/styles/components/app.scss
++++ b/apps/docs/src/styles/components/app.scss
+@@ -68,8 +68,7 @@
+ }
+ 
+ .site-shell--home {
+-  // The landing experience intentionally keeps its dark brand palette regardless
+-  // of the documentation theme selected by the visitor.
++  // The landing experience uses the same dark brand palette as the rest of the app.
+   --rx-theme-background: var(--rx-brand-background-rgb);
+   --rx-theme-on-background: var(--rx-brand-text-rgb);
+   --rx-theme-surface: var(--rx-brand-surface-rgb);
+@@ -85,8 +84,7 @@
+   --rx-medium-emphasis-opacity: 0.68;
+   --rx-low-emphasis-opacity: 0.46;
+ 
+-  // Re-declare semantic aliases in this subtree so they resolve against the
+-  // brand channels above rather than the selected documentation theme.
++  // Re-declare semantic aliases in this subtree so they resolve against the brand channels above.
+   --rx-color-background: var(--rx-brand-background);
+   --rx-color-surface: var(--rx-brand-surface);
+   --rx-color-surface-raised: var(--rx-brand-surface-raised);
+@@ -106,8 +104,7 @@
+   --rx-gradient-brand-reverse: linear-gradient(100deg, var(--rx-brand-primary) 10%, var(--rx-color-accent-blue) 58%, var(--rx-brand-secondary) 100%);
+   --rx-gradient-secondary-primary: linear-gradient(120deg, var(--rx-brand-secondary), var(--rx-brand-primary) 75%);
+ 
+-  // Re-declare semantic aliases in this subtree so they resolve against the
+-  // brand channels above rather than the selected documentation theme.
++  // Re-declare semantic aliases in this subtree so they resolve against the brand channels above.
+   --rx-color-background: var(--rx-brand-background);
+   --rx-color-surface: var(--rx-brand-surface);
+   --rx-color-surface-raised: var(--rx-brand-surface-raised);
+@@ -232,7 +229,6 @@
+ }
+ 
+ .site-github-link,
+-.site-theme-toggle,
+ .site-menu-toggle {
+   display: inline-grid;
+   width: 2.25rem;
+@@ -405,6 +401,5 @@
+ @media (prefers-reduced-motion: reduce) {
+   .site-navigation__link,
+   .site-github-link,
+-  .site-theme-toggle,
+   .site-menu-toggle { transition: none; }
+ }
+diff --git a/guidelines/DESIGN_SYSTEM.md b/guidelines/DESIGN_SYSTEM.md
+index 6143885..9bc4392 100644
+--- a/guidelines/DESIGN_SYSTEM.md
++++ b/guidelines/DESIGN_SYSTEM.md
+@@ -26,14 +26,14 @@ Use Sass nesting for BEM element/modifier selectors (`&__element`, `&--modifier`
+ 
+ ## Theme
+ 
+-The app exposes `rx-theme--dark` and `rx-theme--light` classes to apply the re;Flux token palettes. Theme channel tokens use `--rx-theme-*` RGB triples where alpha compositing is useful; semantic colors use `--rx-color-*`. Fixed brand colors for the dark landing experience use `--rx-brand-*`, and the specialized colors for illustrations and Visual Lab scenes live in the same token file. Use Sass breakpoint variables for media queries (CSS custom properties are not valid media-query values). Prefer `--rx-space-*`, `--rx-radius-*`, `--rx-font-*`, `--rx-motion-*`, `--rx-shadow-*` and `--rx-z-*` for shared styling. Component-specific geometry (SVG paths, particle coordinates, animation-cycle durations) may remain local when it is not a reusable design decision.
++The app uses a single dark theme to keep the brand palette and visual examples consistent. The document root declares `data-rx-theme="dark"` and `color-scheme: dark`; there is no theme toggle or light palette. Theme channel tokens use `--rx-theme-*` RGB triples where alpha compositing is useful; semantic colors use `--rx-color-*`. Fixed brand colors use `--rx-brand-*`, and specialized colors for illustrations and Visual Lab scenes live in the same token file. Use Sass breakpoint variables for media queries (CSS custom properties are not valid media-query values). Prefer `--rx-space-*`, `--rx-radius-*`, `--rx-font-*`, `--rx-motion-*`, `--rx-shadow-*` and `--rx-z-*` for shared styling. Component-specific geometry (SVG paths, particle coordinates, animation-cycle durations) may remain local when it is not a reusable design decision.
+ 
+ ## Accessibility and motion
+ 
+ - Keep semantic headings, landmarks, labels, and accessible names on controls.
+ - Preserve visible keyboard focus and keyboard-operable navigation.
+ - Respect `prefers-reduced-motion` for CSS transitions and scrolling. JavaScript-driven demos should have explicit playback controls when continuous movement is not essential.
+-- Check both themes, keyboard navigation, 200% zoom, and a 320px viewport during every layout migration.
++- Check keyboard navigation, 200% zoom, and a 320px viewport during every layout migration.
+ - Do not trap the user's native scroll position or require horizontal scrolling to access ordinary documentation content.
+ 
+ ## Visualizations
+diff --git a/package.json b/package.json
+index 78528e0..4af0383 100644
+--- a/package.json
++++ b/package.json
+@@ -104,7 +104,7 @@
+     "check:docs-redesign": "node scripts/check-docs-redesign.mjs",
+     "check:visual-lab-hover": "node scripts/check-visual-lab-hover.mjs",
+     "check:visual-lab-complete": "node scripts/check-visual-lab-complete.mjs",
+-    "check:docs": "node scripts/check-route-delivery.mjs && node scripts/check-renderer-cleanup.mjs && node scripts/check-playground-layout.mjs && node scripts/check-locale-common.mjs && node scripts/check-api-reference.mjs && node scripts/check-docs-release-metadata.mjs && node scripts/check-docs-redesign.mjs && node scripts/check-home-experience.mjs && node scripts/check-playground-lifecycle.mjs && node scripts/check-scss-tokens.mjs && node scripts/check-ui-framework.mjs && node scripts/check-visual-lab.mjs && node scripts/check-visual-lab-hover.mjs && node scripts/check-visual-lab-complete.mjs && npm run check:steering-integrations && npm run check:browser-benchmark",
++    "check:docs": "node scripts/check-dark-theme-only.mjs && node scripts/check-route-delivery.mjs && node scripts/check-renderer-cleanup.mjs && node scripts/check-playground-layout.mjs && node scripts/check-locale-common.mjs && node scripts/check-api-reference.mjs && node scripts/check-docs-release-metadata.mjs && node scripts/check-docs-redesign.mjs && node scripts/check-home-experience.mjs && node scripts/check-playground-lifecycle.mjs && node scripts/check-scss-tokens.mjs && node scripts/check-ui-framework.mjs && node scripts/check-visual-lab.mjs && node scripts/check-visual-lab-hover.mjs && node scripts/check-visual-lab-complete.mjs && npm run check:steering-integrations && npm run check:browser-benchmark",
+     "check:all": "npm run typecheck && npm run typecheck:tests && npm test -- --runInBand && npm run build:lib && npm run check:browser-integration && node scripts/check-tree-shaking.mjs && node scripts/check-package-files.mjs && node scripts/check-package-consumer.mjs && npm run check:docs && npm run build --workspace=re-flux-docs",
+     "check:package:consumer": "npm run build:lib && node scripts/check-package-consumer.mjs",
+     "bench:animation-load": "npm run build:lib && node benchmarks/animation-load.bench.mjs",
+diff --git a/scripts/check-dark-theme-only.mjs b/scripts/check-dark-theme-only.mjs
+new file mode 100644
+index 0000000..14a68c9
+--- /dev/null
++++ b/scripts/check-dark-theme-only.mjs
+@@ -0,0 +1,37 @@
++import assert from 'node:assert/strict';
++import { readFile } from 'node:fs/promises';
++import { resolve } from 'node:path';
++import { fileURLToPath } from 'node:url';
++
++const root = resolve(fileURLToPath(new URL('../', import.meta.url)));
++const read = (path) => readFile(resolve(root, path), 'utf8');
++const [app, html, tokens, appStyles, localeSource, designSystem] = await Promise.all([
++  read('apps/docs/src/App.vue'),
++  read('apps/docs/index.html'),
++  read('apps/docs/src/styles/abstracts/_tokens.scss'),
++  read('apps/docs/src/styles/components/app.scss'),
++  read('apps/docs/src/locales/en.json'),
++  read('guidelines/DESIGN_SYSTEM.md'),
++]);
++const locale = JSON.parse(localeSource);
++const navigationCopy = locale.app?.view?.navigation ?? {};
++
++assert.match(html, /<html\s+lang="en"\s+data-rx-theme="dark"\s+style="color-scheme:\s*dark;"/i,
++  'The document root must select the dark palette before the app renders.');
++assert.match(html, /<meta\s+name="theme-color"\s+content="#0c0e13"/i,
++  'The browser chrome color must match the dark brand background.');
++assert.doesNotMatch(app, /site-theme-toggle|switchToLightTheme|switchToDarkTheme|toggleTheme|ThemeName|matchMedia\('\(prefers-color-scheme:\s*light\)'\)|re-flux-theme/,
++  'The app must not expose or restore a theme-switching system.');
++assert.doesNotMatch(appStyles, /site-theme-toggle/,
++  'Styles for the removed theme toggle must not remain.');
++assert.doesNotMatch(tokens, /data-rx-theme=['"]light['"]|\.rx-theme--light|color-scheme:\s*light/i,
++  'The design tokens must not define a light theme.');
++assert.doesNotMatch(tokens, /:root,\s*\.rx-theme--dark,\s*\.rx-theme--light/,
++  'Semantic tokens must not include the removed light theme class.');
++assert.equal(navigationCopy.switchToLightTheme, undefined, 'Unused light-theme locale text must be removed.');
++assert.equal(navigationCopy.switchToDarkTheme, undefined, 'Unused dark-theme toggle locale text must be removed.');
++assert.match(designSystem, /single dark theme/i, 'The design-system guideline must describe the supported dark-only theme.');
++assert.doesNotMatch(designSystem, /Check both themes|rx-theme--light/,
++  'The design-system guideline must not instruct contributors to support the removed light theme.');
++
++console.log('Dark-theme-only checks passed: no theme toggle, light palette, or stale theme copy remains.');

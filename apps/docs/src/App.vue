@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 import { useAppStore } from './stores/app';
 
-type ThemeName = 'dark' | 'light';
 const route = useRoute();
 const appStore = useAppStore();
 const copy = computed(() => appStore.app.view.navigation);
-const themeName = ref<ThemeName>('dark');
-const isDark = computed(() => themeName.value === 'dark');
 const isHomeRoute = computed(() => route.path === '/');
 const isDocsRoute = computed(() => route.path.startsWith('/docs'));
 const isVisualRoute = computed(() => route.path.startsWith('/visuals'));
@@ -31,36 +28,6 @@ function isActive(to: string): boolean {
   return route.path === to;
 }
 
-function persistTheme(name: ThemeName): void {
-  try {
-    window.localStorage.setItem('re-flux-theme', name);
-  } catch {
-    // Theme switching still works if browser storage is disabled.
-  }
-}
-
-function applyTheme(name: ThemeName): void {
-  themeName.value = name;
-  if (typeof document === 'undefined') return;
-  document.documentElement.dataset.rxTheme = name;
-  document.documentElement.style.colorScheme = name;
-
-  const background = getComputedStyle(document.documentElement).getPropertyValue('--rx-theme-background').trim();
-  let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (!meta) {
-    meta = document.createElement('meta');
-    meta.name = 'theme-color';
-    document.head.append(meta);
-  }
-  meta.content = background ? `rgb(${background})` : (name === 'dark' ? '#0c0e13' : '#f7f8fc');
-}
-
-function toggleTheme(): void {
-  const next = isDark.value ? 'light' : 'dark';
-  applyTheme(next);
-  persistTheme(next);
-}
-
 function skipToMainContent(): void {
   const main = document.getElementById('main-content');
   if (!main) return;
@@ -70,25 +37,6 @@ function skipToMainContent(): void {
     behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
   });
 }
-
-onMounted(() => {
-  let savedTheme: string | null = null;
-  try {
-    savedTheme = window.localStorage.getItem('re-flux-theme');
-  } catch {
-    // Fall back to the operating-system preference when storage is unavailable.
-  }
-
-  if (savedTheme === 'dark' || savedTheme === 'light') {
-    applyTheme(savedTheme);
-  } else if (savedTheme === 'rxDark' || savedTheme === 'rxLight') {
-    applyTheme(savedTheme === 'rxLight' ? 'light' : 'dark');
-  } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-    applyTheme('light');
-  } else {
-    applyTheme('dark');
-  }
-});
 
 watch(() => route.fullPath, async () => {
   mobileMenuOpen.value = false;
@@ -127,17 +75,6 @@ watch(() => route.fullPath, async () => {
           <a class="site-github-link" href="https://github.com/iamcodex96/re-flux" target="_blank" rel="noreferrer noopener" :aria-label="copy.staticText.githubAriaLabel" :title="copy.githubSource">
             <UiIcon icon="mdi-github" />
           </a>
-          <button
-            v-if="!isHomeRoute"
-            class="site-theme-toggle"
-            type="button"
-            :aria-label="isDark ? copy.switchToLightTheme : copy.switchToDarkTheme"
-            :title="isDark ? copy.switchToLightTheme : copy.switchToDarkTheme"
-            :aria-pressed="isDark"
-            @click="toggleTheme"
-          >
-            <UiIcon :icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'" />
-          </button>
           <button
             class="site-menu-toggle"
             type="button"

@@ -256,11 +256,9 @@
   --rx-gradient-accent-horizontal: linear-gradient(90deg, var(--rx-color-secondary), var(--rx-color-primary));
 }
 
-// The color primitives below derive from theme channel tokens, so switching themes
-// updates component styles without duplicating the palette in every theme block.
+// The color primitives derive from the single dark theme palette.
 :root,
-.rx-theme--dark,
-.rx-theme--light {
+.rx-theme--dark {
   --rx-color-background: rgb(var(--rx-theme-background));
   --rx-color-surface: rgb(var(--rx-theme-surface));
   --rx-color-surface-raised: rgb(var(--rx-theme-surface-variant));
@@ -324,32 +322,4 @@
   --rx-low-emphasis-opacity: 0.66;
   --rx-high-emphasis-opacity: 0.96;
   --rx-opacity-subdued: 0.72;
-}
-
-:root[data-rx-theme='light'],
-.rx-theme--light {
-  color-scheme: light;
-  --rx-theme-background: 247, 248, 252;
-  --rx-theme-on-background: 23, 27, 41;
-  --rx-theme-surface: 255, 255, 255;
-  --rx-theme-surface-variant: 236, 238, 246;
-  --rx-theme-surface-sunken: 239, 241, 248;
-  --rx-theme-primary: 92, 74, 199;
-  --rx-theme-primary-strong: 64, 50, 163;
-  --rx-theme-secondary: 8, 126, 120;
-  --rx-theme-info: 49, 86, 182;
-  --rx-theme-success: 23, 109, 72;
-  --rx-theme-warning: 138, 67, 0;
-  --rx-theme-error: 180, 35, 50;
-  --rx-theme-on-primary: 255, 255, 255;
-  --rx-theme-on-secondary: 255, 255, 255;
-  --rx-theme-on-surface: 23, 27, 41;
-  --rx-theme-on-warning: 255, 255, 255;
-  --rx-theme-on-error: 255, 255, 255;
-  --rx-theme-border-strong: 128, 130, 138;
-  --rx-theme-border-muted: 128, 130, 138;
-  --rx-border-color: 128, 130, 138;
-  --rx-medium-emphasis-opacity: 0.82;
-  --rx-low-emphasis-opacity: 0.66;
-  --rx-high-emphasis-opacity: 0.92;
 }

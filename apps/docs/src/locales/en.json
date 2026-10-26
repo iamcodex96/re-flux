@@ -1891,8 +1891,6 @@
         "skipToMainContent": "Skip to main content",
         "mainNavigationAriaLabel": "Main navigation",
         "documentation": "@ref:app.view.common.terms.documentation",
-        "switchToLightTheme": "Switch to light theme",
-        "switchToDarkTheme": "Switch to dark theme",
         "footerTagline": "Deterministic motion, powered by RxJS.",
         "strictTypeScript": "Strict TypeScript",
         "vue": "Vue 3",

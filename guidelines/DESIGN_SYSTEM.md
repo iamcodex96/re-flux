@@ -26,14 +26,14 @@ Use Sass nesting for BEM element/modifier selectors (`&__element`, `&--modifier`
 
 ## Theme
 
-The app exposes `rx-theme--dark` and `rx-theme--light` classes to apply the re;Flux token palettes. Theme channel tokens use `--rx-theme-*` RGB triples where alpha compositing is useful; semantic colors use `--rx-color-*`. Fixed brand colors for the dark landing experience use `--rx-brand-*`, and the specialized colors for illustrations and Visual Lab scenes live in the same token file. Use Sass breakpoint variables for media queries (CSS custom properties are not valid media-query values). Prefer `--rx-space-*`, `--rx-radius-*`, `--rx-font-*`, `--rx-motion-*`, `--rx-shadow-*` and `--rx-z-*` for shared styling. Component-specific geometry (SVG paths, particle coordinates, animation-cycle durations) may remain local when it is not a reusable design decision.
+The app uses a single dark theme to keep the brand palette and visual examples consistent. The document root declares `data-rx-theme="dark"` and `color-scheme: dark`; there is no theme toggle or light palette. Theme channel tokens use `--rx-theme-*` RGB triples where alpha compositing is useful; semantic colors use `--rx-color-*`. Fixed brand colors use `--rx-brand-*`, and specialized colors for illustrations and Visual Lab scenes live in the same token file. Use Sass breakpoint variables for media queries (CSS custom properties are not valid media-query values). Prefer `--rx-space-*`, `--rx-radius-*`, `--rx-font-*`, `--rx-motion-*`, `--rx-shadow-*` and `--rx-z-*` for shared styling. Component-specific geometry (SVG paths, particle coordinates, animation-cycle durations) may remain local when it is not a reusable design decision.
 
 ## Accessibility and motion
 
 - Keep semantic headings, landmarks, labels, and accessible names on controls.
 - Preserve visible keyboard focus and keyboard-operable navigation.
 - Respect `prefers-reduced-motion` for CSS transitions and scrolling. JavaScript-driven demos should have explicit playback controls when continuous movement is not essential.
-- Check both themes, keyboard navigation, 200% zoom, and a 320px viewport during every layout migration.
+- Check keyboard navigation, 200% zoom, and a 320px viewport during every layout migration.
 - Do not trap the user's native scroll position or require horizontal scrolling to access ordinary documentation content.
 
 ## Visualizations
