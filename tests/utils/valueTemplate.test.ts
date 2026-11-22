@@ -3,6 +3,7 @@ import {
   NUMERIC_TOKEN_SOURCE,
   compileColorMix,
   compileNumericTemplate,
+  compileNumericTemplateJoined,
   formatNumber,
   formatRgba,
   mixRgba,
@@ -146,5 +147,42 @@ describe('Given the pre-compiled renderers (PERF-002)', () => {
   it('Then a missing end value keeps the start value, as the one-shot path does', () => {
     const render = compileNumericTemplate(tokenizeNumbers('1px 2px'), tokenizeNumbers('5px'));
     expect(render(0.5)).toBe('3px 2px');
+  });
+});
+
+describe('Given the joined renderer used by the SVG path morpher (PERF-004)', () => {
+  const cases: ReadonlyArray<readonly [string, string]> = [
+    ['M 0 0 C 1 2 3 4 5 6 Z', 'M 10 -10 C 11 12 13 14 15 -16 Z'],
+    ['translate(0px, 10px) scale(1)', 'translate(100px, 50px) scale(2)'],
+    ['1e-3px', '2e-3px'],
+    ['no numbers here', 'no numbers here'],
+    ['5', '9'],
+  ];
+
+  it('Then it renders exactly what compileNumericTemplate renders, in any call order', () => {
+    for (const [from, to] of cases) {
+      const a = tokenizeNumbers(from);
+      const b = tokenizeNumbers(to);
+      const joined = compileNumericTemplateJoined(a, b);
+      const concatenated = compileNumericTemplate(a, b);
+      for (const progress of [0.5, 1, 0, 1.5, -0.25, 0.3, 0.5]) {
+        expect(joined(progress)).toBe(concatenated(progress));
+      }
+    }
+  });
+
+  it('Then a missing end value keeps the start value and separate renderers do not share state', () => {
+    const first = compileNumericTemplateJoined(tokenizeNumbers('1px 2px'), tokenizeNumbers('5px'));
+    const second = compileNumericTemplateJoined(tokenizeNumbers('0px 0px'), tokenizeNumbers('10px 20px'));
+    expect(first(0.5)).toBe('3px 2px');
+    expect(second(0.5)).toBe('5px 10px');
+    expect(first(1)).toBe('5px 2px');
+  });
+
+  it('Then results are strings that stay valid after the next call', () => {
+    const render = compileNumericTemplateJoined(tokenizeNumbers('0 0'), tokenizeNumbers('10 20'));
+    const earlier = render(0.5);
+    render(1);
+    expect(earlier).toBe('5 10');
   });
 });

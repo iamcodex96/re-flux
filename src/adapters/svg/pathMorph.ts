@@ -1,5 +1,5 @@
 import { Subscription, type Observable } from 'rxjs';
-import { NUMERIC_TOKEN_SOURCE, formatNumber, renderNumericTemplate, tokenizeNumbers } from '../../utils/valueTemplate.js';
+import { NUMERIC_TOKEN_SOURCE, compileNumericTemplateJoined, formatNumber, tokenizeNumbers } from '../../utils/valueTemplate.js';
 
 interface Point {
   readonly x: number;
@@ -593,12 +593,12 @@ export function createSvgPathInterpolator(
     throw new TypeError('SVG path normalization did not produce compatible command structures.');
   }
 
+  // Split once into literal pieces plus Float64Array start/end values; each frame only formats numbers and joins.
+  // The end-to-start fallback inside the compiler is unreachable: the value counts were checked above.
+  const render = compileNumericTemplateJoined(fromTemplate, toTemplate);
   return (progress: number): string => {
     if (!Number.isFinite(progress)) throw new RangeError('SVG path morph progress must be finite.');
-    return renderNumericTemplate(fromTemplate.template, (index) => {
-      const start = fromTemplate.values[index]!;
-      return formatNumber(start + (toTemplate.values[index]! - start) * progress);
-    });
+    return render(progress);
   };
 }
 
