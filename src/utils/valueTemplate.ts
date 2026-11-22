@@ -167,6 +167,40 @@ export function compileColorMix(from: Rgba, to: Rgba): (progress: number) => str
   return (progress) => `rgba(${roundChannel(from.r + dr * progress)}, ${roundChannel(from.g + dg * progress)}, ${roundChannel(from.b + db * progress)}, ${constantAlpha ?? formatNumber(clampAlpha(from.a + da * progress))})`;
 }
 
+/**
+ * Pre-compile a color pair that is re-emitted in the author's `rgb()`/`rgba()` template (the `from` template with
+ * one slot per channel and alpha; `%` slots keep their percent scale). Identical to rendering
+ * `mixRgba(from, to, progress)` into the template slot by slot: channels are rounded to 8 bits (or scaled to a
+ * percentage when the slot is followed by `%`), alpha is clamped to 0..1 (or scaled to a percentage). Progress is
+ * expected to be finite; a caller with a non-finite progress should use the one-shot path.
+ */
+export function compileColorTemplate(template: string, from: Rgba, to: Rgba): (progress: number) => string {
+  const pieces = template.split(SLOT);
+  const count = pieces.length - 1;
+  const starts = new Float64Array([from.r, from.g, from.b, from.a]);
+  const deltas = new Float64Array([to.r - from.r, to.g - from.g, to.b - from.b, to.a - from.a]);
+  // 0 = 8-bit channel, 1 = percent channel, 2 = alpha, 3 = percent alpha
+  const kinds = Uint8Array.from({ length: count }, (_, index) => {
+    const percent = pieces[index + 1]!.startsWith('%') ? 1 : 0;
+    return index < 3 ? percent : 2 + percent;
+  });
+  return (progress) => {
+    let out = pieces[0]!;
+    for (let index = 0; index < count; index += 1) {
+      const kind = kinds[index]!;
+      const slot = index < 3 ? index : 3;
+      const mixed = starts[slot]! + deltas[slot]! * progress;
+      let text: string;
+      if (kind === 0) text = formatNumber(roundChannel(mixed));
+      else if (kind === 1) text = formatNumber((clampChannel(mixed) / 255) * 100);
+      else if (kind === 2) text = formatNumber(clampAlpha(mixed));
+      else text = formatNumber(clampAlpha(mixed) * 100);
+      out += text + pieces[index + 1]!;
+    }
+    return out;
+  };
+}
+
 /** Round a channel to the integer 8-bit value a browser would render. */
 export function roundChannel(channel: number): number {
   return clampChannel(Math.round(channel));

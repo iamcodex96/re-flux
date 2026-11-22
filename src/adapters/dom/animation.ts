@@ -5,7 +5,7 @@ import { Keyframes } from '../../values/Keyframes.js';
 import type { TimelineOptions } from '../../types.js';
 import type { DOMAnimateOptions, DOMAnimationTarget } from './animationTypes.js';
 import { bindStyle } from './styleBinding.js';
-import { interpolateCssValue } from './cssInterpolation.js';
+import { compiledCssInterpolator } from './cssInterpolation.js';
 import { resolveTargets } from './targets.js';
 import { normalizeDOMProperties, resolveDOMPropertyKeyframes, validateAnimateOptions } from './propertyOptions.js';
 
@@ -124,7 +124,7 @@ export function animate(targets: DOMAnimationTarget, options: DOMAnimateOptions)
           yoyo: property.yoyo,
           ...(property.easing === undefined ? {} : { easing: property.easing }),
           keyframes,
-          interpolate: interpolateCssValue,
+          interpolate: compiledCssInterpolator(),
         });
 
         const cssStream = keyframeItem.value$.pipe(

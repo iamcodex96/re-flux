@@ -5,6 +5,7 @@ import type { EasingFunction } from '../types/easing.js';
 import type { KeyframesOptions, ValueKeyframe, ValueInterpolator } from '../types/values.js';
 import { Animation } from '../core/Animation.js';
 import { resolveEasing } from '../utils/easings.js';
+import { getInterpolatorCompiler } from './compiledInterpolators.js';
 import { resolveInterpolator } from './interpolate.js';
 
 interface NormalizedKeyframe<T> {
@@ -33,8 +34,10 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
     this.frames = normalizeKeyframes(options.keyframes);
      
      
-    this.interpolators = this.frames.slice(0, -1).map((frame, index) =>
-      resolveInterpolator(frame.value, this.frames[index + 1]!.value, options.interpolate, 'Keyframes'),
+    const compile = getInterpolatorCompiler(options.interpolate);
+    this.interpolators = this.frames.slice(0, -1).map((frame, index) => compile
+      ? compile(frame.value, this.frames[index + 1]!.value)
+      : resolveInterpolator(frame.value, this.frames[index + 1]!.value, options.interpolate, 'Keyframes'),
     );
     const defaultEasing = resolveEasing(options.easing);
     this.segmentEasings = this.frames.slice(0, -1).map((frame) => frame.easing === undefined ? defaultEasing : resolveEasing(frame.easing));
