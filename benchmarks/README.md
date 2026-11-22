@@ -25,6 +25,8 @@ This builds the library and runs ten workloads in sequence:
 
 The adapter benchmark uses lightweight mock targets to measure binding dispatch, value conversion, scheduled work, burst coalescing, and cleanup; it does not measure browser layout, SVG painting, or Canvas rasterization.
 
+The `dom-style-binding` and `svg-attribute-binding` modes change every value on every frame; the `-steady` variants (`dom-style-binding-steady`, `svg-attribute-binding-steady`) emit equal values on every frame (a held or paused animation). Bindings write on every emission either way, so both variants report 3 writes per target per frame; the steady modes exist to show that holding a value costs no more than changing it, and to catch a future change that starts skipping or batching writes. `animate()` goes through an internal single-property binding that this benchmark does not reach; its cost shows in the `animate() pipeline` cases of `css-interpolation.bench.mjs`.
+
 The adapter workload can be tuned with `BENCH_ADAPTER_TARGETS`, `BENCH_ADAPTER_FRAMES`, `BENCH_REPEATS`, `BENCH_WARMUP_ROUNDS`, and `BENCH_CANVAS_BURST_EMISSIONS`. Its JSON output reports frame-time distributions, adapter operations, pending RAF callbacks, and cleanup status.
 
 ## Run concurrent animations only

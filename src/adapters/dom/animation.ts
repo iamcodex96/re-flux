@@ -1,10 +1,9 @@
 import { Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { Timeline } from '../../core/Timeline.js';
 import { Keyframes } from '../../values/Keyframes.js';
 import type { TimelineOptions } from '../../types.js';
 import type { DOMAnimateOptions, DOMAnimationTarget } from './animationTypes.js';
-import { bindStyle } from './styleBinding.js';
+import { bindStyleProperty } from './styleBinding.js';
 import { compiledCssInterpolator } from './cssInterpolation.js';
 import { resolveTargets } from './targets.js';
 import { normalizeDOMProperties, resolveDOMPropertyKeyframes, validateAnimateOptions } from './propertyOptions.js';
@@ -127,10 +126,7 @@ export function animate(targets: DOMAnimationTarget, options: DOMAnimateOptions)
           interpolate: compiledCssInterpolator(),
         });
 
-        const cssStream = keyframeItem.value$.pipe(
-          map((value) => ({ [property.cssProperty]: value })),
-        );
-        animation.attachBinding(bindStyle(element as HTMLElement | SVGElement, cssStream));
+        animation.attachBinding(bindStyleProperty(element as HTMLElement | SVGElement, property.cssProperty, keyframeItem.value$));
         const startTime = Math.max(0, delay + property.delay + staggerDelay);
         animation.add(keyframeItem, startTime);
       }

@@ -8,6 +8,14 @@ interface OriginalAttribute {
   readonly value: string | null;
 }
 
+/** Per-attribute bookkeeping of one binding. Created (and the original attribute captured) on first emission. */
+interface AttributeState {
+  readonly key: string;
+  readonly original: OriginalAttribute;
+  /** Emission counter value of the last emission that carried this key. */
+  seen: number;
+}
+
 /**
  * Binds complete attribute maps to an SVG element. False/null values remove an attribute, true creates
  * an empty boolean-style attribute, omitted keys restore their original state, and unsubscribe restores
@@ -17,23 +25,48 @@ export function bindSvgAttributes(
   target: SVGElement,
   attributes$: Observable<SvgAttributeMap>,
 ): Subscription {
-  const original = new Map<string, OriginalAttribute>();
-  let activeKeys = new Set<string>();
+  // One state per key ever seen, in first-capture order (restore order on unsubscribe).
+  const lookup = new Map<string, AttributeState>();
+  const states: AttributeState[] = [];
+  // States carried by the previous / the current emission, in emission key order; swapped and reused so tracking
+  // the active keys allocates nothing per emission.
+  let active: AttributeState[] = [];
+  let next: AttributeState[] = [];
+  let activeCount = 0;
+  let nextCount = 0;
+  let emission = 0;
   const subscription = new Subscription();
   const upstream = attributes$.subscribe((attributes) => {
-    const nextKeys = new Set(Object.keys(attributes));
+    emission += 1;
 
-    for (const key of activeKeys) {
-      if (!nextKeys.has(key)) restoreAttribute(target, key, original.get(key));
+    // Mark the keys of this emission first: omitted keys are restored (in previous-emission order) before writing.
+    for (const key in attributes) {
+      if (!Object.hasOwn(attributes, key)) continue;
+      const state = lookup.get(key);
+      if (state !== undefined) state.seen = emission;
+    }
+    for (let index = 0; index < activeCount; index += 1) {
+      const state = active[index]!;
+      if (state.seen !== emission) restoreAttribute(target, state.key, state.original);
     }
 
-    for (const [key, value] of Object.entries(attributes)) {
-      if (!original.has(key)) {
-        original.set(key, {
-          existed: target.hasAttribute(key),
-          value: target.getAttribute(key),
-        });
+    nextCount = 0;
+    for (const key in attributes) {
+      if (!Object.hasOwn(attributes, key)) continue;
+      const value = attributes[key];
+      let state = lookup.get(key);
+      if (state === undefined) {
+        state = {
+          key,
+          original: { existed: target.hasAttribute(key), value: target.getAttribute(key) },
+          seen: emission,
+        };
+        lookup.set(key, state);
+        states.push(state);
       }
+      state.seen = emission;
+      next[nextCount] = state;
+      nextCount += 1;
 
       if (value === null || value === undefined || value === false) {
         target.removeAttribute(key);
@@ -42,14 +75,24 @@ export function bindSvgAttributes(
       }
     }
 
-    activeKeys = nextKeys;
+    const previous = active;
+    active = next;
+    next = previous;
+    activeCount = nextCount;
   });
 
   subscription.add(upstream);
   subscription.add(() => {
-    for (const [key, value] of original) restoreAttribute(target, key, value);
-    original.clear();
-    activeKeys.clear();
+    for (let index = 0; index < states.length; index += 1) {
+      const state = states[index]!;
+      restoreAttribute(target, state.key, state.original);
+    }
+    states.length = 0;
+    active.length = 0;
+    next.length = 0;
+    activeCount = 0;
+    nextCount = 0;
+    lookup.clear();
   });
 
   return subscription;

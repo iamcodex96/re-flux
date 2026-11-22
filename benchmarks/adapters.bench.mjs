@@ -112,14 +112,19 @@ class MockCanvasContext {
   }
 }
 
+// The `-steady` modes emit equal values on every frame (a held animation, a paused scrub): the case where a
+// binding that remembers its last write can skip the DOM call. The unsuffixed modes change every value on every
+// frame, so they can never show the benefit of skipping unchanged writes (PERF-006).
 const adapterModes = [
   { id: 'dom-style-binding', kind: 'dom' },
   { id: 'svg-attribute-binding', kind: 'svg' },
+  { id: 'dom-style-binding-steady', kind: 'dom', steady: true },
+  { id: 'svg-attribute-binding-steady', kind: 'svg', steady: true },
   { id: 'canvas-one-emission', kind: 'canvas', emissionsPerFrame: 1 },
   { id: 'canvas-burst-coalesced', kind: 'canvas', emissionsPerFrame: burstEmissions },
 ];
 
-function runStyleBinding(targetCount, framesToRun) {
+function runStyleBinding(targetCount, framesToRun, steady = false) {
   const source = new Subject();
   const targets = Array.from({ length: targetCount }, () => ({ style: new MockStyleDeclaration() }));
   const bindings = targets.map((target) => bindStyle(target, source));
@@ -129,11 +134,13 @@ function runStyleBinding(targetCount, framesToRun) {
   for (let frame = 0; frame < framesToRun; frame += 1) {
     const startedAt = performance.now();
     frameStarts.push(startedAt);
-    source.next({
-      transform: `translate3d(${frame}px, ${frame / 2}px, 0)`,
-      opacity: String((frame % 60) / 59),
-      '--re-flux-frame': String(frame),
-    });
+    source.next(steady
+      ? { transform: 'translate3d(12px, 6px, 0)', opacity: '0.5', '--re-flux-frame': '12' }
+      : {
+        transform: `translate3d(${frame}px, ${frame / 2}px, 0)`,
+        opacity: String((frame % 60) / 59),
+        '--re-flux-frame': String(frame),
+      });
     sourceEmissions += 1;
     frameSamples.push(performance.now() - startedAt);
   }
@@ -153,7 +160,7 @@ function runStyleBinding(targetCount, framesToRun) {
   };
 }
 
-function runSvgBinding(targetCount, framesToRun) {
+function runSvgBinding(targetCount, framesToRun, steady = false) {
   const source = new Subject();
   const targets = Array.from({ length: targetCount }, () => new MockSvgElement());
   const bindings = targets.map((target) => bindSvgAttributes(target, source));
@@ -163,11 +170,13 @@ function runSvgBinding(targetCount, framesToRun) {
   for (let frame = 0; frame < framesToRun; frame += 1) {
     const startedAt = performance.now();
     frameStarts.push(startedAt);
-    source.next({
-      transform: `translate(${frame} ${frame / 2})`,
-      opacity: (frame % 60) / 59,
-      'data-frame': frame,
-    });
+    source.next(steady
+      ? { transform: 'translate(12 6)', opacity: 0.5, 'data-frame': 12 }
+      : {
+        transform: `translate(${frame} ${frame / 2})`,
+        opacity: (frame % 60) / 59,
+        'data-frame': frame,
+      });
     sourceEmissions += 1;
     frameSamples.push(performance.now() - startedAt);
   }
@@ -245,8 +254,8 @@ function runCanvasBinding(targetCount, framesToRun, emissionsPerFrame) {
 }
 
 function runMode(mode, targetCount, framesToRun) {
-  if (mode.kind === 'dom') return runStyleBinding(targetCount, framesToRun);
-  if (mode.kind === 'svg') return runSvgBinding(targetCount, framesToRun);
+  if (mode.kind === 'dom') return runStyleBinding(targetCount, framesToRun, mode.steady === true);
+  if (mode.kind === 'svg') return runSvgBinding(targetCount, framesToRun, mode.steady === true);
   return runCanvasBinding(targetCount, framesToRun, mode.emissionsPerFrame);
 }
 
