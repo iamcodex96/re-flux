@@ -1,6 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import {
   NUMERIC_TOKEN_SOURCE,
+  compileColorMix,
+  compileNumericTemplate,
   formatNumber,
   formatRgba,
   mixRgba,
@@ -101,5 +103,48 @@ describe('Given color mixing and formatting', () => {
   });
   it('Then formatRgba rounds channels and prints alpha with the shared precision', () => {
     expect(formatRgba({ r: 127.5, g: 0.4, b: 255, a: 0.511734 })).toBe('rgba(128, 0, 255, 0.51173)');
+  });
+});
+
+describe('Given the pre-compiled renderers (PERF-002)', () => {
+  const PROGRESS = [-0.5, 0, 0.1, 0.33, 0.5, 0.9, 1, 1.4];
+
+  it('Then compileColorMix equals formatRgba(mixRgba()) for varying and constant alpha', () => {
+    const pairs = [
+      [{ r: 0, g: 100, b: 255, a: 0 }, { r: 255, g: 100, b: 0, a: 1 }],
+      [{ r: 16, g: 32, b: 48, a: 1 }, { r: 240, g: 224, b: 208, a: 1 }],
+      [{ r: 10.5, g: 20.25, b: 30.75, a: 0.2 }, { r: 240, g: 220, b: 200, a: 0.9 }],
+      [{ r: 1, g: 2, b: 3, a: 0.4 }, { r: 3, g: 2, b: 1, a: 0.4 }],
+    ] as const;
+    for (const [from, to] of pairs) {
+      const render = compileColorMix(from, to);
+      for (const progress of PROGRESS) expect(render(progress)).toBe(formatRgba(mixRgba(from, to, progress)));
+    }
+  });
+
+  it('Then compileNumericTemplate equals renderNumericTemplate with the shared formatter', () => {
+    const cases: ReadonlyArray<readonly [string, string]> = [
+      ['translate(0px, 10px) scale(1)', 'translate(100px, 50px) scale(2)'],
+      ['0px', '320px'],
+      ['1e-3px', '2e-3px'],
+      ['+5px 7', '-5px 9'],
+    ];
+    for (const [from, to] of cases) {
+      const a = tokenizeNumbers(from);
+      const b = tokenizeNumbers(to);
+      const render = compileNumericTemplate(a, b);
+      for (const progress of PROGRESS) {
+        const expected = renderNumericTemplate(a.template, (index) => {
+          const start = a.values[index] ?? 0;
+          return formatNumber(start + ((b.values[index] ?? start) - start) * progress);
+        });
+        expect(render(progress)).toBe(expected);
+      }
+    }
+  });
+
+  it('Then a missing end value keeps the start value, as the one-shot path does', () => {
+    const render = compileNumericTemplate(tokenizeNumbers('1px 2px'), tokenizeNumbers('5px'));
+    expect(render(0.5)).toBe('3px 2px');
   });
 });

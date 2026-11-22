@@ -41,6 +41,27 @@ export function renderNumericTemplate(template: string, produce: (index: number)
   return template.replace(SLOT_PATTERN, () => produce(index++));
 }
 
+/**
+ * Pre-compile two compatible templates into a per-frame renderer. The template is split into its literal pieces
+ * once, so each call only formats numbers and concatenates; output is identical to
+ * `renderNumericTemplate(from.template, i => formatNumber(start + (end - start) * progress))`.
+ * A missing end value falls back to its start value, as in the one-shot path.
+ */
+export function compileNumericTemplate(from: NumericTemplate, to: NumericTemplate): (progress: number) => string {
+  const pieces = from.template.split(SLOT);
+  const count = from.values.length;
+  const starts = Float64Array.from(from.values);
+  const ends = Float64Array.from(from.values, (start, index) => to.values[index] ?? start);
+  return (progress) => {
+    let out = pieces[0]!;
+    for (let index = 0; index < count; index += 1) {
+      const start = starts[index]!;
+      out += formatNumber(start + (ends[index]! - start) * progress) + pieces[index + 1]!;
+    }
+    return out;
+  };
+}
+
 /** Format a number with at most 5 decimals, without trailing zeros and without `-0`. */
 export function formatNumber(value: number): string {
   const rounded = Number(value.toFixed(5));
@@ -104,6 +125,20 @@ export function mixRgba(from: Rgba, to: Rgba, progress: number): Rgba {
 /** Serialize a color as `rgba(r, g, b, a)` with integer channels. */
 export function formatRgba(color: Rgba): string {
   return `rgba(${roundChannel(color.r)}, ${roundChannel(color.g)}, ${roundChannel(color.b)}, ${formatNumber(color.a)})`;
+}
+
+/**
+ * Pre-compile a color pair into a per-frame renderer that mixes and serializes in one step, without allocating an
+ * intermediate `Rgba`. Identical to `formatRgba(mixRgba(from, to, progress))`; when both alphas are equal the
+ * alpha text is computed once (`from.a + 0 * progress` is `from.a` for any finite progress).
+ */
+export function compileColorMix(from: Rgba, to: Rgba): (progress: number) => string {
+  const constantAlpha = from.a === to.a ? formatNumber(clampAlpha(from.a)) : null;
+  const dr = to.r - from.r;
+  const dg = to.g - from.g;
+  const db = to.b - from.b;
+  const da = to.a - from.a;
+  return (progress) => `rgba(${roundChannel(from.r + dr * progress)}, ${roundChannel(from.g + dg * progress)}, ${roundChannel(from.b + db * progress)}, ${constantAlpha ?? formatNumber(clampAlpha(from.a + da * progress))})`;
 }
 
 /** Round a channel to the integer 8-bit value a browser would render. */

@@ -1,5 +1,5 @@
 import type { ValueInterpolator } from '../types/values.js';
-import { formatNumber, formatRgba, mixRgba, parseColor, renderNumericTemplate, tokenizeNumbers } from '../utils/valueTemplate.js';
+import { compileColorMix, compileNumericTemplate, formatNumber, formatRgba, mixRgba, parseColor, renderNumericTemplate, tokenizeNumbers } from '../utils/valueTemplate.js';
 
 type AnyRecord = Record<string, unknown>;
 
@@ -12,7 +12,7 @@ export function resolveInterpolator<T>(
 ): ValueInterpolator<T> {
   if (customInterpolator) return customInterpolator;
   if (canInterpolate(from, to)) {
-    return ((start: T, end: T, progress: number) => interpolateValue(start, end, progress)) as ValueInterpolator<T>;
+    return compile(from, to) as unknown as ValueInterpolator<T>;
   }
   throw new TypeError(`${owner} requires an interpolate function when values are not numbers.`);
 }
@@ -44,6 +44,58 @@ function canInterpolate(from: unknown, to: unknown): boolean {
       Object.prototype.hasOwnProperty.call(to, key) && canInterpolate(from[key], to[key]));
   }
   return Object.is(from, to);
+}
+
+type CompiledInterpolator = (start: unknown, end: unknown, progress: number) => unknown;
+
+/**
+ * Parse the fixed endpoints once and return the per-frame closure. Strings are parsed (colors, numeric templates)
+ * at compile time and re-read only when a call passes a different string; plain objects keep their compile-time
+ * keys while the container identity is unchanged; anything unexpected falls back to the generic
+ * `interpolateValue`, which is also what the public one-shot `interpolate()` uses. Output is identical to it.
+ */
+function compile(from: unknown, to: unknown): CompiledInterpolator {
+  if (typeof from === 'number' && typeof to === 'number') {
+    return (start, end, progress) => typeof start === 'number' && typeof end === 'number'
+      ? start + (end - start) * progress
+      : interpolateValue(start, end, progress);
+  }
+  if (typeof from === 'string' && typeof to === 'string') {
+    const fromColor = parseColor(from);
+    const toColor = parseColor(to);
+    if (fromColor && toColor) {
+      const render = compileColorMix(fromColor, toColor);
+      return (start, end, progress) => start === from && end === to ? render(progress) : interpolateValue(start, end, progress);
+    }
+    const render = compileNumericTemplate(tokenizeNumbers(from), tokenizeNumbers(to));
+    return (start, end, progress) => start === from && end === to ? render(progress) : interpolateValue(start, end, progress);
+  }
+  if (Array.isArray(from) && Array.isArray(to)) {
+    const children = from.map((value, index) => compile(value, to[index]));
+    const count = children.length;
+    return (start, end, progress) => {
+      if (!Array.isArray(start) || !Array.isArray(end) || start.length !== count || end.length !== count) {
+        return interpolateValue(start, end, progress);
+      }
+      const result = new Array<unknown>(count);
+      for (let index = 0; index < count; index += 1) result[index] = children[index]!(start[index], end[index], progress);
+      return result;
+    };
+  }
+  if (isPlainRecord(from) && isPlainRecord(to)) {
+    const keys = Object.keys(from);
+    const children = keys.map((key) => compile(from[key], to[key]));
+    return (start, end, progress) => {
+      if (start !== from || end !== to) return interpolateValue(start, end, progress);
+      const result: AnyRecord = {};
+      for (let index = 0; index < keys.length; index += 1) {
+        const key = keys[index]!;
+        result[key] = children[index]!((start as AnyRecord)[key], (end as AnyRecord)[key], progress);
+      }
+      return result;
+    };
+  }
+  return (start, end, progress) => interpolateValue(start, end, progress);
 }
 
 function interpolateValue<T>(from: T, to: T, progress: number): T {
