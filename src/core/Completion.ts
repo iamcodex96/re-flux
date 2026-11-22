@@ -1,16 +1,22 @@
-/** Manages a reusable promise per cycle and marks rejections as observed. */
+/**
+ * Manages a reusable promise per cycle and marks rejections as observed.
+ *
+ * The promise is created the first time something asks for it (`promise`, and so `then`, `toPromise`, `await`), not
+ * with the cycle: most animations are never awaited, and the promise with its resolver closures was the biggest single
+ * part of an instance. Until then the cycle only remembers how it settled, so a consumer that asks late sees exactly
+ * what one that asked early would have seen, and a rejection nobody asks about cannot be reported as unhandled
+ * because no promise exists for it.
+ */
 export class Completion {
-  private currentPromise!: Promise<void>;
-  private resolveCurrent!: () => void;
-  private rejectCurrent!: (reason: unknown) => void;
+  private currentPromise: Promise<void> | null = null;
+  private resolveCurrent: (() => void) | null = null;
+  private rejectCurrent: ((reason: unknown) => void) | null = null;
   private settled = false;
-
-  constructor() {
-    this.createPromise();
-  }
+  private rejected = false;
+  private reason: unknown = undefined;
 
   get promise(): Promise<void> {
-    return this.currentPromise;
+    return this.currentPromise ?? this.createPromise();
   }
 
   get isSettled(): boolean {
@@ -20,33 +26,49 @@ export class Completion {
   resolve(): void {
     if (this.settled) return;
     this.settled = true;
-    this.resolveCurrent();
+    this.resolveCurrent?.();
   }
 
   reject(reason: unknown): void {
     if (this.settled) return;
     this.settled = true;
-    this.rejectCurrent(reason);
+    this.rejected = true;
+    this.reason = reason;
+    this.rejectCurrent?.(reason);
   }
 
-  /** Creates a new promise; any still-pending promise from the previous cycle is rejected. */
+  /** Starts a new cycle; any still-pending promise from the previous cycle is rejected. */
   restart(reason: unknown): void {
     if (!this.settled) this.reject(reason);
-    this.createPromise();
+    this.reset();
   }
 
-  /** Ensures a pending promise after stop/completion without affecting previous consumers. */
+  /** Ensures a pending cycle after stop/completion without affecting previous consumers. */
   ensurePending(): void {
-    if (this.settled) this.createPromise();
+    if (this.settled) this.reset();
   }
 
-  private createPromise(): void {
+  private reset(): void {
+    this.currentPromise = null;
+    this.resolveCurrent = null;
+    this.rejectCurrent = null;
     this.settled = false;
-    this.currentPromise = new Promise<void>((resolve, reject) => {
+    this.rejected = false;
+    this.reason = undefined;
+  }
+
+  private createPromise(): Promise<void> {
+    const promise = new Promise<void>((resolve, reject) => {
       this.resolveCurrent = resolve;
       this.rejectCurrent = reject;
     });
-     
-    void this.currentPromise.catch(() => undefined);
+    this.currentPromise = promise;
+    // Mark the rejection as observed: a stopped animation nobody awaits must not raise an unhandled rejection.
+    void promise.catch(() => undefined);
+    if (this.settled) {
+      if (this.rejected) this.rejectCurrent?.(this.reason);
+      else this.resolveCurrent?.();
+    }
+    return promise;
   }
 }
