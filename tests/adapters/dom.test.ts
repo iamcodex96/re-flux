@@ -373,7 +373,7 @@ describe('Given animate() DOM API', () => {
         animation.seek(50);
         expect(element.style.getPropertyValue('transform')).toBe('translateX(25px)');
         animation.seek(100);
-        expect(element.style.getPropertyValue('transform')).toBe('translateX(33.3333px)');
+        expect(element.style.getPropertyValue('transform')).toBe('translateX(33.33333px)'); // REFACTOR-003: CSS output uses the shared 5-decimal precision (was 33.3333px).
         animation.dispose();
       });
     });

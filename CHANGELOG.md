@@ -16,6 +16,12 @@ Notable changes to re;Flux are recorded here. This project is in public beta; th
 
 - Add the `default` condition to the root `exports["."]` entry, matching every subpath, so `require.resolve("@re-code/flux")` and bundlers that do not request the `import` condition can resolve the package. The package remains ESM-only.
 - Include `src/flowField.ts` in coverage collection and drop the types-only `src/types.ts`.
+- Parse numbers and colors with one internal module (`src/utils/valueTemplate.ts`, not exported) in `interpolate()`, `interpolateCssValue()` and the SVG path morpher, so the same string no longer interpolates differently depending on the entry point. The CSS path still keeps the author's template (units, spacing, `rgb()`/`rgba()` function, percentages) and returns the exact input at progress 0 and 1; `interpolate()` still normalizes colors to `rgba(r, g, b, a)`. Output changes, all for previously inconsistent inputs:
+  - `interpolateCssValue()` and the path morpher now round to 5 decimals like `interpolate()` (CSS output was 4): `0.1234567px → 1.9876543px` at 0.5 gives `1.05556px` instead of `1.0556px`, and `rgba(0,0,0,.123456) → rgba(0,0,0,.9)` gives `rgba(0,0,0,0.51173)` instead of `rgba(0,0,0,0.5117)`.
+  - `interpolateCssValue()` reads exponent numbers as one number (`1e-3px → 2e-3px` gives `0.0015px`, was `1.5e-3px`; `1e-3px → 1e-2px` gives `0.0055px`, was the invalid `1e-2.5px`) and a leading `+` as part of the number: `+5px → +15px` gives `10px` (was `+10px`), and `+5px → -5px` or `+5px → 15px` now interpolate instead of staying at `+5px`.
+  - `interpolateCssValue()` interpolates same-template colors as colors: input channels are clamped to 0..255 and output channels rounded, so `rgb(300 0 0 / 50%) → rgb(0 0 300 / 100%)` gives `rgb(128 0 128 / 75%)` (was `rgb(150 0 150 / 75%)`), `progress` overshoot can no longer produce `rgb(306,306,306)`, and hex pairs with the same digit layout (`#112233 → #445566`, `#123 → #456`) give `rgba(43, 60, 77, 1)` instead of `#278899.5` / `#289.5`.
+  - Color alpha is clamped to 0..1 on both paths (`rgba(0,0,0,0) → rgba(0,0,0,1)` at progress 1.2 gives alpha `1`, was `1.2`).
+  - `rgb()` colors with percentage channels are colors on both paths: `interpolate('rgb(10% 20% 30%)', 'rgb(50% 60% 70%)', 0.5)` now returns `rgba(77, 102, 128, 1)` (was `rgb(30% 40% 50%)`), and `interpolate('rgb(10% 20% 30%)', '#ffffff', 0.5)` no longer throws. `interpolateCssValue()` keeps the percentages (`rgb(30% 40% 50%)`).
 
 ### Fixed
 

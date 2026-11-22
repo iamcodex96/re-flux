@@ -1,4 +1,5 @@
 import { Subscription, type Observable } from 'rxjs';
+import { NUMERIC_TOKEN_SOURCE, formatNumber, renderNumericTemplate, tokenizeNumbers } from '../../utils/valueTemplate.js';
 
 interface Point {
   readonly x: number;
@@ -40,7 +41,8 @@ export interface NormalizedSvgPathPair {
   readonly segmentsPerSubpath: readonly number[];
 }
 
-const TOKEN_PATTERN = /[a-zA-Z]|[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g;
+/** Path command letters or the shared numeric token (commands are tokenized here, numbers by the shared pattern). */
+const TOKEN_PATTERN = new RegExp(`[a-zA-Z]|${NUMERIC_TOKEN_SOURCE}`, 'g');
 const EPSILON = 1e-8;
 const MAX_PATH_LENGTH = 100_000;
 const MAX_SOURCE_SEGMENTS_PER_SUBPATH = 2_048;
@@ -507,11 +509,6 @@ function alignClosedContour(from: readonly CubicSegment[], to: readonly CubicSeg
   return best;
 }
 
-function formatNumber(value: number): string {
-  const rounded = Number(value.toFixed(5));
-  return Object.is(rounded, -0) ? '0' : String(rounded);
-}
-
 function serializeSubpath(subpath: Subpath): string {
   const first = subpath.segments[0];
   if (!first) throw new TypeError('Cannot serialize an empty SVG subpath.');
@@ -590,24 +587,17 @@ export function createSvgPathInterpolator(
   options: SvgPathNormalizationOptions = {},
 ): (progress: number) => string {
   const normalized = normalizeSvgPathPair(from, to, options);
-  const fromNumbers = normalized.from.match(/[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g) ?? [];
-  const toNumbers = normalized.to.match(/[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g) ?? [];
-  const fromTemplate = normalized.from.replace(/[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g, '#');
-  const toTemplate = normalized.to.replace(/[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g, '#');
-  if (fromNumbers.length !== toNumbers.length || fromTemplate !== toTemplate) {
-     
+  const fromTemplate = tokenizeNumbers(normalized.from);
+  const toTemplate = tokenizeNumbers(normalized.to);
+  if (fromTemplate.values.length !== toTemplate.values.length || fromTemplate.template !== toTemplate.template) {
     throw new TypeError('SVG path normalization did not produce compatible command structures.');
   }
 
   return (progress: number): string => {
     if (!Number.isFinite(progress)) throw new RangeError('SVG path morph progress must be finite.');
-    let index = 0;
-    return normalized.from.replace(/[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g, (token) => {
-      const start = Number(token);
-      const endToken = toNumbers[index];
-      if (endToken === undefined) throw new TypeError('SVG path interpolation encountered a missing numeric parameter.');
-      index += 1;
-      return formatNumber(start + (Number(endToken) - start) * progress);
+    return renderNumericTemplate(fromTemplate.template, (index) => {
+      const start = fromTemplate.values[index]!;
+      return formatNumber(start + (toTemplate.values[index]! - start) * progress);
     });
   };
 }

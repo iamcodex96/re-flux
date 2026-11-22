@@ -1,3 +1,13 @@
+import {
+  formatNumber,
+  formatRgba,
+  mixRgba,
+  parseColor,
+  renderNumericTemplate,
+  roundChannel,
+  tokenizeNumbers,
+  type Rgba,
+} from '../../utils/valueTemplate.js';
 import type { CssAnimatableValue, CssPropertyFrames } from './animationTypes.js';
 
 /** Interpolates CSS values with matching templates and units; incompatible values switch at the endpoint. */
@@ -5,83 +15,43 @@ export function interpolateCssValue(from: string, to: string, progress: number):
   if (progress === 0) return from;
   if (progress === 1) return to;
 
-  const fromTokens = tokenizeCssValue(from);
-  const toTokens = tokenizeCssValue(to);
-  const compatibleTemplate = fromTokens.template === toTokens.template
-    && fromTokens.numbers.length === toTokens.numbers.length
-    && !fromTokens.units.some((unit, index) => unit !== toTokens.units[index]);
-  if (!compatibleTemplate) {
-    const fromColor = parseCssColor(from);
-    const toColor = parseCssColor(to);
-    if (fromColor && toColor) return interpolateColor(fromColor, toColor, progress);
-    return progress < 1 ? from : to;
+  // Colors use the shared color math. When both ends share one rgb()/rgba() template the author's function,
+  // spacing and percentages are kept; otherwise the result is rgba(r, g, b, a). Everything else is a numeric template.
+
+  const fromTemplate = tokenizeNumbers(from);
+  const toTemplate = tokenizeNumbers(to);
+  const compatibleTemplate = fromTemplate.template === toTemplate.template
+    && fromTemplate.values.length === toTemplate.values.length;
+
+  const fromColor = parseColor(from);
+  const toColor = parseColor(to);
+  if (fromColor && toColor) {
+    const mixed = mixRgba(fromColor, toColor, progress);
+    return compatibleTemplate && !from.trim().startsWith('#')
+      ? renderColorFunction(fromTemplate.template, mixed)
+      : formatRgba(mixed);
   }
+  if (!compatibleTemplate) return progress < 1 ? from : to;
 
-  let tokenIndex = 0;
-  const interpolated = from.replace(NUMERIC_CSS_TOKEN, () => {
-    const start = fromTokens.numbers[tokenIndex]!;
-    const end = toTokens.numbers[tokenIndex]!;
-    const unit = fromTokens.units[tokenIndex]!;
-    tokenIndex += 1;
-    const value = start + (end - start) * progress;
-    const rounded = Math.round(value * 10000) / 10000;
-    return `${rounded}${unit}`;
+  return renderNumericTemplate(fromTemplate.template, (index) => {
+    const start = fromTemplate.values[index]!;
+    const end = toTemplate.values[index]!;
+    return formatNumber(start + (end - start) * progress);
   });
-  return interpolated;
 }
 
-const NUMERIC_CSS_TOKEN = /(-?(?:\d+\.?\d*|\.\d+))(?:([a-zA-Z%]+))?/g;
-
-type RgbaColor = readonly [red: number, green: number, blue: number, alpha: number];
-
-function parseCssColor(value: string): RgbaColor | null {
-  const hex = /^#([\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})$/i.exec(value.trim());
-  if (hex) {
-    const raw = hex[1]!;
-    const expanded = raw.length <= 4 ? [...raw].map((character) => `${character}${character}`).join('') : raw;
-    const red = Number.parseInt(expanded.slice(0, 2), 16);
-    const green = Number.parseInt(expanded.slice(2, 4), 16);
-    const blue = Number.parseInt(expanded.slice(4, 6), 16);
-    const alpha = expanded.length === 8 ? Number.parseInt(expanded.slice(6, 8), 16) / 255 : 1;
-    return [red, green, blue, alpha];
-  }
-
-  const rgb = /^rgba?\((.*)\)$/i.exec(value.trim());
-  if (!rgb) return null;
-  const parts = rgb[1]!.replace('/', ' ').split(/[\s,]+/).filter(Boolean);
-  if (parts.length < 3 || parts.length > 4) return null;
-  const channels = parts.slice(0, 3).map((part) => part.endsWith('%')
-    ? Number.parseFloat(part) * 2.55
-    : Number.parseFloat(part));
-  const alphaPart = parts[3];
-  const alpha = alphaPart === undefined ? 1 : alphaPart.endsWith('%')
-    ? Number.parseFloat(alphaPart) / 100
-    : Number.parseFloat(alphaPart);
-  if ([...channels, alpha].some((channel) => !Number.isFinite(channel))) return null;
-  return [channels[0]!, channels[1]!, channels[2]!, alpha];
-}
-
-function interpolateColor(from: RgbaColor, to: RgbaColor, progress: number): string {
-  const red = clampCssChannel(from[0] + (to[0] - from[0]) * progress);
-  const green = clampCssChannel(from[1] + (to[1] - from[1]) * progress);
-  const blue = clampCssChannel(from[2] + (to[2] - from[2]) * progress);
-  const alpha = Math.max(0, Math.min(1, from[3] + (to[3] - from[3]) * progress));
-  return `rgba(${red}, ${green}, ${blue}, ${Math.round(alpha * 10000) / 10000})`;
-}
-
-function clampCssChannel(channel: number): number {
-  return Math.max(0, Math.min(255, Math.round(channel)));
-}
-
-function tokenizeCssValue(value: string): { template: string; numbers: number[]; units: string[] } {
-  const numbers: number[] = [];
-  const units: string[] = [];
-  const template = value.replace(NUMERIC_CSS_TOKEN, (_token, rawNumber: string, rawUnit: string | undefined) => {
-    numbers.push(Number(rawNumber));
-    units.push(rawUnit ?? '');
-    return '\u0000';
+/** Re-emit a color in the author's `rgb()`/`rgba()` template, keeping `%` channels and alpha as written. */
+function renderColorFunction(template: string, color: Rgba): string {
+  const slots = template.split('\u0000');
+  const channels = [color.r, color.g, color.b];
+  return renderNumericTemplate(template, (index) => {
+    const percent = slots[index + 1]!.startsWith('%');
+    if (index < 3) {
+      const channel = channels[index]!;
+      return formatNumber(percent ? (channel / 255) * 100 : roundChannel(channel));
+    }
+    return formatNumber(percent ? color.a * 100 : color.a);
   });
-  return { template, numbers, units };
 }
 
 export function resolvePropertyFrames(
