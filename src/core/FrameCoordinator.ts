@@ -29,10 +29,85 @@ interface ScheduledFrameTask {
   readonly callback: FrameTask;
   /** `null` for a persistent write channel, which has no per-request Subscription. */
   readonly subscription: Subscription | null;
+  /** The phase queue this task belongs to; it keeps the pending count for it. */
+  readonly queue: PhaseQueue;
   active: boolean;
   running: boolean;
-  /** Persistent channel only: true while the entry sits in the write queue. */
+  /** True from the moment the entry is queued until it runs or is cancelled. */
   queued: boolean;
+  /** The `PhaseQueue` generation the entry was pushed in; see `PhaseQueue.cancel`. */
+  generation: number;
+}
+
+/** Cancelled entries are only compacted away once at least this many have piled up and they outnumber the live ones. */
+const MIN_TOMBSTONES_TO_COMPACT = 32;
+
+/**
+ * The tasks of one frame phase (all reads, or all writes) in scheduling order.
+ *
+ * Cancelling a queued task is O(1): the entry stays in the array as a tombstone (`queued === false`) and is skipped when
+ * the batch runs, instead of being found with `indexOf` and spliced out. `live` counts the entries that will still run,
+ * so diagnostics and the idle check never see tombstones. A frame detaches the whole batch with `take()` and hands the
+ * emptied array back with `release()`, so two arrays are reused forever instead of one being allocated per frame.
+ */
+class PhaseQueue {
+  private items: ScheduledFrameTask[] = [];
+  private spare: ScheduledFrameTask[] | null = [];
+  /** Entries in `items` that have not been cancelled. */
+  live = 0;
+  private dead = 0;
+  /** Bumped by every `take()`, so an entry can tell whether it is still in `items` or already in a running batch. */
+  private generation = 0;
+
+  push(entry: ScheduledFrameTask): void {
+    entry.queued = true;
+    entry.generation = this.generation;
+    this.items.push(entry);
+    this.live += 1;
+  }
+
+  /** Cancels a pending entry without searching for it. Entries that already left for a running batch are only flagged. */
+  cancel(entry: ScheduledFrameTask): void {
+    if (!entry.queued) return;
+    entry.queued = false;
+    if (entry.generation !== this.generation) return;
+    this.live -= 1;
+    this.dead += 1;
+    if (this.live === 0) {
+      this.items.length = 0;
+      this.dead = 0;
+    } else if (this.dead >= MIN_TOMBSTONES_TO_COMPACT && this.dead > this.live) {
+      this.compact();
+    }
+  }
+
+  /** Detaches everything queued so far (including tombstones, which the caller skips) and starts an empty batch. */
+  take(): ScheduledFrameTask[] {
+    const batch = this.items;
+    this.items = this.spare ?? [];
+    this.spare = null;
+    this.generation += 1;
+    this.live = 0;
+    this.dead = 0;
+    return batch;
+  }
+
+  /** Returns a batch from `take()` once it has run, so its array can be reused. */
+  release(batch: ScheduledFrameTask[]): void {
+    batch.length = 0;
+    this.spare = batch;
+  }
+
+  private compact(): void {
+    const items = this.items;
+    let kept = 0;
+    for (let index = 0; index < items.length; index += 1) {
+      const entry = items[index]!;
+      if (entry.queued) items[kept++] = entry;
+    }
+    items.length = kept;
+    this.dead = 0;
+  }
 }
 
 /**
@@ -49,8 +124,10 @@ export interface WriteChannel {
 
 export class FrameCoordinator {
   private readonly frameSubscribers = new Set<Subscriber<AnimationFrameTick>>();
-  private readonly readQueue: ScheduledFrameTask[] = [];
-  private readonly writeQueue: ScheduledFrameTask[] = [];
+  /** Array copy of `frameSubscribers` for the consumer phase; never mutated, replaced (`null` until rebuilt) after a membership change. */
+  private frameSubscriberSnapshot: Subscriber<AnimationFrameTick>[] | null = null;
+  private readonly readQueue = new PhaseQueue();
+  private readonly writeQueue = new PhaseQueue();
   private clockSubscription: Subscription | null = null;
   private lastTimestamp: number | null = null;
   private frameNumber = 0;
@@ -102,16 +179,19 @@ export class FrameCoordinator {
 
   readonly frames$: Observable<AnimationFrameTick> = new Observable<AnimationFrameTick>((subscriber) => {
     this.frameSubscribers.add(subscriber);
+    this.frameSubscriberSnapshot = null;
     const error = this.ensureClock();
 
     if (error) {
       this.frameSubscribers.delete(subscriber);
+      this.frameSubscriberSnapshot = null;
       subscriber.error(error);
       return undefined;
     }
 
     return () => {
       this.frameSubscribers.delete(subscriber);
+      this.frameSubscriberSnapshot = null;
       this.stopIfIdle();
     };
   });
@@ -128,16 +208,14 @@ export class FrameCoordinator {
 
   /** @internal Open a reusable write channel; see {@link openWriteChannel}. */
   private createWriteChannel(callback: FrameTask): WriteChannel {
-    const entry: ScheduledFrameTask = { callback, subscription: null, active: true, running: false, queued: false };
+    const entry: ScheduledFrameTask = { callback, subscription: null, queue: this.writeQueue, active: true, running: false, queued: false, generation: 0 };
     return {
       request: () => {
         if (!entry.active || entry.queued) return;
-        entry.queued = true;
         this.writeQueue.push(entry);
         const error = this.ensureClock();
         if (error) {
-          entry.queued = false;
-          this.removeTask(entry);
+          this.writeQueue.cancel(entry);
           throw error;
         }
       },
@@ -146,27 +224,28 @@ export class FrameCoordinator {
         entry.active = false;
         if (entry.running) return;
         if (entry.queued) {
-          entry.queued = false;
-          this.removeTask(entry);
+          this.writeQueue.cancel(entry);
           this.stopIfIdle();
         }
       },
     };
   }
 
-  private schedule(task: FrameTask, queue: ScheduledFrameTask[]): Subscription {
+  private schedule(task: FrameTask, queue: PhaseQueue): Subscription {
     const subscription = new Subscription();
     const entry: ScheduledFrameTask = {
       callback: task,
       subscription,
+      queue,
       active: true,
       running: false,
-      queued: true,
+      queued: false,
+      generation: 0,
     };
     subscription.add(() => {
       entry.active = false;
       if (entry.running) return;
-      this.removeTask(entry);
+      queue.cancel(entry);
       this.stopIfIdle();
     });
     queue.push(entry);
@@ -177,13 +256,6 @@ export class FrameCoordinator {
       throw error;
     }
     return subscription;
-  }
-
-  private removeTask(task: ScheduledFrameTask): void {
-    const readIndex = this.readQueue.indexOf(task);
-    if (readIndex >= 0) this.readQueue.splice(readIndex, 1);
-    const writeIndex = this.writeQueue.indexOf(task);
-    if (writeIndex >= 0) this.writeQueue.splice(writeIndex, 1);
   }
 
   private ensureClock(): Error | null {
@@ -197,16 +269,20 @@ export class FrameCoordinator {
         this.clockSubscription = null;
         this.lastTimestamp = null;
         this.frameNumber = 0;
-        const queuedTasks = [...this.readQueue, ...this.writeQueue];
-        this.readQueue.length = 0;
-        this.writeQueue.length = 0;
-        for (const task of queuedTasks) {
-          if (task.subscription) task.subscription.unsubscribe();
-          else task.queued = false;
+        for (const queue of [this.readQueue, this.writeQueue]) {
+          const queuedTasks = queue.take();
+          for (const task of queuedTasks) {
+            if (task.subscription) task.subscription.unsubscribe();
+            else task.queued = false;
+          }
+          queue.release(queuedTasks);
         }
 
-        for (const subscriber of [...this.frameSubscribers]) subscriber.error(error);
+        const subscribers = Array.from(this.frameSubscribers);
+        this.frameSubscriberSnapshot = null;
+        for (const subscriber of subscribers) subscriber.error(error);
         this.frameSubscribers.clear();
+        this.frameSubscriberSnapshot = null;
       },
     });
 
@@ -231,15 +307,19 @@ export class FrameCoordinator {
     const frame: AnimationFrameTick = Object.freeze({ timestamp, delta, frame: this.frameNumber });
 
      
-    if (this.readQueue.length > 0) this.runTasks(this.readQueue.splice(0), frame);
+    if (this.readQueue.live > 0) this.runTasks(this.readQueue, frame);
 
-    for (const subscriber of [...this.frameSubscribers]) {
+    // The snapshot is taken here, after the read phase: a subscriber added by a read task is in it, one added from now
+    // on is not (it is a different array by then). It is rebuilt only after a membership change, not every frame.
+    const subscribers = this.frameSubscriberSnapshot ?? (this.frameSubscriberSnapshot = Array.from(this.frameSubscribers));
+    for (let index = 0; index < subscribers.length; index += 1) {
+      const subscriber = subscribers[index]!;
       if (!subscriber.closed) subscriber.next(frame);
     }
 
      
      
-    if (this.writeQueue.length > 0) this.runTasks(this.writeQueue.splice(0), frame);
+    if (this.writeQueue.live > 0) this.runTasks(this.writeQueue, frame);
     this.stopIfIdle();
 
     this.totalFrames += 1;
@@ -253,8 +333,11 @@ export class FrameCoordinator {
     }
   }
 
-  private runTasks(tasks: ScheduledFrameTask[], frame: AnimationFrameTick): void {
-    for (const task of tasks) {
+  private runTasks(queue: PhaseQueue, frame: AnimationFrameTick): void {
+    // Tasks queued while this batch runs go into the queue's next batch, which belongs to the next frame.
+    const tasks = queue.take();
+    for (let index = 0; index < tasks.length; index += 1) {
+      const task = tasks[index]!;
       if (!task.active) continue;
       task.queued = false;
       task.running = true;
@@ -269,6 +352,7 @@ export class FrameCoordinator {
         task.running = false;
       }
     }
+    queue.release(tasks);
   }
 
   private makeMetrics(): FrameCoordinatorMetrics {
@@ -278,14 +362,14 @@ export class FrameCoordinator {
       averageFrameWorkMs: this.measuredFrameCount > 0 ? this.totalFrameWorkMs / this.measuredFrameCount : 0,
       maxFrameWorkMs: this.maxFrameWorkMs,
       activeFrameSubscribers: this.frameSubscribers.size,
-      pendingReadTasks: this.readQueue.length,
-      pendingWriteTasks: this.writeQueue.length,
+      pendingReadTasks: this.readQueue.live,
+      pendingWriteTasks: this.writeQueue.live,
       clockActive: Boolean(this.clockSubscription && !this.clockSubscription.closed),
     });
   }
 
   private stopIfIdle(): void {
-    if (this.frameSubscribers.size > 0 || this.readQueue.length > 0 || this.writeQueue.length > 0) return;
+    if (this.frameSubscribers.size > 0 || this.readQueue.live > 0 || this.writeQueue.live > 0) return;
 
     this.clockSubscription?.unsubscribe();
     this.clockSubscription = null;
