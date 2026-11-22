@@ -1,13 +1,10 @@
-import { BehaviorSubject, type Subscription } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { readonlyBehavior, type ReadonlyBehaviorObservable } from '../utils/readOnlyBehavior.js';
 import type { AnimatableItem, AnimationState, TimelineOffset, TimelineOptions, TimelineSegment } from '../types/animation.js';
 import { Completion } from './Completion.js';
-import { frameCoordinator } from './FrameCoordinator.js';
-import { MotionLifecycleController } from './MotionLifecycleController.js';
+import { PlaybackController, STOPPED_ERROR, type PlaybackHooks } from './PlaybackController.js';
 import { SETTLE_PROBE, type SettleProbed } from './settle.js';
 import { assertFiniteNonNegative } from '../utils/timing.js';
-
-const STOPPED_ERROR = 'Animation stopped before completion';
 
 /** The segment is before its start and has already been reset: nothing to do until the playhead reaches `startTime`. */
 const QUIET_BEFORE = 1;
@@ -32,9 +29,8 @@ const END_SLACK = 1e-9;
 /** Coordinates entries without calling play(): the global playhead drives each child through seekLocal(). */
 export class Timeline implements AnimatableItem, PromiseLike<void> {
   private readonly progressSubject = new BehaviorSubject<number>(0);
-  private readonly stateSubject = new BehaviorSubject<AnimationState>('idle');
   readonly progress$: ReadonlyBehaviorObservable<number> = readonlyBehavior(this.progressSubject);
-  readonly state$: ReadonlyBehaviorObservable<AnimationState> = readonlyBehavior(this.stateSubject);
+  readonly state$: ReadonlyBehaviorObservable<AnimationState>;
 
   private readonly options: Readonly<TimelineOptions>;
   private readonly entries: InternalSegment[] = [];
@@ -42,13 +38,12 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   private parentOwner: Timeline | null = null;
   private readonly labels = new Map<string, number>();
   private readonly completion = new Completion();
-  private clockSubscription: Subscription | null = null;
+  private readonly playback: PlaybackController<Timeline>;
   private currentTimeValue = 0;
   private hasStarted = false;
   private hasCompleted = false;
   private lastAddedStart = 0;
   private lastAddedEnd = 0;
-  private motionLifecycle: MotionLifecycleController | null = null;
   private playbackRate = 1;
   private playbackDirection: 1 | -1 = 1;
   private structureLocked = false;
@@ -73,6 +68,8 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
   constructor(options: TimelineOptions = {}) {
     this.options = Object.freeze({ ...options });
+    this.playback = new PlaybackController(this, this.options, TIMELINE_PLAYBACK, this.completion);
+    this.state$ = this.playback.state$;
   }
 
   get duration(): number {
@@ -118,7 +115,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
           ? 'A nested Timeline can only be added once to a parent Timeline.'
           : 'A Timeline can only belong to one parent Timeline.');
       }
-      if (item.hasActiveClock()) {
+      if (item.playback.hasActiveClock()) {
         throw new Error('Cannot add a running Timeline as a child. Stop it before adding it to a parent Timeline.');
       }
     }
@@ -234,10 +231,10 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     this.playbackDirection = -1;
     if (this.currentTimeValue <= 0) this.currentTimeValue = this.duration;
     if (this.state$.value === 'completed' || this.completion.isSettled) this.completion.ensurePending();
-    if (this.clockSubscription) return this;
-    if (!this.ensureMotionLifecycle().requestPlay()) return this;
+    if (this.playback.hasClock) return this;
+    if (!this.playback.requestPlay()) return this;
     this.lockStructure();
-    this.startClock();
+    this.playback.startClock();
     return this;
   }
 
@@ -245,49 +242,17 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     this.assertNotParentOwned('play');
     if (this.state$.value === 'completed') { this.resetInternal(); this.playbackDirection = 1; }
     this.completion.ensurePending();
-    if (this.clockSubscription) return this;
-    if (!this.ensureMotionLifecycle().requestPlay()) return this;
+    if (this.playback.hasClock) return this;
+    if (!this.playback.requestPlay()) return this;
     this.lockStructure();
-    this.startClock();
+    this.playback.startClock();
     return this;
-  }
-
-  private startClock(callResume?: boolean): void {
-    if (this.clockSubscription) return;
-    const wasPaused = this.state$.value === 'paused';
-    this.setState('running');
-    if (wasPaused && (callResume ?? true)) this.options.onResume?.();
-    let firstFrame = true;
-    const subscription = frameCoordinator.frames$.subscribe({
-      next: (frame) => {
-         
-        if (firstFrame) {
-          firstFrame = false;
-           
-           
-           
-          this.updateAt(this.currentTimeValue, this.duration === 0 ? 'forward' : 'none');
-          return;
-        }
-        const nextTime = this.currentTimeValue + frame.delta * this.playbackRate * this.playbackDirection;
-        if (this.playbackDirection < 0) this.updateAt(Math.max(0, nextTime), 'reverse');
-        else this.updateAt(nextTime, 'forward');
-      },
-      error: (error: unknown) => {
-        this.clockSubscription = null;
-        this.clearMotionLifecycle();
-        this.setState('idle');
-        this.completion.reject(error);
-      },
-    });
-     
-    this.clockSubscription = subscription.closed ? null : subscription;
   }
 
   /** @internal Lets a parent Timeline pause this nested timeline and its active children. */
   pauseFromParent(): void {
     if (this.state$.value === 'running') {
-      this.setState('paused');
+      this.playback.setState('paused');
       for (const segment of this.entries) segment.item.pauseFromParent?.();
       this.options.onPause?.();
     }
@@ -295,13 +260,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
   pause(): this {
     this.assertNotParentOwned('pause');
-    if (!this.clockSubscription) {
-      this.motionLifecycle?.cancelAutomaticResume();
-      return this;
-    }
-    this.clockSubscription.unsubscribe();
-    this.clockSubscription = null;
-    this.setState('paused');
+    if (!this.playback.pauseClock()) return this;
     for (const segment of this.entries) segment.item.pauseFromParent?.();
     this.options.onPause?.();
     return this;
@@ -310,10 +269,9 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   stop(): this {
     this.assertNotParentOwned('stop');
     const wasPending = !this.completion.isSettled;
-    this.clockSubscription?.unsubscribe();
-    this.clockSubscription = null;
+    this.playback.dropClock();
     this.options.onStop?.();
-    this.clearMotionLifecycle();
+    this.playback.clearMotionLifecycle();
     this.currentTimeValue = 0;
     this.hasStarted = false;
     this.hasCompleted = false;
@@ -324,7 +282,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     }
     this.windowValid = false;
     this.progressSubject.next(0);
-    this.setState('idle');
+    this.playback.setState('idle');
     if (wasPending) this.completion.reject(new Error(STOPPED_ERROR));
     return this;
   }
@@ -332,9 +290,8 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   restart(): this {
     this.assertNotParentOwned('restart');
     this.playbackDirection = 1;
-    this.clearMotionLifecycle();
-    this.clockSubscription?.unsubscribe();
-    this.clockSubscription = null;
+    this.playback.clearMotionLifecycle();
+    this.playback.dropClock();
     this.completion.restart(new Error(STOPPED_ERROR));
     this.currentTimeValue = 0;
     this.hasStarted = false;
@@ -346,7 +303,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     }
     this.windowValid = false;
     this.progressSubject.next(0);
-    this.setState('idle');
+    this.playback.setState('idle');
     return this.play();
   }
 
@@ -355,7 +312,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     this.assertNotParentOwned('seek');
     const target = Number.isFinite(ms) ? Math.max(0, ms) : 0;
     if (target > 0) this.lockStructure();
-    this.seekLocal(target, !this.hasActiveClock());
+    this.seekLocal(target, !this.playback.hasActiveClock());
     return this;
   }
 
@@ -386,9 +343,9 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
      
     const previousState = this.state$.value;
     if (!preservePlaybackState) {
-      this.setState('running');
+      this.playback.setState('running');
       if (previousState === 'paused') this.options.onResume?.();
-    } else if (previousState === 'completed' && !completeNow) this.setState('idle');
+    } else if (previousState === 'completed' && !completeNow) this.playback.setState('idle');
     if (!this.hasStarted) {
       this.hasStarted = true;
       this.options.onStart?.();
@@ -403,10 +360,9 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
     if (completeNow && !this.hasCompleted) {
       this.hasCompleted = true;
-      this.clearMotionLifecycle();
-      this.setState('completed');
-      this.clockSubscription?.unsubscribe();
-      this.clockSubscription = null;
+      this.playback.clearMotionLifecycle();
+      this.playback.setState('completed');
+      this.playback.dropClock();
       this.options.onComplete?.();
       this.completion.resolve();
     }
@@ -545,9 +501,8 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
   /** Reset without callbacks so a parent Timeline can control this item. */
   resetInternal(): void {
-    this.clearMotionLifecycle();
-    this.clockSubscription?.unsubscribe();
-    this.clockSubscription = null;
+    this.playback.clearMotionLifecycle();
+    this.playback.dropClock();
     this.currentTimeValue = 0;
     this.hasStarted = false;
     this.hasCompleted = false;
@@ -558,7 +513,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     }
     this.windowValid = false;
     this.progressSubject.next(0);
-    this.setState('idle');
+    this.playback.setState('idle');
     this.completion.ensurePending();
   }
 
@@ -579,34 +534,6 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
   finally(onfinally?: (() => void) | null): Promise<void> {
     return this.completion.promise.finally(onfinally);
-  }
-
-  private ensureMotionLifecycle(): MotionLifecycleController {
-    if (!this.motionLifecycle) {
-      this.motionLifecycle = new MotionLifecycleController(this.options.motion, {
-        isRunning: () => Boolean(this.clockSubscription && !this.clockSubscription.closed),
-        holdBeforeVisible: () => this.setState('paused'),
-        pauseForLifecycle: () => {
-          if (this.clockSubscription) this.pause();
-          else this.setState('paused');
-        },
-        resumeFromLifecycle: (wasPaused) => this.startClock(wasPaused),
-        finishForReducedMotion: () => {
-          if (!Number.isFinite(this.duration)) return false;
-          this.clockSubscription?.unsubscribe();
-          this.clockSubscription = null;
-          this.seekLocal(this.duration);
-          return true;
-        },
-      });
-    }
-    return this.motionLifecycle;
-  }
-
-  private clearMotionLifecycle(): void {
-    const lifecycle = this.motionLifecycle;
-    this.motionLifecycle = null;
-    lifecycle?.stop();
   }
 
   private resolveOffset(offset?: TimelineOffset): number {
@@ -640,10 +567,6 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     }
      
     throw new RangeError(`Unknown timeline offset or label: "${trimmed}".`);
-  }
-
-  private hasActiveClock(): boolean {
-    return Boolean(this.clockSubscription && !this.clockSubscription.closed);
   }
 
   private lockStructureFromParent(): void {
@@ -680,9 +603,6 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     }
   }
 
-  private setState(state: AnimationState): void {
-    if (this.state$.value !== state) this.stateSubject.next(state);
-  }
 }
 
 function startOf(segment: InternalSegment): number { return segment.startTime; }
@@ -711,3 +631,16 @@ Object.defineProperty(Timeline.prototype, SETTLE_PROBE, {
     return this['hasCompleted'];
   },
 });
+
+/** Frame handling of a directly played Timeline: advance its playhead by the frame delta, scaled and directed. */
+const TIMELINE_PLAYBACK: PlaybackHooks<Timeline> = {
+  frame(timeline, delta, first) {
+    if (first) {
+      timeline['updateAt'](timeline.currentTime, timeline.duration === 0 ? 'forward' : 'none');
+      return;
+    }
+    const nextTime = timeline.currentTime + delta * timeline['playbackRate'] * timeline['playbackDirection'];
+    if (timeline['playbackDirection'] < 0) timeline['updateAt'](Math.max(0, nextTime), 'reverse');
+    else timeline['updateAt'](nextTime, 'forward');
+  },
+};
