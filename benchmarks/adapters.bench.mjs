@@ -15,11 +15,16 @@ import {
   summarizeRuns,
   summarizeSamples,
   emitReport,
+  observeRun,
+  gcRunFields,
+  summarizeGcRuns,
+  variability,
+  harnessInfo,
 } from './benchmark-utils.mjs';
 
 const targetCounts = parseIntegerList(process.env.BENCH_ADAPTER_TARGETS, '100,1000', { minimum: 1, label: 'BENCH_ADAPTER_TARGETS' });
 const frameCount = positiveInteger(process.env.BENCH_ADAPTER_FRAMES, 180, 'BENCH_ADAPTER_FRAMES');
-const repeats = positiveInteger(process.env.BENCH_REPEATS, 5, 'BENCH_REPEATS');
+const repeats = positiveInteger(process.env.BENCH_REPEATS, 10, 'BENCH_REPEATS');
 const warmupRounds = nonNegativeInteger(process.env.BENCH_WARMUP_ROUNDS, 2, 'BENCH_WARMUP_ROUNDS');
 const burstEmissions = positiveInteger(process.env.BENCH_CANVAS_BURST_EMISSIONS, 4, 'BENCH_CANVAS_BURST_EMISSIONS');
 const warmupFrames = Math.min(frameCount, 60);
@@ -119,9 +124,11 @@ function runStyleBinding(targetCount, framesToRun) {
   const targets = Array.from({ length: targetCount }, () => ({ style: new MockStyleDeclaration() }));
   const bindings = targets.map((target) => bindStyle(target, source));
   const frameSamples = [];
+  const frameStarts = [];
   let sourceEmissions = 0;
   for (let frame = 0; frame < framesToRun; frame += 1) {
     const startedAt = performance.now();
+    frameStarts.push(startedAt);
     source.next({
       transform: `translate3d(${frame}px, ${frame / 2}px, 0)`,
       opacity: String((frame % 60) / 59),
@@ -137,6 +144,8 @@ function runStyleBinding(targetCount, framesToRun) {
   return {
     elapsedMs: round(frameSamples.reduce((sum, value) => sum + value, 0), 3),
     frameStats: summarizeSamples(frameSamples),
+    frameStarts,
+    frameSamples,
     sourceEmissions,
     adapterOperations: operationsDuringMeasurement,
     writesPerTargetPerFrame: operationsDuringMeasurement / targetCount / framesToRun,
@@ -149,9 +158,11 @@ function runSvgBinding(targetCount, framesToRun) {
   const targets = Array.from({ length: targetCount }, () => new MockSvgElement());
   const bindings = targets.map((target) => bindSvgAttributes(target, source));
   const frameSamples = [];
+  const frameStarts = [];
   let sourceEmissions = 0;
   for (let frame = 0; frame < framesToRun; frame += 1) {
     const startedAt = performance.now();
+    frameStarts.push(startedAt);
     source.next({
       transform: `translate(${frame} ${frame / 2})`,
       opacity: (frame % 60) / 59,
@@ -167,6 +178,8 @@ function runSvgBinding(targetCount, framesToRun) {
   return {
     elapsedMs: round(frameSamples.reduce((sum, value) => sum + value, 0), 3),
     frameStats: summarizeSamples(frameSamples),
+    frameStarts,
+    frameSamples,
     sourceEmissions,
     adapterOperations: operationsDuringMeasurement,
     writesPerTargetPerFrame: operationsDuringMeasurement / targetCount / framesToRun,
@@ -185,11 +198,13 @@ function runCanvasBinding(targetCount, framesToRun, emissionsPerFrame) {
     adapterSink += x + value.y;
   }));
   const frameSamples = [];
+  const frameStarts = [];
   let sourceEmissions = 0;
   let peakPendingRafCallbacks = 0;
 
   for (let frame = 0; frame < framesToRun; frame += 1) {
     const startedAt = performance.now();
+    frameStarts.push(startedAt);
     for (let emission = 0; emission < emissionsPerFrame; emission += 1) {
       source.next({ x: frame + emission, y: frame / 2 + emission });
       sourceEmissions += 1;
@@ -215,6 +230,8 @@ function runCanvasBinding(targetCount, framesToRun, emissionsPerFrame) {
   return {
     elapsedMs: round(frameSamples.reduce((sum, value) => sum + value, 0), 3),
     frameStats: summarizeSamples(frameSamples),
+    frameStarts,
+    frameSamples,
     sourceEmissions,
     emissionsPerFrame,
     drawCalls: drawCallsDuringMeasurement,
@@ -241,6 +258,8 @@ function summariseMode(runs) {
     medianOfRunP95FrameMs: round(median(runs.map((run) => run.frameStats.p95Ms))),
     medianOfRunP99FrameMs: round(median(runs.map((run) => run.frameStats.p99Ms))),
     worstFrameAcrossRunsMs: round(Math.max(...runs.map((run) => run.frameStats.maxMs))),
+    p99FrameVariability: variability(runs.map((run) => run.frameStats.p99Ms)),
+    ...summarizeGcRuns(runs),
     cleanupPassed: runs.every((run) => run.cleanupPassed),
   };
 }
@@ -255,7 +274,7 @@ try {
     const observations = Object.fromEntries(adapterModes.map(({ id }) => [id, []]));
     for (let repetition = 0; repetition < repeats; repetition += 1) {
       for (const mode of rotateOrder(adapterModes, repetition)) {
-        const result = runMode(mode, targetCount, frameCount);
+        const result = await observeRun(() => runMode(mode, targetCount, frameCount));
         observations[mode.id].push({ repetition: repetition + 1, result });
       }
     }
@@ -284,6 +303,7 @@ try {
             pendingRafCallbacksAfterCleanup: result.pendingRafCallbacksAfterCleanup,
           }),
           cleanupPassed: result.cleanupPassed,
+          ...gcRunFields(result),
         })),
       })),
     });
@@ -293,6 +313,7 @@ try {
     benchmark: 're;Flux DOM-style, SVG-attribute and Canvas adapter update workloads',
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
     configuration: { targetCounts, frameCount, frameIntervalMs: round(frameIntervalMs, 4), warmupRounds, warmupFrames, repeats, canvasBurstEmissions: burstEmissions },
+    harness: harnessInfo(repeats),
     note: 'Targets are lightweight mocks. This measures RxJS binding, value conversion, task scheduling and callback dispatch; it does not measure browser layout, SVG paint or Canvas rasterization.',
     results,
     adapterSink,

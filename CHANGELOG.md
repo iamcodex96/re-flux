@@ -8,6 +8,8 @@ Notable changes to re;Flux are recorded here. This project is in public beta; th
 
 - Add `npm run bench:save` and `npm run bench:compare`, and let `npm run bench` write its JSON report to a file with `--out <file>` or `BENCH_OUT`, so reports parse without stripping the npm banner and two runs can be compared (`benchmarks/compare.mjs` refuses to compare reports from different runtimes).
 - Add exhaustive tests for every built-in easing, `cubicBezier` and `steps`, and tests for `Tween`, `Keyframes`, `AnimationScope`, `animateText`/`animateNumber`, `flip()` and `DOMAnimation` lifecycle behaviour.
+- Report run-to-run variability (coefficient of variation, min/median/max spread) and garbage-collection activity (count, pause, kind, heap delta, and how often the slowest 1% of frames coincide with a GC pause) for every benchmark repetition; default benchmark repeats are now 10. Add opt-in GC control with `npm run bench:gc`, `--expose-gc` or `BENCH_GC=1`, a `noise` block in the aggregate report, per-workload noise bands in `bench:compare`, and machine-load tracking (`harness.system`, a warning from `bench`/`bench:compare` when the machine is busy).
+- Add six hot-path benchmarks to `npm run bench` (`bench:interpolate`, `bench:keyframes`, `bench:css-interpolation`, `bench:path-morph`, `bench:timeline-completed`, `bench:memory`) with deterministic checksum guards.
 - Enforce Jest coverage floors (global and `src/core`) and run coverage on the Node 24 CI leg, uploading the lcov report as an artifact.
 
 ### Changed

@@ -11,11 +11,17 @@ import {
   summarizeRuns,
   summarizeSamples,
   emitReport,
+  observeRun,
+  gcRunFields,
+  summarizeGcRuns,
+  variability,
+  classifyDelta,
+  harnessInfo,
 } from './benchmark-utils.mjs';
 
 const consumerCount = positiveInteger(process.env.BENCH_CONSUMERS, 1000, 'BENCH_CONSUMERS');
 const frameCount = positiveInteger(process.env.BENCH_FRAMES, 180, 'BENCH_FRAMES');
-const repeats = positiveInteger(process.env.BENCH_REPEATS, 5, 'BENCH_REPEATS');
+const repeats = positiveInteger(process.env.BENCH_REPEATS, 10, 'BENCH_REPEATS');
 const warmupRounds = nonNegativeInteger(process.env.BENCH_WARMUP_ROUNDS, 2, 'BENCH_WARMUP_ROUNDS');
 const warmupFrameCount = Math.min(frameCount, 60);
 const frameIntervalMs = 1000 / 60;
@@ -58,10 +64,12 @@ function runShared(observeMetrics, framesToRun) {
   }
 
   const frameSamples = [];
+  const frameStarts = [];
   const startedAt = performance.now();
   for (let frame = 0; frame < framesToRun; frame += 1) {
     peakRafCallbacks = Math.max(peakRafCallbacks, callbacks.size);
     const frameStartedAt = performance.now();
+    frameStarts.push(frameStartedAt);
     const callbackBatchSize = advance(frame * frameIntervalMs);
     frameSamples.push(performance.now() - frameStartedAt);
     assert(callbackBatchSize <= 1, `The shared coordinator scheduled ${callbackBatchSize} RAF callbacks in one frame.`);
@@ -79,6 +87,8 @@ function runShared(observeMetrics, framesToRun) {
     mode: observeMetrics ? 'shared-with-metrics' : 'shared-without-metrics',
     elapsedMs: round(elapsedMs, 3),
     frameStats: summarizeSamples(frameSamples),
+    frameStarts,
+    frameSamples,
     callbackCount,
     peakRafCallbacks,
     diagnostics,
@@ -96,10 +106,12 @@ function runIndependent(framesToRun) {
   }
 
   const frameSamples = [];
+  const frameStarts = [];
   const startedAt = performance.now();
   for (let frame = 0; frame < framesToRun; frame += 1) {
     peakRafCallbacks = Math.max(peakRafCallbacks, callbacks.size);
     const frameStartedAt = performance.now();
+    frameStarts.push(frameStartedAt);
     const callbackBatchSize = advance(frame * frameIntervalMs);
     frameSamples.push(performance.now() - frameStartedAt);
     assert.equal(callbackBatchSize, consumerCount, 'Each independent observable should schedule one callback per consumer.');
@@ -113,6 +125,8 @@ function runIndependent(framesToRun) {
     mode: 'independent-raf-per-consumer',
     elapsedMs: round(elapsedMs, 3),
     frameStats: summarizeSamples(frameSamples),
+    frameStarts,
+    frameSamples,
     callbackCount,
     peakRafCallbacks,
     pendingRafCallbacksAfterCleanup: callbacks.size,
@@ -134,7 +148,7 @@ try {
   for (let repetition = 0; repetition < repeats; repetition += 1) {
     const executionOrder = rotateOrder(modes, repetition);
     for (const mode of executionOrder) {
-      observations[mode.id].push({ repetition: repetition + 1, result: mode.run(frameCount) });
+      observations[mode.id].push({ repetition: repetition + 1, result: await observeRun(() => mode.run(frameCount)) });
     }
   }
 
@@ -152,6 +166,7 @@ try {
       peakRafCallbacks: result.peakRafCallbacks,
       pendingRafCallbacksAfterCleanup: result.pendingRafCallbacksAfterCleanup,
       diagnostics: result.diagnostics,
+      ...gcRunFields(result),
     }));
     return {
       mode: id,
@@ -161,6 +176,8 @@ try {
         medianOfRunP95FrameMs: round(summarizeRuns(runs, ({ result }) => result.frameStats.p95Ms).medianMs),
         medianOfRunP99FrameMs: round(summarizeRuns(runs, ({ result }) => result.frameStats.p99Ms).medianMs),
         worstFrameAcrossRunsMs: round(Math.max(...runs.map(({ result }) => result.frameStats.maxMs)), 4),
+        p99FrameVariability: variability(runs.map(({ result }) => result.frameStats.p99Ms)),
+        ...summarizeGcRuns(runs.map(({ result }) => result)),
         peakRafCallbacks: Math.max(...runs.map(({ result }) => result.peakRafCallbacks)),
         pendingRafCallbacksAfterCleanup: Math.max(...runs.map(({ result }) => result.pendingRafCallbacksAfterCleanup)),
       },
@@ -181,13 +198,19 @@ try {
     benchmark: 're;Flux FrameCoordinator vs independent RAF observables',
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
     configuration: { consumerCount, frameCount, frameIntervalMs: round(frameIntervalMs, 4), warmupRounds, warmupFrameCount, repeats },
+    harness: harnessInfo(repeats),
     comparison: {
       sharedSpeedupVsIndependent: sharedMedian > 0 ? round(independentMedian / sharedMedian, 3) : null,
       observedVsUnobservedElapsedDeltaMs: round(observedMedian - sharedMedian, 4),
       observedVsUnobservedElapsedDeltaPercent: sharedMedian > 0 ? round(((observedMedian - sharedMedian) / sharedMedian) * 100, 2) : null,
       pairedElapsedDeltasMs: pairedMetricsDeltas,
       medianPairedElapsedDeltaMs: round(pairedMetricsDeltas.length ? median(pairedMetricsDeltas.map((entry) => entry.deltaMs)) : 0, 4),
-      interpretation: 'Deltas include run-to-run variance and metrics-observer work; compare repeated results on the same machine.',
+      classification: classifyDelta(
+        sharedMedian > 0 ? ((observedMedian - sharedMedian) / sharedMedian) * 100 : null,
+        byMode['shared-without-metrics'].summary.elapsedMs.cv,
+        byMode['shared-with-metrics'].summary.elapsedMs.cv,
+      ),
+      interpretation: 'Deltas include run-to-run variance and metrics-observer work; compare repeated results on the same machine. `classification` says whether the observed-vs-unobserved difference is inside the measured noise band.',
     },
     note: 'Timings are descriptive, not pass/fail thresholds. Setup and teardown are outside the timed frame loop.',
     results,

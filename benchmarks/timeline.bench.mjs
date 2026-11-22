@@ -9,12 +9,17 @@ import {
   summarizeRuns,
   summarizeSamples,
   emitReport,
+  observeRun,
+  gcRunFields,
+  summarizeGcRuns,
+  variability,
+  harnessInfo,
 } from './benchmark-utils.mjs';
 
 const segmentCount = positiveInteger(process.env.BENCH_SEGMENTS, 2000, 'BENCH_SEGMENTS');
 const durationReads = positiveInteger(process.env.BENCH_DURATION_READS, 1_000_000, 'BENCH_DURATION_READS');
 const seekFrameCount = positiveInteger(process.env.BENCH_SEEK_FRAMES, 180, 'BENCH_SEEK_FRAMES');
-const repeats = positiveInteger(process.env.BENCH_REPEATS, 5, 'BENCH_REPEATS');
+const repeats = positiveInteger(process.env.BENCH_REPEATS, 10, 'BENCH_REPEATS');
 const warmupRounds = nonNegativeInteger(process.env.BENCH_WARMUP_ROUNDS, 2, 'BENCH_WARMUP_ROUNDS');
 const callbackWorkIterations = nonNegativeInteger(process.env.BENCH_TIMELINE_CALLBACK_WORK, 0, 'BENCH_TIMELINE_CALLBACK_WORK');
 const groupSize = 50;
@@ -71,6 +76,7 @@ function measureNestedScrub(framesToRun) {
   const scenario = buildNestedTimeline();
   const buildMs = performance.now() - buildStartedAt;
   const seekSamples = [];
+  const seekStarts = [];
   const timeline = scenario.timeline;
   const totalDuration = timeline.duration;
 
@@ -78,6 +84,7 @@ function measureNestedScrub(framesToRun) {
     const normalizedPosition = framesToRun === 1 ? 1 : frame / (framesToRun - 1);
     const target = totalDuration * normalizedPosition;
     const seekStartedAt = performance.now();
+    seekStarts.push(seekStartedAt);
     timeline.seek(target);
     seekSamples.push(performance.now() - seekStartedAt);
   }
@@ -91,6 +98,8 @@ function measureNestedScrub(framesToRun) {
     groupSize,
     timelineDurationMs: round(totalDuration, 3),
     seekFrames: seekSamples.length,
+    frameStarts: seekStarts,
+    frameSamples: seekSamples,
     callbacks: scenario.callbackCount,
     callbackWorkIterations,
   };
@@ -100,7 +109,7 @@ function measureNestedScrub(framesToRun) {
   return result;
 }
 
-function runDurationReadBenchmark() {
+async function runDurationReadBenchmark() {
   const buildStartedAt = performance.now();
   const timeline = buildDurationTimeline();
   // Keep timeline construction separate from the duration-read microbenchmark.
@@ -109,7 +118,7 @@ function runDurationReadBenchmark() {
   for (let warmup = 0; warmup < warmupRounds; warmup += 1) measureDurationReads(timeline, warmupReads);
   const runs = [];
   for (let repetition = 0; repetition < repeats; repetition += 1) {
-    runs.push({ repetition: repetition + 1, ...measureDurationReads(timeline, durationReads) });
+    runs.push({ repetition: repetition + 1, ...(await observeRun(() => measureDurationReads(timeline, durationReads))) });
   }
   return {
     segmentCount,
@@ -118,19 +127,20 @@ function runDurationReadBenchmark() {
     summary: {
       elapsedMs: summarizeRuns(runs, (run) => run.durationMs),
       medianReadsPerMs: round(durationReads / Math.max(0.000001, median(runs.map((run) => run.durationMs))), 2),
+      ...summarizeGcRuns(runs),
     },
-    runs: runs.map((run) => ({ repetition: run.repetition, durationMs: round(run.durationMs, 4), durationChecksum: run.durationChecksum })),
+    runs: runs.map((run) => ({ repetition: run.repetition, durationMs: round(run.durationMs, 4), durationChecksum: run.durationChecksum, ...gcRunFields(run) })),
     durationChecksum: runs.at(-1)?.durationChecksum ?? 0,
   };
 }
 
 try {
-  const durationReadResults = runDurationReadBenchmark();
+  const durationReadResults = await runDurationReadBenchmark();
   const warmupFrameCount = Math.min(seekFrameCount, 60);
   for (let warmup = 0; warmup < warmupRounds; warmup += 1) measureNestedScrub(warmupFrameCount);
   const scrubRuns = [];
   for (let repetition = 0; repetition < repeats; repetition += 1) {
-    const result = measureNestedScrub(seekFrameCount);
+    const result = await observeRun(() => measureNestedScrub(seekFrameCount));
     scrubRuns.push({ repetition: repetition + 1, ...result });
   }
 
@@ -138,6 +148,7 @@ try {
     benchmark: 're;Flux timeline duration reads and nested overlapping scrub',
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
     configuration: { segmentCount, durationReads, seekFrameCount, warmupRounds, warmupFrameCount, repeats, callbackWorkIterations, nestedTimelineGroupSize: groupSize },
+    harness: harnessInfo(repeats),
     durationReads: durationReadResults,
     nestedTimelineScrub: {
       summary: {
@@ -149,6 +160,8 @@ try {
         medianP99SeekMs: round(median(scrubRuns.map((run) => run.seekFrameStats.p99Ms))),
         worstSeekAcrossRunsMs: round(Math.max(...scrubRuns.map((run) => run.seekFrameStats.maxMs))),
         callbacksPerRun: scrubRuns.map((run) => run.callbacks),
+        seekP99Variability: variability(scrubRuns.map((run) => run.seekFrameStats.p99Ms)),
+        ...summarizeGcRuns(scrubRuns),
       },
       runs: scrubRuns.map((run) => ({
         repetition: run.repetition,
@@ -159,6 +172,7 @@ try {
         nestedTimelineCount: run.nestedTimelineCount,
         timelineDurationMs: run.timelineDurationMs,
         callbacks: run.callbacks,
+        ...gcRunFields(run),
       })),
     },
     note: 'The nested scrub scenario uses deterministic overlapping child timelines and onUpdate callbacks. It measures scheduling-free seek work, not browser rendering or DOM/SVG/Canvas paint.',

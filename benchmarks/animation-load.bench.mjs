@@ -12,12 +12,18 @@ import {
   summarizeRuns,
   summarizeSamples,
   emitReport,
+  observeRun,
+  gcRunFields,
+  summarizeGcRuns,
+  variability,
+  classifyDelta,
+  harnessInfo,
 } from './benchmark-utils.mjs';
 
 const frameIntervalMs = 1000 / 60;
 const measuredFrameCount = positiveInteger(process.env.BENCH_ANIMATION_FRAMES, 180, 'BENCH_ANIMATION_FRAMES');
 const animationCounts = parseIntegerList(process.env.BENCH_ANIMATION_COUNTS, '100,1000,5000', { minimum: 1, label: 'BENCH_ANIMATION_COUNTS' });
-const repeats = positiveInteger(process.env.BENCH_REPEATS, 5, 'BENCH_REPEATS');
+const repeats = positiveInteger(process.env.BENCH_REPEATS, 10, 'BENCH_REPEATS');
 const warmupRounds = nonNegativeInteger(process.env.BENCH_WARMUP_ROUNDS, 2, 'BENCH_WARMUP_ROUNDS');
 const warmupFrameCount = Math.min(measuredFrameCount, 60);
 const callbackWorkIterations = process.env.BENCH_ANIMATION_CALLBACK_WORK === undefined
@@ -65,6 +71,7 @@ function runScenario(animationCount, workIterations, observeMetrics, frameCount)
 
   const before = frameCoordinator.metrics;
   const frameSamples = [];
+  const frameStarts = [];
   const metricWorkSamples = [];
   let metricNotificationCount = 0;
   let callbackCount = 0;
@@ -98,6 +105,7 @@ function runScenario(animationCount, workIterations, observeMetrics, frameCount)
   for (let frame = 1; frame <= frameCount; frame += 1) {
     peakPendingRafCallbacks = Math.max(peakPendingRafCallbacks, pendingRafCallbacks.size);
     const frameStartedAt = performance.now();
+    frameStarts.push(frameStartedAt);
     const callbacksRun = advanceRaf(frame * frameIntervalMs);
     frameSamples.push(performance.now() - frameStartedAt);
     assert(callbacksRun <= 1, `Expected the shared RAF source to schedule at most one callback, received ${callbacksRun}.`);
@@ -120,6 +128,8 @@ function runScenario(animationCount, workIterations, observeMetrics, frameCount)
     instrumentation: observeMetrics ? 'metrics-observed' : 'metrics-disabled',
     elapsedMs: round(elapsedMs, 3),
     frameStats: summarizeSamples(frameSamples),
+    frameStarts,
+    frameSamples,
     internalFrameWorkStats: observeMetrics ? summarizeSamples(metricWorkSamples) : null,
     callbacks: callbackCount,
     primingRafFrames: primingRafCallbacks,
@@ -143,6 +153,8 @@ function summarizeModeRuns(runs) {
     medianInternalFrameWorkMs: round(median(runs.flatMap((run) => run.internalFrameWorkStats?.meanMs === undefined ? [] : [run.internalFrameWorkStats.meanMs])), 4),
     peakPendingRafCallbacks: Math.max(...runs.map((run) => run.peakPendingRafCallbacks)),
     pendingRafCallbacksAfterCleanup: Math.max(...runs.map((run) => run.pendingRafCallbacksAfterCleanup)),
+    p99FrameVariability: variability(runs.map((run) => run.frameStats.p99Ms)),
+    ...summarizeGcRuns(runs),
   };
 }
 
@@ -159,7 +171,7 @@ try {
       for (let repetition = 0; repetition < repeats; repetition += 1) {
         const executionOrder = rotateOrder(metricsModes, repetition);
         for (const mode of executionOrder) {
-          const run = runScenario(animationCount, workIterations, mode.observeMetrics, measuredFrameCount);
+          const run = await observeRun(() => runScenario(animationCount, workIterations, mode.observeMetrics, measuredFrameCount));
           run.repetition = repetition + 1;
           run.executionOrder = executionOrder.map(({ id }) => id);
           modeRuns[mode.id].push(run);
@@ -187,6 +199,11 @@ try {
           pairedElapsedDeltasMs,
           medianPairedElapsedDeltaMs: round(median(pairedElapsedDeltasMs.map((entry) => entry.deltaMs)), 3),
           observedVsDisabledMedianP95DeltaMs: round(p95Delta, 4),
+          classification: classifyDelta(
+            disabled.elapsedMs.medianMs > 0 ? (elapsedDelta / disabled.elapsedMs.medianMs) * 100 : null,
+            disabled.elapsedMs.cv,
+            observed.elapsedMs.cv,
+          ),
           interpretation: 'This paired difference estimates end-to-end observer overhead for this workload; it is not a universal intrinsic instrumentation cost.',
         },
       });
@@ -205,6 +222,7 @@ try {
       repeats,
       animationCounts,
       callbackWorkLevels,
+      harness: harnessInfo(repeats),
       comparison: 'metrics instrumentation disabled vs observed; execution order alternates across repetitions',
     },
     note: 'Timings are descriptive, not pass/fail thresholds. Each run records an explicit priming frame plus the requested measured frame intervals. Compare repeated runs on the same machine and runtime.',
@@ -236,5 +254,6 @@ function compactRun(run) {
     primingRafFrames: run.primingRafFrames,
     peakPendingRafCallbacks: run.peakPendingRafCallbacks,
     pendingRafCallbacksAfterCleanup: run.pendingRafCallbacksAfterCleanup,
+    ...gcRunFields(run),
   };
 }

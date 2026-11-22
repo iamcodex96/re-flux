@@ -8,3 +8,6 @@ coverage/
 !.env.example
 .idea/
 benchmarks/results/
+
+# Local benchmark baselines: machine-specific and large, so kept out of git
+roadmap/baseline/*.json

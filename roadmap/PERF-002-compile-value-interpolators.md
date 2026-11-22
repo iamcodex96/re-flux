@@ -37,8 +37,8 @@ Every box must be checkable by running the named command or inspecting the named
 - [ ] All existing `tests/values/*.test.ts` pass unchanged.
 - [ ] A property-style test compares compiled vs. legacy output for ≥1000 random pairs of numbers, hex/rgb colors and numeric templates at random progress values: identical strings.
 - [ ] `grep -n "parseColor\|parseNumericTemplate" src/values/interpolate.ts` shows no call reachable from the per-frame closure.
-- [ ] `npm run bench:interpolate` (BENCH-008): median ops/ms for color and numeric-template tweens is higher than baseline by the target recorded in this file before work begins, outside the BENCH-007 noise band; number-only tweens do not regress.
-- [ ] Heap delta per 1e5 interpolations (BENCH-008) does not increase.
+- [ ] `npm run bench:interpolate` (BENCH-008): median ops/ms for the `resolved` color and numeric-template cases is higher than the BENCH-008 baseline by the target recorded in this file before work begins, outside the BENCH-007 noise band; number-only tweens do not regress.
+- [ ] `scavengesPerMillionOps` for the same cases (BENCH-008, relative allocation measure) does not increase, and the GC-controlled `heapMedianDeltaMb` does not increase.
 
 ## Shared gates
 
