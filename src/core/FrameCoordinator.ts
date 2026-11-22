@@ -27,9 +27,24 @@ export interface FrameCoordinatorDiagnostics extends FrameCoordinatorMetrics {
  */
 interface ScheduledFrameTask {
   readonly callback: FrameTask;
-  readonly subscription: Subscription;
+  /** `null` for a persistent write channel, which has no per-request Subscription. */
+  readonly subscription: Subscription | null;
   active: boolean;
   running: boolean;
+  /** Persistent channel only: true while the entry sits in the write queue. */
+  queued: boolean;
+}
+
+/**
+ * A reusable write-phase slot for code that wants "run this callback in the next write phase, at
+ * most once per frame" without allocating a task and a Subscription per request.
+ * @internal Used by `bindCanvas`; not part of the public API.
+ */
+export interface WriteChannel {
+  /** Queue the callback for this frame's write phase if it is not queued already. */
+  request(): void;
+  /** Drop any queued run and make later `request()` calls no-ops. Idempotent. */
+  dispose(): void;
 }
 
 export class FrameCoordinator {
@@ -111,14 +126,44 @@ export class FrameCoordinator {
     return this.schedule(task, this.writeQueue);
   }
 
+  /** @internal Open a reusable write channel; see {@link openWriteChannel}. */
+  private createWriteChannel(callback: FrameTask): WriteChannel {
+    const entry: ScheduledFrameTask = { callback, subscription: null, active: true, running: false, queued: false };
+    return {
+      request: () => {
+        if (!entry.active || entry.queued) return;
+        entry.queued = true;
+        this.writeQueue.push(entry);
+        const error = this.ensureClock();
+        if (error) {
+          entry.queued = false;
+          this.removeTask(entry);
+          throw error;
+        }
+      },
+      dispose: () => {
+        if (!entry.active) return;
+        entry.active = false;
+        if (entry.running) return;
+        if (entry.queued) {
+          entry.queued = false;
+          this.removeTask(entry);
+          this.stopIfIdle();
+        }
+      },
+    };
+  }
+
   private schedule(task: FrameTask, queue: ScheduledFrameTask[]): Subscription {
+    const subscription = new Subscription();
     const entry: ScheduledFrameTask = {
       callback: task,
-      subscription: new Subscription(),
+      subscription,
       active: true,
       running: false,
+      queued: true,
     };
-    entry.subscription.add(() => {
+    subscription.add(() => {
       entry.active = false;
       if (entry.running) return;
       this.removeTask(entry);
@@ -128,10 +173,10 @@ export class FrameCoordinator {
 
     const error = this.ensureClock();
     if (error) {
-      entry.subscription.unsubscribe();
+      subscription.unsubscribe();
       throw error;
     }
-    return entry.subscription;
+    return subscription;
   }
 
   private removeTask(task: ScheduledFrameTask): void {
@@ -155,7 +200,10 @@ export class FrameCoordinator {
         const queuedTasks = [...this.readQueue, ...this.writeQueue];
         this.readQueue.length = 0;
         this.writeQueue.length = 0;
-        for (const task of queuedTasks) task.subscription.unsubscribe();
+        for (const task of queuedTasks) {
+          if (task.subscription) task.subscription.unsubscribe();
+          else task.queued = false;
+        }
 
         for (const subscriber of [...this.frameSubscribers]) subscriber.error(error);
         this.frameSubscribers.clear();
@@ -207,7 +255,8 @@ export class FrameCoordinator {
 
   private runTasks(tasks: ScheduledFrameTask[], frame: AnimationFrameTick): void {
     for (const task of tasks) {
-      if (!task.active || task.subscription.closed) continue;
+      if (!task.active) continue;
+      task.queued = false;
       task.running = true;
       try {
         task.callback(frame);
@@ -216,7 +265,7 @@ export class FrameCoordinator {
         queueMicrotask(() => { throw error; });
       } finally {
          
-        task.subscription.unsubscribe();
+        if (task.subscription) task.subscription.unsubscribe();
         task.running = false;
       }
     }
@@ -248,6 +297,15 @@ export class FrameCoordinator {
 function monotonicNow(): number {
   if (typeof performance !== 'undefined' && typeof performance.now === 'function') return performance.now();
   return Date.now();
+}
+
+/**
+ * Open a reusable write-phase channel on `coordinator` (default: the shared one).
+ * @internal Not re-exported from the package entry points.
+ */
+export function openWriteChannel(callback: FrameTask, coordinator: FrameCoordinator = frameCoordinator): WriteChannel {
+  // Bracket access is the TypeScript-sanctioned way to reach a private member from the same module.
+  return coordinator['createWriteChannel'](callback);
 }
 
 /** Default coordinator used by Animation, Timeline and value streams. */

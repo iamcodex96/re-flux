@@ -15,6 +15,7 @@ Notable changes to re;Flux are recorded here. This project is in public beta; th
 
 ### Changed
 
+- `bindCanvas` no longer allocates a scheduled task, `Subscription` and closure for every coalesced draw: each binding owns one persistent write slot that an emission only flags. Draw timing and coalescing are unchanged; in a 1000-binding benchmark (mock context, loaded machine) young-generation collections per run dropped about 5x for single emissions and 3.4x for bursts.
 - An unknown easing name (for example a typo such as `easeOutQaud`) still falls back to `linear`, but `resolveEasing()` now logs one `console.warn` per distinct name outside production builds (`NODE_ENV !== 'production'`), at construction time in `Animation`, `Tween`, `Keyframes` (including per-keyframe easings) and `animate()`. `EasingOption` is now `EasingFunction | EasingName | (string & {})` instead of collapsing to `string`, so editors suggest the known names; arbitrary strings remain assignable. `Keyframes` resolves every segment's easing once in the constructor instead of on every frame.
 - Add the `default` condition to the root `exports["."]` entry, matching every subpath, so `require.resolve("@re-code/flux")` and bundlers that do not request the `import` condition can resolve the package. The package remains ESM-only.
 - Include `src/flowField.ts` in coverage collection and drop the types-only `src/types.ts`.

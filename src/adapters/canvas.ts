@@ -1,6 +1,6 @@
 import { Subscription, type Observable } from 'rxjs';
 import type { AnimationFrameTick } from '../types.js';
-import { frameCoordinator } from '../core/FrameCoordinator.js';
+import { openWriteChannel } from '../core/FrameCoordinator.js';
 
 /** Options for a Canvas 2D value binding. */
 export interface CanvasBindingOptions {
@@ -34,7 +34,6 @@ export function bindCanvas<T>(
   const binding = new Subscription();
   let latestValue: T | undefined;
   let hasValue = false;
-  let pendingWrite: Subscription | null = null;
 
   const clearBitmap = (): void => {
     const { canvas } = context;
@@ -47,30 +46,30 @@ export function bindCanvas<T>(
     }
   };
 
+  // One persistent write slot per binding: an emission only flags it dirty, so steady-state frames
+  // allocate no task, Subscription or closure. Frame semantics are unchanged: an emission before or
+  // during the consumer phase draws in this frame's write phase; one made inside the draw callback
+  // draws on the next frame.
+  const channel = openWriteChannel((frame) => {
+    if (binding.closed || !hasValue) return;
+    if (clearBeforeDraw) clearBitmap();
+    context.save();
+    try {
+      draw(context, latestValue as T, frame);
+    } finally {
+      context.restore();
+    }
+  });
+
   const upstream = values$.subscribe((value) => {
     latestValue = value;
     hasValue = true;
-    if (pendingWrite && !pendingWrite.closed) return;
-
-    const write = frameCoordinator.scheduleWrite((frame) => {
-      pendingWrite = null;
-      if (binding.closed || !hasValue) return;
-      if (clearBeforeDraw) clearBitmap();
-      context.save();
-      try {
-        draw(context, latestValue as T, frame);
-      } finally {
-        context.restore();
-      }
-    });
-    pendingWrite = write;
-    binding.add(write);
+    channel.request();
   });
 
   binding.add(upstream);
   binding.add(() => {
-    pendingWrite?.unsubscribe();
-    pendingWrite = null;
+    channel.dispose();
     latestValue = undefined;
     hasValue = false;
     if (clearOnUnsubscribe) clearBitmap();
