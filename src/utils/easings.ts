@@ -51,6 +51,14 @@ const easeOutElastic: EasingFunction = (t) => {
   const c4 = (2 * Math.PI) / 3;
   return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
 };
+const easeInOutElastic: EasingFunction = (t) => {
+  if (t === 0 || t === 1) return t;
+  const c5 = (2 * Math.PI) / 4.5;
+  const sine = Math.sin((20 * t - 11.125) * c5);
+  return t < 0.5
+    ? -(Math.pow(2, 20 * t - 10) * sine) / 2
+    : (Math.pow(2, -20 * t + 10) * sine) / 2 + 1;
+};
 const easeOutBounce: EasingFunction = (t) => {
   const n1 = 7.5625;
   const d1 = 2.75;
@@ -75,14 +83,30 @@ export const Easings: Readonly<Record<string, EasingFunction>> = Object.freeze({
   easeInCirc, easeOutCirc, easeInOutCirc,
   easeInExpo, easeOutExpo, easeInOutExpo,
   easeInBack, easeOutBack, easeInOutBack,
-  easeInElastic, easeOutElastic,
+  easeInElastic, easeOutElastic, easeInOutElastic,
   easeInBounce, easeOutBounce, easeInOutBounce,
 });
 
-/** Resolve an easing function or name; unknown names fall back to linear. */
+const warnedEasingNames = new Set<string>();
+
+function isProduction(): boolean {
+  return typeof process !== 'undefined' && process.env?.NODE_ENV === 'production';
+}
+
+/**
+ * Resolve an easing function or name. Unknown names fall back to linear and, outside production
+ * builds, log one `console.warn` per distinct name so a typo is visible. Call this once at
+ * construction time, never per frame.
+ */
 export function resolveEasing(easing?: EasingOption): EasingFunction {
   if (typeof easing === 'function') return easing;
-  if (typeof easing === 'string' && Object.prototype.hasOwnProperty.call(Easings, easing)) return Easings[easing]!;
+  if (typeof easing === 'string') {
+    if (Object.prototype.hasOwnProperty.call(Easings, easing)) return Easings[easing]!;
+    if (!isProduction() && !warnedEasingNames.has(easing)) {
+      warnedEasingNames.add(easing);
+      console.warn(`[re;Flux] Unknown easing "${easing}"; falling back to "linear". Known names: ${Object.keys(Easings).join(', ')}.`);
+    }
+  }
   return Easings.linear!;
 }
 

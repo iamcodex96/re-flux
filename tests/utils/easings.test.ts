@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { Easings, cubicBezier, resolveEasing, steps } from '../../src/utils/easings.js';
 
 /**
@@ -33,6 +33,7 @@ const MIDPOINT: Readonly<Record<string, number>> = {
   easeInOutBack: 0.5,
   easeInElastic: -0.015625,
   easeOutElastic: 1.015625,
+  easeInOutElastic: 0.5,
   easeInBounce: 0.234375,
   easeOutBounce: 0.765625,
   easeInOutBounce: 0.5,
@@ -99,6 +100,8 @@ describe('Given the built-in easing functions', () => {
 });
 
 describe('Given resolveEasing', () => {
+  afterEach(() => { jest.restoreAllMocks(); });
+
   describe('When it receives a function', () => {
     it('Then it returns the same function', () => {
       const custom = (progress: number): number => progress * progress;
@@ -110,12 +113,61 @@ describe('Given resolveEasing', () => {
       expect(resolveEasing('easeInQuad')).toBe(Easings.easeInQuad);
     });
   });
-  describe('When it receives nothing or an unknown name', () => {
-    it('Then it currently falls back to linear', () => {
-      // Pinned as characterization of today's behaviour; roadmap item API-001 may change the policy.
+  describe('When it receives nothing', () => {
+    it('Then it returns linear without warning', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
       expect(resolveEasing()(0.3)).toBe(0.3);
-      expect(resolveEasing('notAnEasing')(0.3)).toBe(0.3);
+      expect(warn).not.toHaveBeenCalled();
+    });
+  });
+  describe('When it receives an unknown name', () => {
+    it('Then it falls back to linear and warns once per distinct name (API-001 policy)', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      expect(resolveEasing('resolveTypoA')(0.3)).toBe(0.3);
+      expect(resolveEasing('resolveTypoA')(0.3)).toBe(0.3);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(String(warn.mock.calls[0]![0])).toContain('"resolveTypoA"');
+
+      expect(resolveEasing('resolveTypoB')(0.3)).toBe(0.3);
+      expect(warn).toHaveBeenCalledTimes(2);
+    });
+
+    it('Then inherited object keys are treated as unknown names', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => undefined);
       expect(resolveEasing('toString')(0.3)).toBe(0.3);
+    });
+
+    it('Then it does not warn when NODE_ENV is production', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        expect(resolveEasing('resolveTypoProduction')(0.3)).toBe(0.3);
+      } finally {
+        if (previous === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = previous;
+      }
+      expect(warn).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('Given easeInOutElastic', () => {
+  describe('When it is compared with the other elastic variants', () => {
+    it('Then it is anchored at 0 and 1 and point-symmetric around (0.5, 0.5)', () => {
+      const easing = Easings.easeInOutElastic!;
+      expect(easing(0)).toBe(0);
+      expect(easing(1)).toBe(1);
+      for (const progress of GRID) expect(easing(progress) + easing(1 - progress)).toBeCloseTo(1, 9);
+    });
+
+    it('Then each half is a compressed copy of the in and out curves (same sign pattern)', () => {
+      const inOut = Easings.easeInOutElastic!;
+      // The first half undershoots 0 like easeInElastic; the second half overshoots 1 like easeOutElastic.
+      expect(GRID.filter((progress) => progress < 0.5).some((progress) => inOut(progress) < 0)).toBe(true);
+      expect(GRID.filter((progress) => progress > 0.5).some((progress) => inOut(progress) > 1)).toBe(true);
+      expect(Easings.easeInElastic!(0.25)).toBeLessThan(0);
+      expect(Easings.easeOutElastic!(0.75)).toBeGreaterThan(1);
     });
   });
 });

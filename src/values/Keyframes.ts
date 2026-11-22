@@ -26,7 +26,7 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
   private readonly animation: Animation;
   private readonly frames: readonly NormalizedKeyframe<T>[];
   private readonly interpolators: readonly ValueInterpolator<T>[];
-  private readonly defaultEasing: EasingFunction;
+  private readonly segmentEasings: readonly EasingFunction[];
   private readonly onValueUpdate: ((value: T, progress: number) => void) | undefined;
 
   constructor(options: KeyframesOptions<T>) {
@@ -36,7 +36,8 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
     this.interpolators = this.frames.slice(0, -1).map((frame, index) =>
       resolveInterpolator(frame.value, this.frames[index + 1]!.value, options.interpolate, 'Keyframes'),
     );
-    this.defaultEasing = resolveEasing(options.easing);
+    const defaultEasing = resolveEasing(options.easing);
+    this.segmentEasings = this.frames.slice(0, -1).map((frame) => frame.easing === undefined ? defaultEasing : resolveEasing(frame.easing));
     this.onValueUpdate = options.onUpdate;
     this.valueSubject = new BehaviorSubject<T>(this.frames[0]!.value);
     this.value$ = readonlyBehavior(this.valueSubject);
@@ -142,8 +143,7 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
 
     const span = end.offset - start.offset;
     const localProgress = span <= 0 ? 1 : clamp((normalizedProgress - start.offset) / span, 0, 1);
-    const easing = resolveEasing(start.easing ?? this.defaultEasing);
-    const value = this.interpolators[segmentIndex]!(start.value, end.value, easing(localProgress));
+    const value = this.interpolators[segmentIndex]!(start.value, end.value, this.segmentEasings[segmentIndex]!(localProgress));
     this.publishValue(value, progress);
   }
 
