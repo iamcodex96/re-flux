@@ -2,6 +2,7 @@ import { BehaviorSubject } from 'rxjs';
 import { readonlyBehavior, type ReadonlyBehaviorObservable } from '../utils/readOnlyBehavior.js';
 import type { AnimatableItem, AnimationOptions, AnimationState } from '../types/animation.js';
 import { Animation } from '../core/Animation.js';
+import { SETTLE_PROBE, type SettleProbed } from '../core/settle.js';
 
 /**
  * @internal Shared shell of `Tween` and `Keyframes`: an `Animation` that publishes a typed value.
@@ -105,3 +106,10 @@ export abstract class AnimatedValue<T> implements AnimatableItem, PromiseLike<vo
     return this.animation.finally(onfinally);
   }
 }
+
+// Tween and Keyframes are settled exactly when their Animation is; see `core/settle.ts`.
+Object.defineProperty(AnimatedValue.prototype, SETTLE_PROBE, {
+  value(this: AnimatedValue<unknown>): boolean {
+    return (this['animation'] as SettleProbed)[SETTLE_PROBE]?.() ?? false;
+  },
+});

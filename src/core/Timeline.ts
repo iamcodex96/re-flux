@@ -4,9 +4,15 @@ import type { AnimatableItem, AnimationState, TimelineOffset, TimelineOptions, T
 import { Completion } from './Completion.js';
 import { frameCoordinator } from './FrameCoordinator.js';
 import { MotionLifecycleController } from './MotionLifecycleController.js';
+import { SETTLE_PROBE, type SettleProbed } from './settle.js';
 import { assertFiniteNonNegative } from '../utils/timing.js';
 
 const STOPPED_ERROR = 'Animation stopped before completion';
+
+/** The segment is before its start and has already been reset: nothing to do until the playhead reaches `startTime`. */
+const QUIET_BEFORE = 1;
+/** The segment is complete and its item ignores further seeks (see `settle.ts`): nothing to do until the playhead moves back before its end. */
+const QUIET_AFTER = 2;
 
 interface InternalSegment {
   item: AnimatableItem;
@@ -14,7 +20,14 @@ interface InternalSegment {
   endTime: number;
   duration: number;
   beforeStart: boolean;
+  /** Position in `entries`; visiting order is always insertion order. */
+  readonly index: number;
+  /** 0 while the segment must be visited on the next update, otherwise `QUIET_BEFORE` / `QUIET_AFTER`. */
+  quiet: 0 | typeof QUIET_BEFORE | typeof QUIET_AFTER;
 }
+
+/** Relative slack when looking for segments whose completion may have been undone by a backward move. */
+const END_SLACK = 1e-9;
 
 /** Coordinates entries without calling play(): the global playhead drives each child through seekLocal(). */
 export class Timeline implements AnimatableItem, PromiseLike<void> {
@@ -39,6 +52,24 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   private playbackRate = 1;
   private playbackDirection: 1 | -1 = 1;
   private structureLocked = false;
+  /** Cached result of `segments`; dropped when a segment is added. */
+  private segmentsSnapshot: readonly TimelineSegment[] | null = null;
+  /**
+   * Segments that must be visited on the next update, in insertion order. Valid only while `windowValid`: every other
+   * segment is quiet (`QUIET_BEFORE` / `QUIET_AFTER`) and an update would do nothing to it. Rebuilt from `entries` by
+   * any change that could make that untrue (adding, stopping, restarting, resetting, a throwing or re-entered update).
+   */
+  private activeSegments: InternalSegment[] = [];
+  private activeScratch: InternalSegment[] = [];
+  private wokenSegments: InternalSegment[] = [];
+  private windowValid = false;
+  /** The playhead of the last completed update; quiet segments are consistent with it. */
+  private windowTime = 0;
+  private updatingSegments = false;
+  private reenteredWhileUpdating = false;
+  /** `entries` sorted by start time / end time (ties by insertion order); dropped when a segment is added. */
+  private byStart: InternalSegment[] | null = null;
+  private byEnd: InternalSegment[] | null = null;
 
   constructor(options: TimelineOptions = {}) {
     this.options = Object.freeze({ ...options });
@@ -64,12 +95,13 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
   /** Read-only snapshot for rendering a Gantt chart without exposing the internal array. */
   get segments(): readonly TimelineSegment[] {
-    return this.entries.map((segment) => Object.freeze({
+    this.segmentsSnapshot ??= Object.freeze(this.entries.map((segment) => Object.freeze({
       item: segment.item,
       startTime: segment.startTime,
       endTime: segment.endTime,
       duration: segment.duration,
-    }));
+    })));
+    return this.segmentsSnapshot;
   }
 
   add(item: AnimatableItem, offset?: TimelineOffset): this {
@@ -100,9 +132,13 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     if (duration !== Infinity && !Number.isFinite(endTime)) {
       throw new RangeError('Timeline segment end time must be finite; reduce the offset or child duration.');
     }
-    const segment: InternalSegment = { item, startTime, endTime, duration, beforeStart: false };
+    const segment: InternalSegment = { item, startTime, endTime, duration, beforeStart: false, index: this.entries.length, quiet: 0 };
     if (item instanceof Timeline) item.parentOwner = this;
     this.entries.push(segment);
+    this.segmentsSnapshot = null;
+    this.byStart = null;
+    this.byEnd = null;
+    this.windowValid = false;
     this.durationValue = Math.max(this.durationValue, endTime);
     this.lastAddedStart = startTime;
     this.lastAddedEnd = segment.endTime;
@@ -286,6 +322,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
       segment.item.resetInternal();
       segment.beforeStart = true;
     }
+    this.windowValid = false;
     this.progressSubject.next(0);
     this.setState('idle');
     if (wasPending) this.completion.reject(new Error(STOPPED_ERROR));
@@ -307,6 +344,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
       segment.item.resetInternal();
       segment.beforeStart = true;
     }
+    this.windowValid = false;
     this.progressSubject.next(0);
     this.setState('idle');
     return this.play();
@@ -356,18 +394,8 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
       this.options.onStart?.();
     }
 
-     
-    for (const segment of this.entries) {
-      if (bounded < segment.startTime) {
-        if (!segment.beforeStart) {
-          segment.item.resetInternal();
-          segment.beforeStart = true;
-        }
-      } else {
-        segment.beforeStart = false;
-        segment.item.seekLocal(bounded - segment.startTime, preservePlaybackState);
-      }
-    }
+
+    this.visitSegments(bounded, preservePlaybackState);
 
     const progress = total > 0 && Number.isFinite(total) ? Math.min(1, bounded / total) : (completionMode === 'reverse' ? 0 : (bounded >= total ? 1 : 0));
     this.progressSubject.next(progress);
@@ -384,6 +412,137 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     }
   }
 
+  /**
+   * Moves every segment to the playhead `bounded`, calling the children in insertion order, exactly as visiting all
+   * of `entries` would. Only segments that can still change are visited: a segment before its start that was already
+   * reset, and a completed built-in child (whose `seekLocal` is a no-op, see `settle.ts`), are quiet and are woken
+   * only when the playhead crosses their start or moves back before their end. The first update after any
+   * structural change visits everything.
+   */
+  private visitSegments(bounded: number, preservePlaybackState: boolean): void {
+    if (this.updatingSegments) {
+      // A child callback re-entered the timeline: do the plain pass and let the outer pass rebuild the window.
+      this.reenteredWhileUpdating = true;
+      this.visitAllSegments(bounded, preservePlaybackState);
+      return;
+    }
+
+    this.updatingSegments = true;
+    this.reenteredWhileUpdating = false;
+    const wasValid = this.windowValid;
+    // Stays false if a child callback throws, so the next update starts from a complete list.
+    this.windowValid = false;
+    try {
+      if (wasValid) this.wakeSegments(this.windowTime, bounded);
+      else this.resetWindow();
+
+      const active = this.activeSegments;
+      let kept = 0;
+      for (let position = 0; position < active.length; position += 1) {
+        const segment = active[position]!;
+        if (bounded < segment.startTime) {
+          if (!segment.beforeStart) {
+            segment.item.resetInternal();
+            segment.beforeStart = true;
+          }
+          segment.quiet = QUIET_BEFORE;
+          continue;
+        }
+        segment.beforeStart = false;
+        const localTime = bounded - segment.startTime;
+        segment.item.seekLocal(localTime, preservePlaybackState);
+        if (localTime >= segment.duration && isSettled(segment.item)) {
+          segment.quiet = QUIET_AFTER;
+          continue;
+        }
+        active[kept++] = segment;
+      }
+      active.length = kept;
+      this.windowTime = bounded;
+      this.windowValid = !this.reenteredWhileUpdating;
+    } finally {
+      this.updatingSegments = false;
+    }
+  }
+
+  private visitAllSegments(bounded: number, preservePlaybackState: boolean): void {
+    this.windowValid = false;
+    for (const segment of this.entries) {
+      if (bounded < segment.startTime) {
+        if (!segment.beforeStart) {
+          segment.item.resetInternal();
+          segment.beforeStart = true;
+        }
+      } else {
+        segment.beforeStart = false;
+        segment.item.seekLocal(bounded - segment.startTime, preservePlaybackState);
+      }
+    }
+  }
+
+  /** Makes every segment visitable again, in insertion order. */
+  private resetWindow(): void {
+    const active = this.activeSegments;
+    active.length = 0;
+    for (const segment of this.entries) {
+      segment.quiet = 0;
+      active.push(segment);
+    }
+    if (this.byStart === null || this.byEnd === null) {
+      this.byStart = [...this.entries].sort((a, b) => (a.startTime - b.startTime) || (a.index - b.index));
+      this.byEnd = [...this.entries].sort((a, b) => (a.endTime < b.endTime ? -1 : a.endTime > b.endTime ? 1 : a.index - b.index));
+    }
+  }
+
+  /** Puts back into `activeSegments` the quiet segments that the move from `from` to `to` may have changed. */
+  private wakeSegments(from: number, to: number): void {
+    const woken = this.wokenSegments;
+    woken.length = 0;
+    if (to > from) {
+      // Forward: segments that were waiting for their start and the playhead has now reached.
+      const byStart = this.byStart!;
+      for (let position = firstAfter(byStart, from, startOf); position < byStart.length; position += 1) {
+        const segment = byStart[position]!;
+        if (segment.startTime > to) break;
+        if (segment.quiet === QUIET_BEFORE) {
+          segment.quiet = 0;
+          woken.push(segment);
+        }
+      }
+    } else if (to < from) {
+      // Backward: completed segments that the playhead has moved back into. The range is widened by a hair because
+      // "complete" is decided on `to - start >= duration`, which can differ from `to >= end` by rounding; waking
+      // too many is harmless (the extra visit is a no-op), waking too few is not.
+      const byEnd = this.byEnd!;
+      const slack = Number.isFinite(to) ? (Math.abs(to) + 1) * END_SLACK : 0;
+      const upper = from + slack;
+      for (let position = firstAfter(byEnd, to - slack, endOf); position < byEnd.length; position += 1) {
+        const segment = byEnd[position]!;
+        if (segment.endTime > upper) break;
+        if (segment.quiet === QUIET_AFTER && to - segment.startTime < segment.duration) {
+          segment.quiet = 0;
+          woken.push(segment);
+        }
+      }
+    }
+    if (woken.length === 0) return;
+
+    woken.sort((a, b) => a.index - b.index);
+    const active = this.activeSegments;
+    const merged = this.activeScratch;
+    merged.length = 0;
+    let activePosition = 0;
+    let wokenPosition = 0;
+    while (activePosition < active.length && wokenPosition < woken.length) {
+      merged.push(active[activePosition]!.index < woken[wokenPosition]!.index ? active[activePosition++]! : woken[wokenPosition++]!);
+    }
+    while (activePosition < active.length) merged.push(active[activePosition++]!);
+    while (wokenPosition < woken.length) merged.push(woken[wokenPosition++]!);
+    this.activeScratch = active;
+    this.activeSegments = merged;
+    woken.length = 0;
+  }
+
   /** Reset without callbacks so a parent Timeline can control this item. */
   resetInternal(): void {
     this.clearMotionLifecycle();
@@ -397,6 +556,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
       segment.item.resetInternal();
       segment.beforeStart = true;
     }
+    this.windowValid = false;
     this.progressSubject.next(0);
     this.setState('idle');
     this.completion.ensurePending();
@@ -524,3 +684,30 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     if (this.state$.value !== state) this.stateSubject.next(state);
   }
 }
+
+function startOf(segment: InternalSegment): number { return segment.startTime; }
+function endOf(segment: InternalSegment): number { return segment.endTime; }
+
+/** Index of the first element of `sorted` whose key is greater than `value` (binary search). */
+function firstAfter(sorted: readonly InternalSegment[], value: number, key: (segment: InternalSegment) => number): number {
+  let low = 0;
+  let high = sorted.length;
+  while (low < high) {
+    const middle = (low + high) >>> 1;
+    if (key(sorted[middle]!) > value) high = middle;
+    else low = middle + 1;
+  }
+  return low;
+}
+
+function isSettled(item: AnimatableItem): boolean {
+  const probe = (item as SettleProbed)[SETTLE_PROBE];
+  return probe !== undefined && probe.call(item);
+}
+
+// A completed nested Timeline ignores further seeks too (`updateAt` returns at once); see `settle.ts`.
+Object.defineProperty(Timeline.prototype, SETTLE_PROBE, {
+  value(this: Timeline): boolean {
+    return this['hasCompleted'];
+  },
+});

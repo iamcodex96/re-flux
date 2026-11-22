@@ -5,6 +5,7 @@ import type { EasingFunction } from '../types/easing.js';
 import { Completion } from './Completion.js';
 import { frameCoordinator } from './FrameCoordinator.js';
 import { MotionLifecycleController } from './MotionLifecycleController.js';
+import { SETTLE_PROBE } from './settle.js';
 import { resolveEasing } from '../utils/easings.js';
 import { assertFiniteNonNegative, assertRepeatCount } from '../utils/timing.js';
 
@@ -290,3 +291,11 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
     if (this.state$.value !== state) this.stateSubject.next(state);
   }
 }
+
+// A completed Animation ignores every further seekLocal(); see `settle.ts`. Installed here, not as a member, so the
+// public declaration is unchanged.
+Object.defineProperty(Animation.prototype, SETTLE_PROBE, {
+  value(this: Animation): boolean {
+    return this['hasCompleted'];
+  },
+});
