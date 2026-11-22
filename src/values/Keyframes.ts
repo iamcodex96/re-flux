@@ -1,9 +1,6 @@
-import { BehaviorSubject } from 'rxjs';
-import { readonlyBehavior, type ReadonlyBehaviorObservable } from '../utils/readOnlyBehavior.js';
-import type { AnimatableItem, AnimationState } from '../types/animation.js';
 import type { EasingFunction } from '../types/easing.js';
 import type { KeyframesOptions, ValueKeyframe, ValueInterpolator } from '../types/values.js';
-import { Animation } from '../core/Animation.js';
+import { AnimatedValue } from './AnimatedValue.js';
 import { resolveEasing } from '../utils/easings.js';
 import { getInterpolatorCompiler } from './compiledInterpolators.js';
 import { resolveInterpolator } from './interpolate.js';
@@ -26,13 +23,7 @@ interface NormalizedKeyframe<T> {
  * Animates through multiple typed values on one shared timeline.
  * Offsets are normalized to 0..1; omitted offsets are distributed evenly between specified offsets.
  */
-export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
-  private readonly valueSubject: BehaviorSubject<T>;
-  readonly value$: ReadonlyBehaviorObservable<T>;
-  readonly progress$: ReadonlyBehaviorObservable<number>;
-  readonly state$: ReadonlyBehaviorObservable<AnimationState>;
-
-  private readonly animation: Animation;
+export class Keyframes<T> extends AnimatedValue<T> {
   private readonly frames: readonly NormalizedKeyframe<T>[];
   private readonly interpolators: readonly ValueInterpolator<T>[];
   private readonly segmentEasings: readonly EasingFunction[];
@@ -44,103 +35,34 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
   private readonly onValueUpdate: ((value: T, progress: number) => void) | undefined;
 
   constructor(options: KeyframesOptions<T>) {
-    this.frames = normalizeKeyframes(options.keyframes);
-     
-     
+    // Everything that can throw on bad input is computed before the animation is built, in the order it always was.
+    const frames = normalizeKeyframes(options.keyframes);
     const compile = getInterpolatorCompiler(options.interpolate);
-    this.interpolators = this.frames.slice(0, -1).map((frame, index) => compile
-      ? compile(frame.value, this.frames[index + 1]!.value)
-      : resolveInterpolator(frame.value, this.frames[index + 1]!.value, options.interpolate, 'Keyframes'),
+    const interpolators = frames.slice(0, -1).map((frame, index) => compile
+      ? compile(frame.value, frames[index + 1]!.value)
+      : resolveInterpolator(frame.value, frames[index + 1]!.value, options.interpolate, 'Keyframes'),
     );
     const defaultEasing = resolveEasing(options.easing);
-    this.segmentEasings = this.frames.slice(0, -1).map((frame) => frame.easing === undefined ? defaultEasing : resolveEasing(frame.easing));
-    if (this.frames.length - 1 > SEGMENT_CURSOR_MIN_SEGMENTS) {
-      // The first segment starts at -Infinity so that a progress of exactly 0 (the first frame's own offset) matches it.
-      this.segmentStarts = Float64Array.from(this.frames.slice(0, -1), (frame, index) => index === 0 ? -Infinity : frame.offset);
-      this.segmentEnds = Float64Array.from(this.frames.slice(1), (frame) => frame.offset);
-    }
-    this.onValueUpdate = options.onUpdate;
-    this.valueSubject = new BehaviorSubject<T>(this.frames[0]!.value);
-    this.value$ = readonlyBehavior(this.valueSubject);
-
+    const segmentEasings = frames.slice(0, -1).map((frame) => frame.easing === undefined ? defaultEasing : resolveEasing(frame.easing));
     const { keyframes: _keyframes, interpolate: _interpolate, onUpdate, easing: _easing, ...animationOptions } = options;
-    this.animation = new Animation({
-      ...animationOptions,
-       
-      easing: 'linear',
-      onUpdate: (progress) => this.updateValue(progress),
-    });
-    this.progress$ = this.animation.progress$;
-    this.state$ = this.animation.state$;
+    // The easing is applied per segment, so the underlying animation stays linear.
+    super(frames[0]!.value, { ...animationOptions, easing: 'linear' });
+    this.frames = frames;
+    this.interpolators = interpolators;
+    this.segmentEasings = segmentEasings;
+    if (frames.length - 1 > SEGMENT_CURSOR_MIN_SEGMENTS) {
+      // The first segment starts at -Infinity so that a progress of exactly 0 (the first frame's own offset) matches it.
+      this.segmentStarts = Float64Array.from(frames.slice(0, -1), (frame, index) => index === 0 ? -Infinity : frame.offset);
+      this.segmentEnds = Float64Array.from(frames.slice(1), (frame) => frame.offset);
+    }
+    this.onValueUpdate = onUpdate;
   }
 
-  get duration(): number {
-    return this.animation.duration;
+  protected override publishInitialValue(): void {
+    this.publishValue(this.initialValue, 0);
   }
 
-  play(): this {
-    this.animation.play();
-    return this;
-  }
-
-  pause(): this {
-    this.animation.pause();
-    return this;
-  }
-
-  /** @internal Lets a parent Timeline pause an actively driven child. */
-  pauseFromParent(): void {
-    this.animation.pauseFromParent();
-  }
-
-  stop(): this {
-    this.animation.stop();
-    this.publishValue(this.frames[0]!.value, 0);
-    return this;
-  }
-
-  restart(): this {
-    this.publishValue(this.frames[0]!.value, 0);
-    this.animation.restart();
-    return this;
-  }
-
-  seek(ms: number): this {
-    this.animation.seek(ms);
-    return this;
-  }
-
-  /** @internal Lets Timeline drive the playhead without creating another frame loop. */
-  seekLocal(ms: number, preservePlaybackState = false): void {
-    this.animation.seekLocal(ms, preservePlaybackState);
-  }
-
-  /** @internal Restores the first value silently when an owning Timeline moves before this item. */
-  resetInternal(): void {
-    this.animation.resetInternal();
-    this.valueSubject.next(this.frames[0]!.value);
-  }
-
-  toPromise(): Promise<void> {
-    return this.animation.toPromise();
-  }
-
-  then<TResult1 = void, TResult2 = never>(
-    onfulfilled?: ((value: void) => TResult1 | PromiseLike<TResult1>) | null,
-    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
-  ): Promise<TResult1 | TResult2> {
-    return this.animation.then(onfulfilled, onrejected);
-  }
-
-  catch<TResult = never>(onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null): Promise<void | TResult> {
-    return this.animation.catch(onrejected);
-  }
-
-  finally(onfinally?: (() => void) | null): Promise<void> {
-    return this.animation.finally(onfinally);
-  }
-
-  private updateValue(progress: number): void {
+  protected updateValue(progress: number): void {
     const normalizedProgress = clamp(progress, 0, 1);
     const lastFrame = this.frames[this.frames.length - 1]!;
     if (normalizedProgress >= 1) {
