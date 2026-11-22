@@ -17,7 +17,7 @@ This builds the library and runs ten workloads in sequence:
 | `animationLoad` | `animation-load.bench.mjs` (`npm run bench:animation-load`) | 100 / 1,000 / 5,000 concurrent `Animation`s, metrics observer on/off | PERF-007, PERF-011 |
 | `adapterUpdates` | `adapters.bench.mjs` (`npm run bench:adapters`) | DOM/SVG/Canvas adapter updates: DOM-style, SVG-attribute and Canvas bindings on mock targets | PERF-006, PERF-008 |
 | `interpolate` | `interpolate.bench.mjs` (`npm run bench:interpolate`) | per-frame value interpolation: numbers, colors, numeric templates, arrays, objects | PERF-002, REFACTOR-003 |
-| `keyframes` | `keyframes.bench.mjs` (`npm run bench:keyframes`) | `Keyframes.seek()` with 2 / 5 / 20 frames, forward and scrub, several easing styles | PERF-005 |
+| `keyframes` | `keyframes.bench.mjs` (`npm run bench:keyframes`) | `Keyframes.seek()` with 2 / 5 / 20 / 100 frames, forward and scrub, several easing styles | PERF-005 |
 | `cssInterpolation` | `css-interpolation.bench.mjs` (`npm run bench:css-interpolation`) | `interpolateCssValue` and the `animate()` pipeline over mock elements | PERF-003, PERF-006 |
 | `pathMorph` | `path-morph.bench.mjs` (`npm run bench:path-morph`) | SVG path interpolator (8 / 64 / 128 segments) and normalization | PERF-004 |
 | `timelineCompleted` | `timeline-completed.bench.mjs` (`npm run bench:timeline-completed`) | `Timeline.seek()` with 0% / 50% / 99% of 2,000 segments already finished; the `segments` getter | PERF-009 |

@@ -36,9 +36,11 @@ const cases = [
   },
 ];
 
-for (const frames of [2, 5, 20]) {
+for (const frames of [2, 5, 20, 100]) {
   for (const easing of ['linear', 'named', 'function', 'per-segment']) {
     if (easing === 'per-segment' && frames === 2) continue;
+    // 100 frames exists to show the cost of the segment lookup itself; the easing variants add nothing there.
+    if (frames === 100 && easing !== 'linear' && easing !== 'per-segment') continue;
     cases.push({
       name: `keyframes › ${frames}-frames › ${easing} › forward`,
       group: 'forward',
@@ -59,7 +61,7 @@ const results = await measureMicroCases(cases, settings);
 emitReport({
   benchmark: 're;Flux Keyframes per-frame cost',
   runtime: { node: process.version, platform: process.platform, arch: process.arch },
-  configuration: { ...settings, durationMs: DURATION, frameCounts: [2, 5, 20] },
+  configuration: { ...settings, durationMs: DURATION, frameCounts: [2, 5, 20, 100] },
   harness: harnessInfo(settings.repeats),
   note: 'Each operation seeks a Keyframes<number> and folds the published value into a checksum. `forward` advances monotonically (wrapping); `scrub` jumps to deterministic pseudo-random positions. Timings are descriptive, not pass/fail thresholds.',
   results,

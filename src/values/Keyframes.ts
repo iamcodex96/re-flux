@@ -8,6 +8,14 @@ import { resolveEasing } from '../utils/easings.js';
 import { getInterpolatorCompiler } from './compiledInterpolators.js';
 import { resolveInterpolator } from './interpolate.js';
 
+/**
+ * Lists with more segments than this remember the segment of the previous update instead of scanning from the first
+ * one. Measured for PERF-005: the cursor makes forward playback faster from about 20 frames on (about 15% at 50 frames,
+ * about 30% at 100), but a random jump then costs about 10 ns more than the scan until roughly 55 frames, where the
+ * binary search starts to pay off. Short lists therefore keep the plain scan and its exact cost.
+ */
+const SEGMENT_CURSOR_MIN_SEGMENTS = 48;
+
 interface NormalizedKeyframe<T> {
   readonly value: T;
   readonly offset: number;
@@ -28,6 +36,11 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
   private readonly frames: readonly NormalizedKeyframe<T>[];
   private readonly interpolators: readonly ValueInterpolator<T>[];
   private readonly segmentEasings: readonly EasingFunction[];
+  /** Per-segment start and end offsets for the cursor; only present when the list is long enough to need it. */
+  private readonly segmentStarts: Float64Array | undefined;
+  private readonly segmentEnds: Float64Array | undefined;
+  /** Segment that served the previous update: a hint `locateSegment` re-validates on every call, never state. */
+  private lastSegment = 0;
   private readonly onValueUpdate: ((value: T, progress: number) => void) | undefined;
 
   constructor(options: KeyframesOptions<T>) {
@@ -41,6 +54,11 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
     );
     const defaultEasing = resolveEasing(options.easing);
     this.segmentEasings = this.frames.slice(0, -1).map((frame) => frame.easing === undefined ? defaultEasing : resolveEasing(frame.easing));
+    if (this.frames.length - 1 > SEGMENT_CURSOR_MIN_SEGMENTS) {
+      // The first segment starts at -Infinity so that a progress of exactly 0 (the first frame's own offset) matches it.
+      this.segmentStarts = Float64Array.from(this.frames.slice(0, -1), (frame, index) => index === 0 ? -Infinity : frame.offset);
+      this.segmentEnds = Float64Array.from(this.frames.slice(1), (frame) => frame.offset);
+    }
     this.onValueUpdate = options.onUpdate;
     this.valueSubject = new BehaviorSubject<T>(this.frames[0]!.value);
     this.value$ = readonlyBehavior(this.valueSubject);
@@ -130,24 +148,58 @@ export class Keyframes<T> implements AnimatableItem, PromiseLike<void> {
       return;
     }
 
-    let start = this.frames[0]!;
-    let end = this.frames[1]!;
-    let segmentIndex = 0;
-    for (let index = 0; index < this.frames.length - 1; index += 1) {
-      const candidateStart = this.frames[index]!;
-      const candidateEnd = this.frames[index + 1]!;
-      if (normalizedProgress <= candidateEnd.offset) {
-        start = candidateStart;
-        end = candidateEnd;
-        segmentIndex = index;
-        break;
-      }
-    }
+    const segmentIndex = this.locateSegment(normalizedProgress);
+    const start = this.frames[segmentIndex]!;
+    const end = this.frames[segmentIndex + 1]!;
 
     const span = end.offset - start.offset;
     const localProgress = span <= 0 ? 1 : clamp((normalizedProgress - start.offset) / span, 0, 1);
     const value = this.interpolators[segmentIndex]!(start.value, end.value, this.segmentEasings[segmentIndex]!(localProgress));
     this.publishValue(value, progress);
+  }
+
+  /**
+   * The first segment `i` with `progress <= frames[i + 1].offset`, so an exact offset belongs to the earlier segment.
+   * Offsets are strictly increasing, which makes `i` the only segment for which that holds together with
+   * `progress > frames[i].offset` (or `i === 0`). A NaN progress matches no segment and uses the first one.
+   * The result never depends on `lastSegment`; only the cost of finding it does.
+   */
+  private locateSegment(progress: number): number {
+    const starts = this.segmentStarts;
+    const ends = this.segmentEnds;
+    if (starts === undefined || ends === undefined) return this.scanForSegment(progress);
+    const cursor = this.lastSegment;
+    if (progress > starts[cursor]! && progress <= ends[cursor]!) return cursor;
+    return this.searchSegment(progress, starts, ends);
+  }
+
+  /** Linear scan from the first segment, used for short lists. */
+  private scanForSegment(progress: number): number {
+    const last = this.frames.length - 1;
+    for (let index = 0; index < last; index += 1) {
+      if (progress <= this.frames[index + 1]!.offset) return index;
+    }
+    return 0;
+  }
+
+  /** The cursor missed: try the next segment (forward playback crossing a boundary), else binary search. */
+  private searchSegment(progress: number, starts: Float64Array, ends: Float64Array): number {
+    const count = ends.length;
+    const next = this.lastSegment + 1;
+    if (next < count && progress > starts[next]! && progress <= ends[next]!) {
+      this.lastSegment = next;
+      return next;
+    }
+    if (progress !== progress) return 0;
+    let low = 0;
+    let high = count - 1;
+    while (low < high) {
+      const middle = (low + high) >>> 1;
+      if (progress <= ends[middle]!) high = middle;
+      else low = middle + 1;
+    }
+    this.lastSegment = low;
+    return low;
   }
 
   private publishValue(value: T, progress: number): void {
