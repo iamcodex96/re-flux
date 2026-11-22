@@ -1,4 +1,44 @@
 /** Shared helpers for reproducible, descriptive (non-gating) microbenchmarks. */
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+
+/**
+ * Resolve the optional report destination from `--out <file>` / `--out=<file>` or `BENCH_OUT`.
+ * Returns `null` when the report should go to stdout.
+ */
+export function resolveOutPath(argv = process.argv.slice(2), env = process.env) {
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+    if (argument === '--out') {
+      const value = argv[index + 1];
+      if (!value || value.startsWith('--')) throw new RangeError('--out requires a file path.');
+      return resolve(value);
+    }
+    if (argument.startsWith('--out=')) {
+      const value = argument.slice('--out='.length);
+      if (!value) throw new RangeError('--out requires a file path.');
+      return resolve(value);
+    }
+  }
+  const fromEnv = env.BENCH_OUT;
+  return fromEnv ? resolve(fromEnv) : null;
+}
+
+/**
+ * Emit one JSON report. With `--out`/`BENCH_OUT` the report is written to that file (no stdout noise,
+ * so it parses without stripping npm banners); otherwise it is printed to stdout as before.
+ */
+export function emitReport(report, options = {}) {
+  const json = JSON.stringify(report, null, 2);
+  const out = resolveOutPath(options.argv, options.env);
+  if (out === null) {
+    console.log(json);
+    return;
+  }
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, `${json}\n`);
+  process.stderr.write(`Wrote benchmark report to ${out}\n`);
+}
 
 export function positiveInteger(raw, fallback, label = 'value') {
   const value = raw === undefined ? fallback : Number(raw);

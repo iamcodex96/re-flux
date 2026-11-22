@@ -11,6 +11,7 @@ import {
   round,
   summarizeRuns,
   summarizeSamples,
+  emitReport,
 } from './benchmark-utils.mjs';
 
 const frameIntervalMs = 1000 / 60;
@@ -192,7 +193,7 @@ try {
     }
   }
 
-  console.log(JSON.stringify({
+  emitReport({
     benchmark: 're;Flux concurrent Animation load and metrics-observer overhead',
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
     configuration: {
@@ -209,7 +210,7 @@ try {
     note: 'Timings are descriptive, not pass/fail thresholds. Each run records an explicit priming frame plus the requested measured frame intervals. Compare repeated runs on the same machine and runtime.',
     results,
     workSink,
-  }, null, 2));
+  });
 } finally {
   pendingRafCallbacks.clear();
   if (previousRafDescriptor) Object.defineProperty(globalThis, 'requestAnimationFrame', previousRafDescriptor);

@@ -4,6 +4,17 @@ Notable changes to re;Flux are recorded here. This project is in public beta; th
 
 ## Unreleased
 
+### Added
+
+- Add `npm run bench:save` and `npm run bench:compare`, and let `npm run bench` write its JSON report to a file with `--out <file>` or `BENCH_OUT`, so reports parse without stripping the npm banner and two runs can be compared (`benchmarks/compare.mjs` refuses to compare reports from different runtimes).
+- Add exhaustive tests for every built-in easing, `cubicBezier` and `steps`, and tests for `Tween`, `Keyframes`, `AnimationScope`, `animateText`/`animateNumber`, `flip()` and `DOMAnimation` lifecycle behaviour.
+- Enforce Jest coverage floors (global and `src/core`) and run coverage on the Node 24 CI leg, uploading the lcov report as an artifact.
+
+### Changed
+
+- Add the `default` condition to the root `exports["."]` entry, matching every subpath, so `require.resolve("@re-code/flux")` and bundlers that do not request the `import` condition can resolve the package. The package remains ESM-only.
+- Include `src/flowField.ts` in coverage collection and drop the types-only `src/types.ts`.
+
 ### Fixed
 
 - Support direct GitHub Pages URLs for documentation and benchmark routes by redirecting clean paths into the hash router, and make the `/docs` default redirect an explicit nested child route.

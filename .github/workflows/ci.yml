@@ -35,7 +35,18 @@ jobs:
       - name: Type-check tests
         run: npm run typecheck:tests
       - name: Run Jest suite
+        if: matrix.node != 24
         run: npm test -- --runInBand
+      - name: Run Jest suite with coverage thresholds
+        if: matrix.node == 24
+        run: npm run test:coverage -- --runInBand
+      - name: Upload coverage report
+        if: matrix.node == 24
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: error
       - name: Install Chromium for browser integration
         if: matrix.node == 24
         run: npx playwright install --with-deps chromium

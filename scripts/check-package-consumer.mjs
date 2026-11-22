@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,6 +47,18 @@ try {
   const packageJson = JSON.parse(await readFile(path.join(packageDir, 'package.json'), 'utf8'));
   const exportPaths = Object.keys(packageJson.exports ?? {});
   assert(exportPaths.includes('.'), 'Root export is missing');
+  // Every entry (the root included) must offer a `default` condition so CommonJS `require()`,
+  // `require.resolve()` and bundlers that do not request the `import` condition can still resolve it.
+  for (const entry of exportPaths) {
+    const conditions = packageJson.exports[entry];
+    assert(typeof conditions.default === 'string', `Export ${entry} is missing a "default" condition`);
+    assert.equal(conditions.default, conditions.import, `Export ${entry} "default" must match its "import" target`);
+  }
+  const consumerRequire = createRequire(path.join(consumerRoot, 'resolve.cjs'));
+  assert(
+    consumerRequire.resolve('@re-code/flux').replaceAll('\\', '/').endsWith('/dist/index.js'),
+    'require.resolve("@re-code/flux") must resolve to dist/index.js through the "default" condition',
+  );
   const specifiers = exportPaths.map((entry) => entry === '.' ? '@re-code/flux' : `@re-code/flux/${entry.slice(2)}`);
   const runtimeFixture = `
     const specifiers = ${JSON.stringify(specifiers)};

@@ -10,6 +10,7 @@ import {
   round,
   summarizeRuns,
   summarizeSamples,
+  emitReport,
 } from './benchmark-utils.mjs';
 
 const consumerCount = positiveInteger(process.env.BENCH_CONSUMERS, 1000, 'BENCH_CONSUMERS');
@@ -176,7 +177,7 @@ try {
     return unobserved ? { repetition, deltaMs: round(result.elapsedMs - unobserved.elapsedMs, 4) } : null;
   }).filter(Boolean);
 
-  console.log(JSON.stringify({
+  emitReport({
     benchmark: 're;Flux FrameCoordinator vs independent RAF observables',
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
     configuration: { consumerCount, frameCount, frameIntervalMs: round(frameIntervalMs, 4), warmupRounds, warmupFrameCount, repeats },
@@ -190,7 +191,7 @@ try {
     },
     note: 'Timings are descriptive, not pass/fail thresholds. Setup and teardown are outside the timed frame loop.',
     results,
-  }, null, 2));
+  });
 } finally {
   callbacks.clear();
   if (originalRaf) Object.defineProperty(globalThis, 'requestAnimationFrame', originalRaf);

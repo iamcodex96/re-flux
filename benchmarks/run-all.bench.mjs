@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { emitReport } from './benchmark-utils.mjs';
 
 const scripts = [
   { name: 'frameCoordinator', path: 'benchmarks/frame-coordinator.bench.mjs' },
@@ -8,11 +9,16 @@ const scripts = [
 ];
 const reports = [];
 
+// Subreports must be captured from stdout, so the destination chosen for the aggregate report
+// must not leak into the child processes.
+const childEnv = { ...process.env };
+delete childEnv.BENCH_OUT;
+
 for (const script of scripts) {
   const result = spawnSync(process.execPath, [script.path], {
     cwd: process.cwd(),
     encoding: 'utf8',
-    env: process.env,
+    env: childEnv,
     maxBuffer: 10 * 1024 * 1024,
   });
 
@@ -30,9 +36,9 @@ for (const script of scripts) {
   }
 }
 
-console.log(JSON.stringify({
+emitReport({
   benchmark: 're;Flux benchmark suite',
   runtime: { node: process.version, platform: process.platform, arch: process.arch },
   note: 'Subreports contain per-run timings and summaries. Benchmarks are descriptive, not pass/fail thresholds.',
   reports,
-}, null, 2));
+});

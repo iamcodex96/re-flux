@@ -8,6 +8,7 @@ import {
   round,
   summarizeRuns,
   summarizeSamples,
+  emitReport,
 } from './benchmark-utils.mjs';
 
 const segmentCount = positiveInteger(process.env.BENCH_SEGMENTS, 2000, 'BENCH_SEGMENTS');
@@ -133,7 +134,7 @@ try {
     scrubRuns.push({ repetition: repetition + 1, ...result });
   }
 
-  console.log(JSON.stringify({
+  emitReport({
     benchmark: 're;Flux timeline duration reads and nested overlapping scrub',
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
     configuration: { segmentCount, durationReads, seekFrameCount, warmupRounds, warmupFrameCount, repeats, callbackWorkIterations, nestedTimelineGroupSize: groupSize },
@@ -163,7 +164,7 @@ try {
     note: 'The nested scrub scenario uses deterministic overlapping child timelines and onUpdate callbacks. It measures scheduling-free seek work, not browser rendering or DOM/SVG/Canvas paint.',
     callbackSink,
     callbackCountSink,
-  }, null, 2));
+  });
 } finally {
   // No global RAF is created by seek-only tests. stop() ensures all children return to idle.
 }

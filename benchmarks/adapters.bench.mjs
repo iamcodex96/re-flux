@@ -14,6 +14,7 @@ import {
   round,
   summarizeRuns,
   summarizeSamples,
+  emitReport,
 } from './benchmark-utils.mjs';
 
 const targetCounts = parseIntegerList(process.env.BENCH_ADAPTER_TARGETS, '100,1000', { minimum: 1, label: 'BENCH_ADAPTER_TARGETS' });
@@ -288,14 +289,14 @@ try {
     });
   }
 
-  console.log(JSON.stringify({
+  emitReport({
     benchmark: 're;Flux DOM-style, SVG-attribute and Canvas adapter update workloads',
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
     configuration: { targetCounts, frameCount, frameIntervalMs: round(frameIntervalMs, 4), warmupRounds, warmupFrames, repeats, canvasBurstEmissions: burstEmissions },
     note: 'Targets are lightweight mocks. This measures RxJS binding, value conversion, task scheduling and callback dispatch; it does not measure browser layout, SVG paint or Canvas rasterization.',
     results,
     adapterSink,
-  }, null, 2));
+  });
 } finally {
   rafCallbacks.clear();
   if (originalRaf) Object.defineProperty(globalThis, 'requestAnimationFrame', originalRaf);
