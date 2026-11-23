@@ -155,6 +155,52 @@ describe('Given animate() over several elements', () => {
     });
   });
 
+  describe('When explicit and implicit properties are mixed, or the definitions are functions', () => {
+    it('Then the original per-element order is kept, so an implicit start sees the explicit frame written before it', () => {
+      const [a, b] = ['a', 'b'].map((id) => recorded(id, () => ({ left: 0, top: 0, width: 1, height: 1 })));
+
+      animate([a!, b!], { duration: 100, properties: { color: ['red', 'blue'], opacity: 0.5 } });
+
+      expect(log.indexOf('write:a:color')).toBeGreaterThan(-1);
+      expect(log.indexOf('write:a:color')).toBeLessThan(log.indexOf('computed:a:opacity'));
+      expect(log.indexOf('write:a:opacity')).toBeLessThan(log.indexOf('write:b:color'));
+    });
+
+    it('Then function-valued frames run per element against the DOM the earlier elements left', () => {
+      const [a, b] = ['a', 'b'].map((id) => recorded(id, () => ({ left: 0, top: 0, width: 1, height: 1 })));
+      const seen: string[] = [];
+
+      animate([a!, b!], {
+        duration: 100,
+        properties: {
+          opacity: (target: Element) => {
+            seen.push(`factory:${(target as RecordedElement).id}`);
+            log.push(`factory:${(target as RecordedElement).id}`);
+            return 0.5;
+          },
+        },
+      });
+
+      expect(seen).toEqual(['factory:a', 'factory:b']);
+      expect(log.indexOf('write:a:opacity')).toBeLessThan(log.indexOf('factory:b'));
+    });
+
+    it('Then a stagger function is called per element between the earlier elements’ writes', () => {
+      const [a, b] = ['a', 'b'].map((id) => recorded(id, () => ({ left: 0, top: 0, width: 1, height: 1 })));
+
+      animate([a!, b!], {
+        duration: 100,
+        stagger: (index) => {
+          log.push(`stagger:${index}`);
+          return index * 10;
+        },
+        properties: { opacity: 0.5 },
+      });
+
+      expect(log.indexOf('write:a:opacity')).toBeLessThan(log.indexOf('stagger:1'));
+    });
+  });
+
   describe('When every property gives explicit [from, to] values', () => {
     it('Then no computed style is read at all', () => {
       const elements = ['a', 'b', 'c'].map((id) => recorded(id, () => ({ left: 0, top: 0, width: 1, height: 1 })));

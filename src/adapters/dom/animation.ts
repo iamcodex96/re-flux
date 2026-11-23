@@ -6,7 +6,12 @@ import type { DOMAnimateOptions, DOMAnimationTarget } from './animationTypes.js'
 import { bindStyleProperty } from './styleBinding.js';
 import { compiledCssInterpolator } from './cssInterpolation.js';
 import { resolveTargets } from './targets.js';
-import { normalizeDOMProperties, resolveDOMPropertyKeyframes, validateAnimateOptions } from './propertyOptions.js';
+import {
+  classifyPropertyFrames,
+  normalizeDOMProperties,
+  resolveDOMPropertyKeyframes,
+  validateAnimateOptions,
+} from './propertyOptions.js';
 
 export { bindStyle } from './styleBinding.js';
 export { interpolateCssValue } from './cssInterpolation.js';
@@ -128,37 +133,68 @@ export function animate(targets: DOMAnimationTarget, options: DOMAnimateOptions)
   } = options;
   const animation = new DOMAnimation(timelineOptions);
 
-  try {
-    // Read phase first: resolving implicit start values reads computed styles, and a computed-style read after an
-    // inline-style write forces a style recalculation. Creating the bindings (which write the first frame) comes second.
-    const planned = elements.map((element, elementIndex) => {
-      const staggerDelay =
-        typeof stagger === 'function' ? stagger(elementIndex, element, elements.length) : elementIndex * stagger;
-      if (!Number.isFinite(staggerDelay)) {
-        throw new RangeError(`stagger must return a finite number of milliseconds for target ${elementIndex}.`);
-      }
-      const keyframesByProperty = propertyEntries.map((property) =>
-        resolveDOMPropertyKeyframes(element, property, elementIndex, elements.length),
-      );
-      return { element, staggerDelay, keyframesByProperty };
+  const attach = (
+    element: Element,
+    property: (typeof propertyEntries)[number],
+    keyframes: ReturnType<typeof resolveDOMPropertyKeyframes>,
+    staggerDelay: number,
+  ): void => {
+    const keyframeItem = new Keyframes<string>({
+      duration: property.duration,
+      repeat: property.repeat,
+      yoyo: property.yoyo,
+      ...(property.easing === undefined ? {} : { easing: property.easing }),
+      keyframes,
+      interpolate: compiledCssInterpolator(),
     });
 
-    for (const { element, staggerDelay, keyframesByProperty } of planned) {
-      propertyEntries.forEach((property, propertyIndex) => {
-        const keyframeItem = new Keyframes<string>({
-          duration: property.duration,
-          repeat: property.repeat,
-          yoyo: property.yoyo,
-          ...(property.easing === undefined ? {} : { easing: property.easing }),
-          keyframes: keyframesByProperty[propertyIndex]!,
-          interpolate: compiledCssInterpolator(),
-        });
+    animation.attachBinding(
+      bindStyleProperty(element as HTMLElement | SVGElement, property.cssProperty, keyframeItem.value$),
+    );
+    const startTime = Math.max(0, delay + property.delay + staggerDelay);
+    animation.add(keyframeItem, startTime);
+  };
+  const staggerFor = (element: Element, elementIndex: number): number => {
+    const staggerDelay =
+      typeof stagger === 'function' ? stagger(elementIndex, element, elements.length) : elementIndex * stagger;
+    if (!Number.isFinite(staggerDelay)) {
+      throw new RangeError(`stagger must return a finite number of milliseconds for target ${elementIndex}.`);
+    }
+    return staggerDelay;
+  };
+  // Resolving an implicit start value reads the computed style, and a computed-style read after an inline-style write
+  // forces a style recalculation. When every property starts from its computed value, each binding's first frame equals
+  // the value just read, so all reads can safely come first. Any other mix keeps the interleaved order: an explicit
+  // `from` is written inline and can change what a later implicit read (or a descendant target) sees, and user
+  // callbacks (frame factories, `stagger`) must keep running against the DOM as the earlier elements left it.
+  const kinds = new Set(propertyEntries.map(classifyPropertyFrames));
+  const batchReads = typeof stagger !== 'function' && kinds.size === 1 && kinds.has('implicit');
 
-        animation.attachBinding(
-          bindStyleProperty(element as HTMLElement | SVGElement, property.cssProperty, keyframeItem.value$),
-        );
-        const startTime = Math.max(0, delay + property.delay + staggerDelay);
-        animation.add(keyframeItem, startTime);
+  try {
+    if (batchReads) {
+      const planned = elements.map((element, elementIndex) => ({
+        element,
+        staggerDelay: staggerFor(element, elementIndex),
+        keyframesByProperty: propertyEntries.map((property) =>
+          resolveDOMPropertyKeyframes(element, property, elementIndex, elements.length),
+        ),
+      }));
+      for (const { element, staggerDelay, keyframesByProperty } of planned) {
+        propertyEntries.forEach((property, propertyIndex) => {
+          attach(element, property, keyframesByProperty[propertyIndex]!, staggerDelay);
+        });
+      }
+    } else {
+      elements.forEach((element, elementIndex) => {
+        const staggerDelay = staggerFor(element, elementIndex);
+        for (const property of propertyEntries) {
+          attach(
+            element,
+            property,
+            resolveDOMPropertyKeyframes(element, property, elementIndex, elements.length),
+            staggerDelay,
+          );
+        }
       });
     }
   } catch (error) {

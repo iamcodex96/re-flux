@@ -296,6 +296,17 @@ try {
   });
 
   await runCase(
+    'animate() keeps explicit frames visible to the implicit start values read after them',
+    async (page) => {
+      const mixed = await page.evaluate(() => window.__reFluxBrowserTest.runMixedAnimate());
+      // border-color starts from currentcolor, which is red once the explicit color frame has been written.
+      assert.equal(mixed.borderColorStart, 'rgb(255, 0, 0)');
+      // width starts from 10em, which is 100px once the explicit font-size frame (10px) has been written.
+      assert.equal(mixed.widthStart, '100px');
+    },
+  );
+
+  await runCase(
     'Canvas teardown cancels queued writes and clears pixels without leaking coordinator work',
     async (page) => {
       // Keep queue inspection and teardown in one browser task. Separate page.evaluate calls allow
@@ -450,7 +461,7 @@ try {
     },
   );
 
-  process.stdout.write('Browser integration checks passed (13 cases).\n');
+  process.stdout.write('Browser integration checks passed (14 cases).\n');
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) => {

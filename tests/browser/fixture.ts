@@ -85,6 +85,7 @@ interface BrowserContractApi {
   buildLayoutGrid(count: number): void;
   runGridFlip(): void;
   runNestedFlip(): { parent: string; child: string };
+  runMixedAnimate(): { borderColorStart: string; widthStart: string };
   runGridImplicitAnimate(): void;
   disposeGrid(): void;
   startCanvasBinding(): void;
@@ -343,6 +344,27 @@ window.__reFluxBrowserTest = {
     animation.dispose();
     layoutGrid.replaceChildren();
     return result;
+  },
+
+  runMixedAnimate() {
+    layoutGrid.replaceChildren();
+    const box = document.createElement('div');
+    box.style.cssText = 'color: rgb(0, 0, 0); width: 10em; font-size: 16px;';
+    layoutGrid.append(box);
+    // An implicit start value read after an explicit frame was written must see that frame (old per-property order).
+    const colors = animate(box, {
+      duration: 100,
+      properties: { color: ['rgb(255, 0, 0)', 'rgb(0, 0, 255)'], borderColor: 'rgb(0, 128, 0)' },
+    });
+    colors.seek(0);
+    const borderColorStart = box.style.borderColor;
+    colors.dispose();
+    const sizes = animate(box, { duration: 100, properties: { fontSize: ['10px', '20px'], width: 400 } });
+    sizes.seek(0);
+    const widthStart = box.style.width;
+    sizes.dispose();
+    layoutGrid.replaceChildren();
+    return { borderColorStart, widthStart };
   },
 
   runGridImplicitAnimate() {

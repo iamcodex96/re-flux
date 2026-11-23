@@ -95,6 +95,18 @@ function isDOMPropertyOptions(definition: CssPropertyDefinition): definition is 
   return typeof definition === 'object' && definition !== null && !Array.isArray(definition);
 }
 
+/**
+ * How a property obtains its keyframes. `explicit` ones (keyframes or `[from, to]` pairs with two or more values) never
+ * read the DOM; `implicit` ones (a single target value, or a one-element array) start from the element's computed
+ * value; `dynamic` ones are functions that run user code per element.
+ */
+export function classifyPropertyFrames(property: NormalizedDOMProperty): 'explicit' | 'implicit' | 'dynamic' {
+  if (property.frames.kind === 'keyframes') return 'explicit';
+  const { values } = property.frames;
+  if (typeof values === 'function') return 'dynamic';
+  return Array.isArray(values) && values.length > 1 ? 'explicit' : 'implicit';
+}
+
 export function resolveDOMPropertyKeyframes(
   target: Element,
   property: NormalizedDOMProperty,

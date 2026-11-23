@@ -73,7 +73,7 @@ Every box must be checkable by running the named command or inspecting the named
 
 **Code gate** (see `roadmap/README.md`)
 - [x] `npm run typecheck` and `npm run typecheck:tests` pass.
-- [x] `npm test -- --runInBand` passes (record the test count; it must not decrease unless tests are intentionally replaced): 63 suites / 1,590 tests (1,541 before this item; +49 in `tests/docs/`).
+- [x] `npm test -- --runInBand` passes (record the test count; it must not decrease unless tests are intentionally replaced): 63 suites / 1,593 tests (1,544 before this item; +49 in `tests/docs/`).
 - [x] `npm run check:tree-shaking`, `npm run check:package` and `npm run check:package:consumer` pass.
 - [x] No change to public `.d.ts` output (no `src/` change in this item).
 
