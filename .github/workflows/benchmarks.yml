@@ -1,0 +1,65 @@
+name: Benchmarks (report only)
+
+# Report-only: runs on demand and once a week, never on pushes or pull requests. Hosted runners are noisy shared
+# machines, so these numbers are uploaded as artifacts for a human to read and are never a pass/fail gate.
+on:
+  workflow_dispatch:
+    inputs:
+      browser_targets:
+        description: Target count for the browser benchmark (100, 250, 500, 1000, 2500 or 5000)
+        default: '500'
+  schedule:
+    - cron: '17 3 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmarks-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  benchmarks:
+    name: Node and browser benchmarks (report only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # A slow, noisy or failing benchmark must never turn CI red; the reports are informational.
+    continue-on-error: true
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Record runner details
+        run: |
+          mkdir -p benchmark-reports
+          {
+            echo "commit: ${GITHUB_SHA}"
+            echo "node: $(node --version)"
+            echo "cpus: $(nproc)"
+            echo "load: $(cat /proc/loadavg)"
+            echo "image: ${ImageOS:-unknown} ${ImageVersion:-unknown}"
+          } | tee benchmark-reports/runner.txt
+      - name: Node benchmarks
+        continue-on-error: true
+        run: npm run bench -- --out benchmark-reports/node.json
+      - name: Browser benchmarks (headless Chromium, pinned comparison libraries)
+        continue-on-error: true
+        env:
+          BROWSER_TARGETS: ${{ inputs.browser_targets || '500' }}
+        run: node scripts/run-browser-benchmark.mjs --out benchmark-reports/browser.json --targets "$BROWSER_TARGETS"
+      - name: Upload benchmark reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-reports
+          path: benchmark-reports/
+          if-no-files-found: warn
+          retention-days: 90

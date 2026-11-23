@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>re;Flux layout probe</title>
+    <style>
+      html, body { margin: 0; }
+      #grid { width: 600px; display: flex; flex-wrap: wrap; align-content: flex-start; }
+      #grid.wide { width: 900px; }
+      .box { width: 20px; height: 20px; margin: 2px; background: #888; opacity: 1; flex: none; }
+      #counters { display: flex; flex-wrap: wrap; width: 600px; }
+      .counter { width: 60px; font: 12px monospace; }
+      svg { display: block; }
+    </style>
+  </head>
+  <body>
+    <div id="grid"></div>
+    <div id="counters"></div>
+    <svg id="stage" width="600" height="200" viewBox="0 0 600 200"><path id="track" fill="none" stroke="#444" d=""></path></svg>
+    <script type="module" src="/layout-probe.js"></script>
+  </body>
+</html>

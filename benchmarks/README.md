@@ -29,6 +29,34 @@ The `dom-style-binding` and `svg-attribute-binding` modes change every value on 
 
 The adapter workload can be tuned with `BENCH_ADAPTER_TARGETS`, `BENCH_ADAPTER_FRAMES`, `BENCH_REPEATS`, `BENCH_WARMUP_ROUNDS`, and `BENCH_CANVAS_BURST_EMISSIONS`. Its JSON output reports frame-time distributions, adapter operations, pending RAF callbacks, and cleanup status.
 
+## Real-browser benchmarks (Benchmark Lab runner)
+
+The Node workloads above cannot see layout, style recalculation, SVG painting or canvas rasterization. `scripts/run-browser-benchmark.mjs` (`npm run bench:browser`) drives the public **Benchmark Lab** (`/#/benchmarks` of the documentation app) in headless Chromium with the page's own controls, and saves the page's own JSON export.
+
+```bash
+npm run bench:browser -- --out reports/browser.json                       # DOM, SVG and Canvas, 500 targets, 1.5 s
+npm run bench:browser -- --out reports/browser.json --scenarios dom,svg,canvas,engine-only,per-target-dom --targets 1000
+npm run bench:browser -- --out reports/browser.json --dist path/to/built/docs   # reuse a build made with base "/"
+npm run bench:browser -- --help
+```
+
+- **What runs.** Without `--dist` the script builds the docs app with Vite into a temporary directory (no type check), serves it from a loopback server, and for each requested scenario opens a fresh page, selects the scenario, renderer, target count and duration, clicks *Run comparison*, waits for the final report, and clicks *Export JSON*. Scenarios: `dom`, `svg`, `canvas` (all three are the page's *shared renderer* scenario with that renderer), `engine-only` and `per-target-dom`. Each takes about 10 repetitions × 3 engines × the duration plus calibration and warm-up, so the default three scenarios take a few minutes.
+- **Output.** One suite file: `{ benchmark, schemaVersion: 2, kind: 'suite', createdAt, runner, reports: [{ id, report }] }`. Every `report` is byte-for-byte what the page exports (`schemaVersion: 2`: `environment`, `configuration`, `libraries`, `methodology`, `results` for re;Flux, GSAP and Anime.js, `caveats`). `runner` is the only addition: git revision, Chromium version and launch flags, Node/platform, the machine load at start and end (`system.busy` as in the Node reports), and where the comparison libraries came from. Note that each page report's `libraries[].source` still names the CDN URL the page imports; `runner.comparisonLibraries[].source` says what was really served.
+- **No network needed.** GSAP 3.15.0 and Anime.js 4.5.0 are `devDependencies` (exact versions, pinned by the lock file). The runner bundles the installed copies with esbuild and answers the page's `https://esm.sh/gsap@3.15.0` / `https://esm.sh/animejs@4.5.0` imports with them through Playwright request routing; any other request to `esm.sh` is refused. `--cdn` loads them from the CDN like a visitor would. The runner fails if the installed versions do not match the versions the page pins, so update the page, `scripts/lib/browser-bench.mjs` and `package.json` together.
+- **Browser.** It uses the Chromium that matches the installed Playwright (`npx playwright install chromium`; the CI workflow installs it). Nothing else is downloaded.
+- **Report-only.** The script never compares against a threshold; it exits non-zero only when a report cannot be produced (build failure, page error, timeout, missing engine results).
+
+### Caveats to carry into any reading of the numbers
+
+- **Headless frame pacing is not a display.** Headless Chromium drives `requestAnimationFrame` from a virtual 60 Hz timer, so the compositor, vsync and GPU raster of a real device are absent. The page's calibration still records the cadence it saw (`configuration.estimatedRafCadenceHz`). `--headed` uses a real window and then follows your display.
+- **Hosted CI runners are noisy** shared machines. The scheduled/manual workflow (`.github/workflows/benchmarks.yml`) uploads the JSON as an artifact and has `continue-on-error`, so a slow runner cannot fail CI. Compare runs from the same runner type only, and read `runner.system` before trusting any number.
+- **One workload, written by us.** The Lab runs a specific synthetic animation. It is meant to compare re;Flux with itself over time and to show where adapter cost goes (layout, style, paint), not to rank libraries.
+- The runner drives the Lab through its markup (`.browser-benchmarks__controls select`, `.browser-benchmarks__primary-button`, the first `.browser-benchmarks__secondary-button` inside `.browser-benchmarks__actions`). Keep those hooks when the page changes.
+
+### May comparison-library numbers be quoted?
+
+**No, not in the README or the documentation website.** The GSAP and Anime.js columns exist so the Lab can show a like-for-like workload on a visitor's own machine, and so a regression in re;Flux can be read against a reference moving under the same conditions. A figure printed in our docs would be one machine, headless pacing, a single synthetic workload we authored and runner noise of unknown size, presented next to someone else's product; that is a claim we cannot defend. The artifacts are for maintainers. If a published comparison is ever wanted, it needs a quiet-machine headed run, the complete JSON linked next to it, the exact versions and a statement of the workload, and it should be a separate decision.
+
 ## Run concurrent animations only
 
 ```bash
