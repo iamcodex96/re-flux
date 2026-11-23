@@ -60,7 +60,7 @@ Every docs-workspace dependency named in the item is now on its latest major (`n
 Every box must be checkable by running the named command or inspecting the named file.
 
 - [x] After each PR: `npm run build --workspace=re-flux-docs`, `npm run check:docs` and `npm run check:all` pass. (Each of the five steps: build, then `check:all`, which contains `check:docs`; all passed on Node 24.15.0. Node 22 is not installed here.)
-- [x] Deployed-route behaviour verified: `node scripts/check-built-route-fallback.mjs` passes (it runs at the end of every docs build, so after every step), plus the headless-Chromium smoke test of 19–26 routes.
+- [x] Deployed-route behaviour verified: `node scripts/check-built-route-fallback.mjs` passes (it runs at the end of every docs build, so after every step), plus the headless-Chromium smoke test of 19–26 routes. Also verified from a clean `npm ci` of the committed lockfile in a fresh worktree (`check:all` green, 65 suites / 1,609 tests) and with the deployed base `VITE_BASE_PATH=/re-flux/` (docs build with its fallback check, and the 26-route smoke test served under `/re-flux/`).
 - [x] No change to the published package contents (`npm run check:package` passes inside every `check:all`; `src/` untouched).
 
 ## Shared gates
