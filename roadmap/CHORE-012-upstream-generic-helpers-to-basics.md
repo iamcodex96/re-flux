@@ -18,6 +18,21 @@ re;Flux contains generic, animation-free helpers (`wrap`, `mapRange`, `snap`, `r
 - `@re-code/basics` rules (`../re-basics/CONTRIBUTING.md`): public contract agreed before implementation; one utility per module; TSDoc; Given/When/Then tests; ≥95% coverage; Lodash-contract naming; **"Do not … perform migrations from `re;Flux` without explicit approval."**
 - Naming collisions with Lodash if copied verbatim: `wrap` (function wrapper), `random` (different signature), `pipe` vs `flow`.
 
+## Status
+
+**Partly done 2026-11-23** on branch `claude/chores-00a6db` (not merged, not pushed). Steps 1–3 (contracts, implementation, release) were done in the `re-basics` repository by other sessions: `@re-code/basics@0.2.0` is published on npm (`latest`) and contains `wrapRange`, `mapRange`, `inverseLerp`, `interpolateRange`, `snap`, `randomBetween`, `percentile`, `standardDeviation`, `coefficientOfVariation`, `formatDecimal`, `isIterable`, `splitGraphemes`, `positiveOr`, `nonNegativeOr`, `finiteOr`, `createDeferred`, `flow` (verified in the installed package, including the per-function subpaths; `positiveOr`, `nonNegativeOr`, `finiteOr` are reachable as `@re-code/basics/number/<name>` through the `./number/*` wildcard, and `createDeferred` as `@re-code/basics/function/createDeferred`). This session did **not** touch that repository.
+
+**What was consumed in re;Flux** (dev-only, CHORE-011 decision B): `median`, `standardDeviation` and the coefficient of variation behind BENCH-007's `variability()` in `benchmarks/benchmark-utils.mjs`, `median` in `scripts/lib/browser-bench.mjs` and `apps/docs/src/benchmarks/statistics.ts`, each with the old `0` / `null` empty-input results kept at the call site and checked against the previous implementation on 20,012 arrays (0 mismatches). **What was done locally regardless of the Basics decision:** B3 — `positive` / `nonNegative` now live once in `src/utils/optionNumbers.ts` (internal) and `src/physics/spring.ts` and `src/operators/gestures.ts` import them; unit-tested in `tests/utils/optionNumbers.test.ts`.
+
+**What was not consumed, and why.** The swaps of `wrap`→`wrapRange`, `snap`, `mapRange`, `random`→`randomBetween`, `lerp`, `formatNumber`→`formatDecimal`, `isPlainRecord`, `isIterable`, `splitGraphemes` and the clamp copies in the published package are skipped **because of the CHORE-011 decision** (no runtime dependency; measurements and rationale there), not because Basics lacks them. Separately, some contracts are not drop-in even if the decision is reopened (all pinned by `tests/utils/basicsContract.test.ts`):
+
+- `percentile`: the benchmarks (`benchmarks/benchmark-utils.mjs`, `apps/docs/src/benchmarks/statistics.ts`) use **nearest rank**; Basics 0.2.0 implements R-7 interpolation. Swapping would shift every reported p50/p95/p99 and break comparability with saved baselines. **Missing from Basics: a nearest-rank percentile** (or an option for it). Left local, not improvised.
+- `interpolateRange`: Basics returns `NaN` for a `NaN` input and copies its arrays; re;Flux returns the last output and keeps references.
+- `snap`: Basics normalises `-0` to `0`; re;Flux keeps `-0`.
+- `clamp`: Basics throws on inverted bounds; the public re;Flux `clamp` orders them.
+- `createDeferred`: creates its promise eagerly; `Completion` creates it lazily on first read (PERF-011 depends on that), so it cannot be a thin wrapper.
+- Error messages differ for `wrap`, `snap`, `random`.
+
 ## Scope
 
 1. **Approval and contracts first.** Record explicit approval to migrate from re;Flux (basics' own rule), then write a one-paragraph contract per utility (inputs, `NaN`/empty/nullish behaviour, errors, mutation) in the basics repository.
@@ -42,21 +57,21 @@ re;Flux contains generic, animation-free helpers (`wrap`, `mapRange`, `snap`, `r
 
 Every box must be checkable by running the named command or inspecting the named file.
 
-- [ ] Written approval to migrate utilities from re;Flux is recorded (link in this file), as required by `../re-basics/CONTRIBUTING.md`.
-- [ ] For each utility actually moved, the basics repository contains: one module under its domain folder, TSDoc covering nullish/empty/error/mutation behaviour, Given/When/Then tests, and `npm run check:all` green in that repository (≥95% statements/branches/functions/lines for the module).
-- [ ] No moved utility keeps a Lodash-colliding name (`wrap`, `random`, `pipe`): `grep -rnE "export function (wrap|random|pipe)\b" ../re-basics/src` prints nothing.
-- [ ] **Before** swapping any re;Flux implementation, a characterization test exists in `tests/utils/` for each replaced function (including `NaN`, `±Infinity`, empty input, swapped bounds) and passes on `main`.
-- [ ] After the swap, those tests pass unchanged, and `diff -r` of `dist/**/*.d.ts` before/after is empty (public `wrap`, `snap`, `mapRange`, `random`, `pipe`, `interpolateRange` keep their signatures).
-- [ ] `benchmarks/benchmark-utils.mjs` and `apps/docs/src/views/BrowserBenchmarks.vue` contain no local `percentile`/`median` implementation (`grep -nE "function (percentile|median)" benchmarks apps/docs/src` prints nothing), and BENCH-007's coefficient-of-variation comes from the basics function.
-- [ ] `grep -rnE "function (positive|nonNegative)\b" src` shows a single definition (B3 deduped), independent of whether basics is adopted.
-- [ ] `grep -rnE '"(file|link):' package.json` prints nothing, and the pinned basics version in `package.json` is a published release containing every function consumed.
-- [ ] `npm run check:tree-shaking`, `npm run check:package:consumer` and `npm run check:docs` pass; the `steering` and `flow-field` entry bundles do not grow beyond the size of the functions they import (record before/after).
-- [ ] `CHANGELOG.md` *Unreleased* lists what moved and what stayed.
+- [x] Written approval to migrate utilities from re;Flux is recorded: the owner's approval to adopt `@re-code/basics` in re;Flux was relayed in the task brief of this session (2026-11-23); there is no separate document to link.
+- [ ] *Not verified here (separate repository, not touched by this session; the published 0.2.0 package contains the modules).* For each utility actually moved, the basics repository contains: one module under its domain folder, TSDoc covering nullish/empty/error/mutation behaviour, Given/When/Then tests, and `npm run check:all` green in that repository (≥95% statements/branches/functions/lines for the module).
+- [x] No moved utility keeps a Lodash-colliding name (`wrap`, `random`, `pipe`): `grep -rnE "export function (wrap|random|pipe)\b" ../re-basics/src` prints nothing.
+- [ ] n/a: no re;Flux implementation was swapped (CHORE-011 decision B). The characterization/parity test `tests/utils/basicsContract.test.ts` (including `NaN`, `±Infinity`, `-0`, inverted bounds) exists for `lerp`, `mapRange`, `wrap`, `snap`, `random`, `clamp`, `formatNumber`, `interpolateRange` and the statistics. **Before** swapping any re;Flux implementation, a characterization test exists in `tests/utils/` for each replaced function (including `NaN`, `±Infinity`, empty input, swapped bounds) and passes on `main`.
+- [ ] n/a (no swap). `diff -r` of `dist/**/*.d.ts` before/after is empty except for the new internal `utils/optionNumbers.d.ts`. After the swap, those tests pass unchanged, and `diff -r` of `dist/**/*.d.ts` before/after is empty (public `wrap`, `snap`, `mapRange`, `random`, `pipe`, `interpolateRange` keep their signatures).
+- [ ] **Partly.** `median` and BENCH-007's standard deviation / coefficient of variation come from Basics, but `grep -nE "function (percentile|median)" benchmarks apps/docs/src` still prints four lines: the `median` wrappers (they keep the `0` / `null` empty-input results) and the two nearest-rank `percentile` copies, which cannot move until Basics has a nearest-rank percentile (see Status). `BrowserBenchmarks.vue` itself has no statistics code since DOCS-004. The original wording, for reference: `benchmarks/benchmark-utils.mjs` and `apps/docs/src/views/BrowserBenchmarks.vue` contain no local `percentile`/`median` implementation (`grep -nE "function (percentile|median)" benchmarks apps/docs/src` prints nothing), and BENCH-007's coefficient-of-variation comes from the basics function.
+- [x] `grep -rnE "function (positive|nonNegative)\b" src` shows a single definition (B3 deduped), independent of whether basics is adopted.
+- [x] `grep -rnE '"(file|link):' package.json` prints nothing, and the pinned basics version in `package.json` is a published release containing every function consumed.
+- [x] `npm run check:tree-shaking`, `npm run check:package:consumer` and `npm run check:docs` pass; the `steering` and `flow-field` entry bundles do not grow beyond the size of the functions they import (record before/after). *They import none: 5,231 and 2,584 bytes minified before and after.*
+- [x] `CHANGELOG.md` *Unreleased* lists what moved and what stayed.
 
 ## Shared gates
 
 **Code gate** (see `roadmap/README.md`)
-- [ ] `npm run typecheck` and `npm run typecheck:tests` pass.
-- [ ] `npm test -- --runInBand` passes (record the test count; it must not decrease unless tests are intentionally replaced).
-- [ ] `npm run check:tree-shaking`, `npm run check:package` and `npm run check:package:consumer` pass.
-- [ ] No change to public `.d.ts` output unless intended; any intended change is recorded in `CHANGELOG.md` under Unreleased.
+- [x] `npm run typecheck` and `npm run typecheck:tests` pass.
+- [x] `npm test -- --runInBand` passes (1,609 tests; record the test count; it must not decrease unless tests are intentionally replaced).
+- [x] `npm run check:tree-shaking`, `npm run check:package` and `npm run check:package:consumer` pass.
+- [x] No change to public `.d.ts` output unless intended; any intended change is recorded in `CHANGELOG.md` under Unreleased.

@@ -21,6 +21,7 @@ import type {
   SpringState,
 } from '../types.js';
 import { frameCoordinator } from '../core/FrameCoordinator.js';
+import { nonNegative, positive } from '../utils/optionNumbers.js';
 import { DEFAULT_SPRING_OPTIONS, stepSpring } from '../physics/spring.js';
 
 /**
@@ -524,14 +525,6 @@ function clampVelocity(value: number, maxVelocity: number): number {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
-}
-
-function positive(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) && value > 0 ? value : fallback;
-}
-
-function nonNegative(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) && value >= 0 ? value : fallback;
 }
 
 function isValidPoint(x: number, y: number): boolean {

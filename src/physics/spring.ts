@@ -1,4 +1,5 @@
 import type { SpringOptions, SpringState, SpringStepResult } from '../types/physics.js';
+import { nonNegative, positive } from '../utils/optionNumbers.js';
 
 export const DEFAULT_SPRING_OPTIONS: Required<SpringOptions> = Object.freeze({
   stiffness: 260,
@@ -86,12 +87,4 @@ function normalizeSpringOptions(options: SpringOptions): Required<SpringOptions>
 
 function isAtRest(state: SpringState, target: number, options: Required<SpringOptions>): boolean {
   return Math.abs(target - state.value) <= options.restDelta && Math.abs(state.velocity) <= options.restSpeed;
-}
-
-function positive(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) && value > 0 ? value : fallback;
-}
-
-function nonNegative(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) && value >= 0 ? value : fallback;
 }
