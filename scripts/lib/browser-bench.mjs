@@ -8,6 +8,7 @@ import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { median as basicsMedian } from '@re-code/basics/number/median';
 import { build as esbuild } from 'esbuild';
 import { chromium } from 'playwright';
 
@@ -225,8 +226,5 @@ export async function serveFiles(files) {
 
 /** Median of a list of numbers (null for an empty list). */
 export function median(values) {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((left, right) => left - right);
-  const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+  return values.length === 0 ? null : basicsMedian(values);
 }

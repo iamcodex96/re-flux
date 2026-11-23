@@ -5,6 +5,9 @@ import { dirname, resolve } from 'node:path';
 import { PerformanceObserver, constants as perfConstants, performance } from 'node:perf_hooks';
 import v8 from 'node:v8';
 import vm from 'node:vm';
+import { coefficientOfVariation } from '@re-code/basics/number/coefficientOfVariation';
+import { median as basicsMedian } from '@re-code/basics/number/median';
+import { standardDeviation as basicsStandardDeviation } from '@re-code/basics/number/standardDeviation';
 
 /**
  * Resolve the optional report destination from `--out <file>` / `--out=<file>` or `BENCH_OUT`.
@@ -78,13 +81,9 @@ export function round(value, digits = 4) {
   return Math.round(value * factor) / factor;
 }
 
+/** Median of the samples; 0 for an empty list (`@re-code/basics` returns `NaN` there). */
 export function median(values) {
-  if (values.length === 0) return 0;
-  const sorted = [...values].sort((left, right) => left - right);
-  const middle = Math.floor(sorted.length / 2);
-  const result =
-    sorted.length % 2 === 0 ? ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2 : (sorted[middle] ?? 0);
-  return result;
+  return values.length === 0 ? 0 : basicsMedian(values);
 }
 
 export function percentile(values, fraction) {
@@ -111,11 +110,9 @@ export function summarizeSamples(values) {
   };
 }
 
-/** Sample standard deviation (n − 1); 0 for fewer than two values. */
+/** Sample standard deviation (n − 1); 0 for fewer than two values (`@re-code/basics` returns `NaN` there). */
 export function standardDeviation(values) {
-  if (values.length < 2) return 0;
-  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
-  return Math.sqrt(values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (values.length - 1));
+  return values.length < 2 ? 0 : basicsStandardDeviation(values, { sample: true });
 }
 
 /**
@@ -124,12 +121,13 @@ export function standardDeviation(values) {
  */
 export function variability(values) {
   if (values.length === 0) return { cv: 0, stdev: 0, min: 0, median: 0, max: 0, maxOverMin: 1 };
-  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
   const stdev = standardDeviation(values);
+  // The ratio is NaN for a zero mean (or fewer than two values), which this report has always shown as 0.
+  const cv = values.length < 2 ? 0 : coefficientOfVariation(values, { sample: true });
   const min = Math.min(...values);
   const max = Math.max(...values);
   return {
-    cv: mean === 0 ? 0 : round(stdev / Math.abs(mean), 4),
+    cv: Number.isNaN(cv) ? 0 : round(cv, 4),
     stdev: round(stdev, 4),
     min: round(min, 4),
     median: round(median(values), 4),

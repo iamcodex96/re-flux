@@ -1,3 +1,4 @@
+import { median as basicsMedian } from '@re-code/basics/number/median';
 import { ENGINE_CATALOG } from './config';
 import type { BrowserRunResult, EngineId, EngineMeta, EngineSummary } from './types';
 
@@ -7,11 +8,7 @@ export function round(value: number, digits = 3): number {
 }
 
 export function median(values: readonly number[]): number | null {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const middle = Math.floor(sorted.length / 2);
-  const value = sorted.length % 2 === 0 ? ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2 : sorted[middle];
-  return value === undefined ? null : round(value);
+  return values.length === 0 ? null : round(basicsMedian(values));
 }
 
 /** Nearest-rank percentile (`quantile` in [0, 1]). */
