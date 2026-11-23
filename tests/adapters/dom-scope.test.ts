@@ -34,8 +34,9 @@ describe('Given an AnimationScope', () => {
 
     it('Then a selector with no descendants throws a RangeError that names the selector', () => {
       const scope = new AnimationScope(rootWith({}));
-      expect(() => scope.animate('.missing', { duration: 100, properties: { opacity: { values: [0, 1] } } }))
-        .toThrow('AnimationScope selector did not match any descendants: .missing');
+      expect(() => scope.animate('.missing', { duration: 100, properties: { opacity: { values: [0, 1] } } })).toThrow(
+        'AnimationScope selector did not match any descendants: .missing',
+      );
     });
 
     it('Then element targets bypass selector resolution', () => {
@@ -57,7 +58,9 @@ describe('Given an AnimationScope', () => {
       const element = createElement({}, () => ({ left, top: 0, width: 10, height: 10 }));
       const scope = new AnimationScope(rootWith({ '.card': [element] }));
 
-      scope.flip('.card', () => { left = 40; });
+      scope.flip('.card', () => {
+        left = 40;
+      });
       expect(element.style.getPropertyValue('transform')).toBe('translate(-40px, 0px) scale(1, 1)');
 
       scope.revert();
@@ -101,11 +104,19 @@ describe('Given an AnimationScope', () => {
       const released: string[] = [];
       const scope = new AnimationScope(rootWith({}));
       scope.add({ dispose: () => released.push('ok-1') });
-      scope.add({ dispose: () => { throw new Error('boom'); } });
+      scope.add({
+        dispose: () => {
+          throw new Error('boom');
+        },
+      });
       scope.add({ unsubscribe: () => released.push('ok-2') });
 
       let caught: unknown;
-      try { scope.revert(); } catch (error) { caught = error; }
+      try {
+        scope.revert();
+      } catch (error) {
+        caught = error;
+      }
 
       expect(caught).toBeInstanceOf(AggregateError);
       expect((caught as AggregateError).errors).toHaveLength(1);
@@ -120,7 +131,9 @@ describe('Given an AnimationScope', () => {
 
       expect(() => scope.revert()).not.toThrow();
       expect(() => scope.add({ dispose: () => undefined })).toThrow('This AnimationScope has been reverted');
-      expect(() => scope.animate(createElement(), { duration: 1, properties: { opacity: [0, 1] } })).toThrow('has been reverted');
+      expect(() => scope.animate(createElement(), { duration: 1, properties: { opacity: [0, 1] } })).toThrow(
+        'has been reverted',
+      );
       expect(() => scope.flip(createElement(), () => undefined)).toThrow('has been reverted');
       expect(() => scope.draggable(createDraggableTarget())).toThrow('has been reverted');
     });
@@ -131,18 +144,26 @@ describe('Given createScope()', () => {
   describe('When the setup callback registers resources and then throws', () => {
     it('Then the registered resources are reverted and the original error is rethrown', () => {
       const dispose = jest.fn();
-      expect(() => createScope(rootWith({}), (scope) => {
-        scope.add({ dispose });
-        throw new Error('setup failed');
-      })).toThrow('setup failed');
+      expect(() =>
+        createScope(rootWith({}), (scope) => {
+          scope.add({ dispose });
+          throw new Error('setup failed');
+        }),
+      ).toThrow('setup failed');
       expect(dispose).toHaveBeenCalledTimes(1);
     });
 
     it('Then a failing revert does not mask the setup error', () => {
-      expect(() => createScope(rootWith({}), (scope) => {
-        scope.add({ dispose: () => { throw new Error('revert failed'); } });
-        throw new Error('setup failed');
-      })).toThrow('setup failed');
+      expect(() =>
+        createScope(rootWith({}), (scope) => {
+          scope.add({
+            dispose: () => {
+              throw new Error('revert failed');
+            },
+          });
+          throw new Error('setup failed');
+        }),
+      ).toThrow('setup failed');
     });
   });
 
@@ -173,7 +194,9 @@ describe('Given createResponsiveScope()', () => {
       let listener: (() => void) | null = null;
       const media: FakeMedia = {
         matches: true,
-        addEventListener: (_type, next) => { listener = next; },
+        addEventListener: (_type, next) => {
+          listener = next;
+        },
         removeEventListener: jest.fn(),
       };
       const setup = jest.fn();
@@ -214,11 +237,15 @@ describe('Given createResponsiveScope()', () => {
 
   describe('When the input is invalid', () => {
     it('Then an empty query throws a TypeError', () => {
-      expect(() => createResponsiveScope(rootWith({}), '   ', () => undefined, fakeWindow({ matches: true }))).toThrow(TypeError);
+      expect(() => createResponsiveScope(rootWith({}), '   ', () => undefined, fakeWindow({ matches: true }))).toThrow(
+        TypeError,
+      );
     });
 
     it('Then it throws when no browser window is available', () => {
-      expect(() => createResponsiveScope(rootWith({}), '(min-width: 1px)', () => undefined)).toThrow('requires a browser window');
+      expect(() => createResponsiveScope(rootWith({}), '(min-width: 1px)', () => undefined)).toThrow(
+        'requires a browser window',
+      );
     });
   });
 });

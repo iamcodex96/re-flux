@@ -12,8 +12,11 @@ describe('Given Timeline composition helpers', () => {
         const timeline = sequence([first, second, third]);
 
         expect(timeline.duration).toBe(175);
-        expect(timeline.segments.map(({ startTime, endTime }) => [startTime, endTime]))
-          .toEqual([[0, 100], [100, 150], [150, 175]]);
+        expect(timeline.segments.map(({ startTime, endTime }) => [startTime, endTime])).toEqual([
+          [0, 100],
+          [100, 150],
+          [150, 175],
+        ]);
       });
     });
   });
@@ -21,7 +24,11 @@ describe('Given Timeline composition helpers', () => {
   describe('When composition items run in parallel', () => {
     describe('And When they are composed', () => {
       it('Then every item starts at zero', () => {
-        const items = [new Animation({ duration: 100 }), new Animation({ duration: 40 }), new Animation({ duration: 70 })];
+        const items = [
+          new Animation({ duration: 100 }),
+          new Animation({ duration: 40 }),
+          new Animation({ duration: 70 }),
+        ];
         const timeline = parallel(items);
 
         expect(timeline.duration).toBe(100);

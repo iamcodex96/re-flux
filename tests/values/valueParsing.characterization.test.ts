@@ -81,8 +81,14 @@ describe('Given the value path (interpolate) and the CSS path (interpolateCssVal
       });
     });
     it('Then ACCIDENTAL: alpha overshoot (progress 1.2 and -0.2) is clamped to 0..1 on both paths (was 1.2 / -0.2)', () => {
-      expect(both(['rgba(0,0,0,0)', 'rgba(0,0,0,1)', 1.2])).toEqual({ value: 'rgba(0, 0, 0, 1)', css: 'rgba(0,0,0,1)' });
-      expect(both(['rgba(0,0,0,0)', 'rgba(0,0,0,1)', -0.2])).toEqual({ value: 'rgba(0, 0, 0, 0)', css: 'rgba(0,0,0,0)' });
+      expect(both(['rgba(0,0,0,0)', 'rgba(0,0,0,1)', 1.2])).toEqual({
+        value: 'rgba(0, 0, 0, 1)',
+        css: 'rgba(0,0,0,1)',
+      });
+      expect(both(['rgba(0,0,0,0)', 'rgba(0,0,0,1)', -0.2])).toEqual({
+        value: 'rgba(0, 0, 0, 0)',
+        css: 'rgba(0,0,0,0)',
+      });
     });
   });
 

@@ -17,8 +17,14 @@ describe('Given smoothStream', () => {
         const source = new Subject<TimestampedValue<number>>();
         const samples: SmoothedStreamSample<number>[] = [];
         let completed = false;
-        const subscription = source.pipe(smoothStream({ targetLatency: 10, staleAfter: 100, interpolate: interpolateNumber }))
-          .subscribe({ next: (sample) => samples.push(sample), complete: () => { completed = true; } });
+        const subscription = source
+          .pipe(smoothStream({ targetLatency: 10, staleAfter: 100, interpolate: interpolateNumber }))
+          .subscribe({
+            next: (sample) => samples.push(sample),
+            complete: () => {
+              completed = true;
+            },
+          });
 
         source.next({ timestamp: 0, value: 0 });
         raf.advance(0);
@@ -40,7 +46,8 @@ describe('Given smoothStream', () => {
       it('Then it sorts out-of-order samples and replaces duplicate timestamps', () => {
         const source = new Subject<TimestampedValue<number>>();
         const samples: SmoothedStreamSample<number>[] = [];
-        const subscription = source.pipe(smoothStream({ targetLatency: 0, interpolate: interpolateNumber, maxBufferSize: 8 }))
+        const subscription = source
+          .pipe(smoothStream({ targetLatency: 0, interpolate: interpolateNumber, maxBufferSize: 8 }))
           .subscribe((sample) => samples.push(sample));
 
         source.next({ timestamp: 0, value: 0 });
@@ -59,7 +66,8 @@ describe('Given smoothStream', () => {
       it('Then it ignores packets that arrive behind the displayed time cursor', () => {
         const source = new Subject<TimestampedValue<number>>();
         const samples: SmoothedStreamSample<number>[] = [];
-        const subscription = source.pipe(smoothStream({ targetLatency: 0, interpolate: interpolateNumber }))
+        const subscription = source
+          .pipe(smoothStream({ targetLatency: 0, interpolate: interpolateNumber }))
           .subscribe((sample) => samples.push(sample));
 
         source.next({ timestamp: 0, value: 0 });
@@ -77,12 +85,16 @@ describe('Given smoothStream', () => {
       it('Then it keeps interpolated values finite and bracketed across irregular sample arrivals', () => {
         const source = new Subject<TimestampedValue<number>>();
         const samples: SmoothedStreamSample<number>[] = [];
-        const subscription = source.pipe(smoothStream({
-          targetLatency: 24,
-          staleAfter: 180,
-          maxBufferSize: 8,
-          interpolate: interpolateNumber,
-        })).subscribe((sample) => samples.push(sample));
+        const subscription = source
+          .pipe(
+            smoothStream({
+              targetLatency: 24,
+              staleAfter: 180,
+              maxBufferSize: 8,
+              interpolate: interpolateNumber,
+            }),
+          )
+          .subscribe((sample) => samples.push(sample));
 
         source.next({ timestamp: 0, value: 0 });
         raf.advance(0);
@@ -116,7 +128,8 @@ describe('Given smoothStream', () => {
       it('Then it marks samples stale when the source has not updated within staleAfter', () => {
         const source = new Subject<TimestampedValue<number>>();
         const samples: SmoothedStreamSample<number>[] = [];
-        const subscription = source.pipe(smoothStream({ targetLatency: 0, staleAfter: 30, interpolate: interpolateNumber }))
+        const subscription = source
+          .pipe(smoothStream({ targetLatency: 0, staleAfter: 30, interpolate: interpolateNumber }))
           .subscribe((sample) => samples.push(sample));
 
         source.next({ timestamp: 0, value: 7 });
@@ -132,7 +145,11 @@ describe('Given smoothStream', () => {
       it('Then it completes an empty source without starting a frame loop', () => {
         const source = new Subject<TimestampedValue<number>>();
         let completed = false;
-        const subscription = source.pipe(smoothStream({ interpolate: interpolateNumber })).subscribe({ complete: () => { completed = true; } });
+        const subscription = source.pipe(smoothStream({ interpolate: interpolateNumber })).subscribe({
+          complete: () => {
+            completed = true;
+          },
+        });
 
         source.complete();
         expect(completed).toBe(true);
@@ -144,10 +161,20 @@ describe('Given smoothStream', () => {
       it('Then it reports interpolation errors and releases the shared frame clock', () => {
         const source = new Subject<TimestampedValue<number>>();
         let receivedError: unknown;
-        const subscription = source.pipe(smoothStream<number>({
-          targetLatency: 0,
-          interpolate: () => { throw new Error('interpolator failed'); },
-        })).subscribe({ error: (error: unknown) => { receivedError = error; } });
+        const subscription = source
+          .pipe(
+            smoothStream<number>({
+              targetLatency: 0,
+              interpolate: () => {
+                throw new Error('interpolator failed');
+              },
+            }),
+          )
+          .subscribe({
+            error: (error: unknown) => {
+              receivedError = error;
+            },
+          });
 
         source.next({ timestamp: 0, value: 0 });
         raf.advance(0);
@@ -168,7 +195,11 @@ describe('Given smoothStream', () => {
       it('Then it errors on non-finite timestamps and releases the RAF loop', () => {
         const source = new Subject<TimestampedValue<number>>();
         let receivedError: unknown;
-        const subscription = source.pipe(smoothStream({ interpolate: interpolateNumber })).subscribe({ error: (error: unknown) => { receivedError = error; } });
+        const subscription = source.pipe(smoothStream({ interpolate: interpolateNumber })).subscribe({
+          error: (error: unknown) => {
+            receivedError = error;
+          },
+        });
 
         source.next({ timestamp: Number.POSITIVE_INFINITY, value: 2 });
         expect(receivedError).toBeInstanceOf(RangeError);

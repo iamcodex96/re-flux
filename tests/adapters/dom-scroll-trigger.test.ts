@@ -13,7 +13,14 @@ let fakeDocument: { documentElement: { clientHeight: number; scrollTop: number }
 
 function rect(top: number, height: number): DOMRect {
   return {
-    x: 0, y: top, top, left: 0, right: 100, bottom: top + height, width: 100, height,
+    x: 0,
+    y: top,
+    top,
+    left: 0,
+    right: 100,
+    bottom: top + height,
+    width: 100,
+    height,
     toJSON: () => ({}),
   } as DOMRect;
 }
@@ -23,7 +30,9 @@ function makeTarget(top: number, height: number): Element & { setRect: (top: num
   return {
     nodeType: 1,
     getBoundingClientRect: () => current,
-    setRect: (nextTop: number, nextHeight: number = current.height) => { current = rect(nextTop, nextHeight); },
+    setRect: (nextTop: number, nextHeight: number = current.height) => {
+      current = rect(nextTop, nextHeight);
+    },
   } as unknown as Element & { setRect: (top: number, height?: number) => void };
 }
 
@@ -73,7 +82,14 @@ describe('Given createScrollTrigger()', () => {
         const onEnterBack = jest.fn();
         const onLeaveBack = jest.fn();
         const onToggle = jest.fn();
-        const trigger = createScrollTrigger(target, { onEnter, onLeave, onEnterBack, onLeaveBack, onToggle, autoRefresh: false });
+        const trigger = createScrollTrigger(target, {
+          onEnter,
+          onLeave,
+          onEnterBack,
+          onLeaveBack,
+          onToggle,
+          autoRefresh: false,
+        });
 
         expect(trigger.progress).toBe(0);
         expect(trigger.isActive).toBe(false);
@@ -182,8 +198,12 @@ describe('Given createScrollTrigger()', () => {
     describe('And When invalid positions or a reversed trigger range are provided', () => {
       it('Then it rejects invalid positions and reversed trigger ranges before leaving listeners installed', () => {
         const target = makeTarget(20, 40);
-        expect(() => createScrollTrigger(target, { start: 'middle bottom' })).toThrow('Invalid scroll trigger position');
-        expect(() => createScrollTrigger(target, { start: 'bottom top', end: 'top bottom' })).toThrow('start must occur before end');
+        expect(() => createScrollTrigger(target, { start: 'middle bottom' })).toThrow(
+          'Invalid scroll trigger position',
+        );
+        expect(() => createScrollTrigger(target, { start: 'bottom top', end: 'top bottom' })).toThrow(
+          'start must occur before end',
+        );
       });
     });
     describe('And When the instance is destroyed', () => {

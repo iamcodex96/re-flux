@@ -8,5 +8,17 @@ export type { StaggerOptions, StaggerOrigin, StaggerDelayFunction } from './util
 export type { EasingFunction, EasingName, EasingOption, AnimationFrameTick, AnimationFrameSource } from './types.js';
 
 /** Two-dimensional vector math. */
-export { addVectors, subtractVectors, scaleVector, vectorMagnitudeSquared, vectorMagnitude, normalizeVector, limitVector, distanceBetween, dotProduct, vectorFromAngle, lerpVector } from './utils/vector2.js';
+export {
+  addVectors,
+  subtractVectors,
+  scaleVector,
+  vectorMagnitudeSquared,
+  vectorMagnitude,
+  normalizeVector,
+  limitVector,
+  distanceBetween,
+  dotProduct,
+  vectorFromAngle,
+  lerpVector,
+} from './utils/vector2.js';
 export type { Vector2 } from './utils/vector2.js';

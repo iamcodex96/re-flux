@@ -38,13 +38,24 @@ export class Keyframes<T> extends AnimatedValue<T> {
     // Everything that can throw on bad input is computed before the animation is built, in the order it always was.
     const frames = normalizeKeyframes(options.keyframes);
     const compile = getInterpolatorCompiler(options.interpolate);
-    const interpolators = frames.slice(0, -1).map((frame, index) => compile
-      ? compile(frame.value, frames[index + 1]!.value)
-      : resolveInterpolator(frame.value, frames[index + 1]!.value, options.interpolate, 'Keyframes'),
-    );
+    const interpolators = frames
+      .slice(0, -1)
+      .map((frame, index) =>
+        compile
+          ? compile(frame.value, frames[index + 1]!.value)
+          : resolveInterpolator(frame.value, frames[index + 1]!.value, options.interpolate, 'Keyframes'),
+      );
     const defaultEasing = resolveEasing(options.easing);
-    const segmentEasings = frames.slice(0, -1).map((frame) => frame.easing === undefined ? defaultEasing : resolveEasing(frame.easing));
-    const { keyframes: _keyframes, interpolate: _interpolate, onUpdate, easing: _easing, ...animationOptions } = options;
+    const segmentEasings = frames
+      .slice(0, -1)
+      .map((frame) => (frame.easing === undefined ? defaultEasing : resolveEasing(frame.easing)));
+    const {
+      keyframes: _keyframes,
+      interpolate: _interpolate,
+      onUpdate,
+      easing: _easing,
+      ...animationOptions
+    } = options;
     // The easing is applied per segment, so the underlying animation stays linear.
     super(frames[0]!.value, { ...animationOptions, easing: 'linear' });
     this.frames = frames;
@@ -52,7 +63,9 @@ export class Keyframes<T> extends AnimatedValue<T> {
     this.segmentEasings = segmentEasings;
     if (frames.length - 1 > SEGMENT_CURSOR_MIN_SEGMENTS) {
       // The first segment starts at -Infinity so that a progress of exactly 0 (the first frame's own offset) matches it.
-      this.segmentStarts = Float64Array.from(frames.slice(0, -1), (frame, index) => index === 0 ? -Infinity : frame.offset);
+      this.segmentStarts = Float64Array.from(frames.slice(0, -1), (frame, index) =>
+        index === 0 ? -Infinity : frame.offset,
+      );
       this.segmentEnds = Float64Array.from(frames.slice(1), (frame) => frame.offset);
     }
     this.onValueUpdate = onUpdate;
@@ -76,7 +89,11 @@ export class Keyframes<T> extends AnimatedValue<T> {
 
     const span = end.offset - start.offset;
     const localProgress = span <= 0 ? 1 : clamp((normalizedProgress - start.offset) / span, 0, 1);
-    const value = this.interpolators[segmentIndex]!(start.value, end.value, this.segmentEasings[segmentIndex]!(localProgress));
+    const value = this.interpolators[segmentIndex]!(
+      start.value,
+      end.value,
+      this.segmentEasings[segmentIndex]!(localProgress),
+    );
     this.publishValue(value, progress);
   }
 

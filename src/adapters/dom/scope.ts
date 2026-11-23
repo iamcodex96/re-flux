@@ -58,7 +58,9 @@ export class AnimationScope {
       try {
         if ('dispose' in resource) resource.dispose();
         else resource.unsubscribe();
-      } catch (error) { errors.push(error); }
+      } catch (error) {
+        errors.push(error);
+      }
     }
     if (errors.length > 0) throw new AggregateError(errors, 'One or more animation scope resources failed to dispose.');
   }
@@ -78,10 +80,12 @@ export class AnimationScope {
 /** Create a scoped animation owner. If setup throws, all resources registered before the error are reverted. */
 export function createScope(root: ParentNode, setup?: (scope: AnimationScope) => void): AnimationScope {
   const scope = new AnimationScope(root);
-  try { setup?.(scope); }
-  catch (error) {
-    try { scope.revert(); }
-    catch {}
+  try {
+    setup?.(scope);
+  } catch (error) {
+    try {
+      scope.revert();
+    } catch {}
     throw error;
   }
   return scope;
@@ -124,7 +128,9 @@ export function createResponsiveScope(
   if (!media.addEventListener) media.addListener?.(onChange);
   synchronize();
   return {
-    get active() { return scope !== null; },
+    get active() {
+      return scope !== null;
+    },
     refresh: synchronize,
     dispose: () => {
       if (disposed) return;

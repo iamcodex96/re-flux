@@ -11,11 +11,7 @@ export interface CanvasBindingOptions {
 }
 
 /** Draw callback receives the latest source value and the shared coordinator frame. */
-export type CanvasDraw<T> = (
-  context: CanvasRenderingContext2D,
-  value: T,
-  frame: AnimationFrameTick,
-) => void;
+export type CanvasDraw<T> = (context: CanvasRenderingContext2D, value: T, frame: AnimationFrameTick) => void;
 
 /**
  * Binds an Observable to a Canvas 2D context. Multiple source emissions in one frame are coalesced
@@ -78,7 +74,6 @@ export function bindCanvas<T>(
   return binding;
 }
 
-
 /** Result of sizing a canvas backing bitmap for CSS-pixel drawing on high-density displays. */
 export interface CanvasResizeResult {
   readonly context: CanvasRenderingContext2D;
@@ -104,9 +99,12 @@ export function resizeCanvas(canvas: HTMLCanvasElement, options: CanvasResizeOpt
   const rect = canvas.getBoundingClientRect();
   const width = options.width ?? (rect.width || canvas.clientWidth || canvas.width);
   const height = options.height ?? (rect.height || canvas.clientHeight || canvas.height);
-  const pixelRatio = options.pixelRatio ?? (typeof window !== 'undefined' ? Math.max(1, window.devicePixelRatio || 1) : 1);
+  const pixelRatio =
+    options.pixelRatio ?? (typeof window !== 'undefined' ? Math.max(1, window.devicePixelRatio || 1) : 1);
   if (![width, height, pixelRatio].every(Number.isFinite) || width < 0 || height < 0 || pixelRatio <= 0) {
-    throw new RangeError('Canvas dimensions must be finite and non-negative, and pixelRatio must be greater than zero.');
+    throw new RangeError(
+      'Canvas dimensions must be finite and non-negative, and pixelRatio must be greater than zero.',
+    );
   }
   const context = canvas.getContext('2d');
   if (!context) throw new Error('A 2D rendering context is not available for this canvas.');

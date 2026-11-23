@@ -98,7 +98,9 @@ export abstract class AnimatedValue<T> implements AnimatableItem, PromiseLike<vo
     return this.animation.then(onfulfilled, onrejected);
   }
 
-  catch<TResult = never>(onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null): Promise<void | TResult> {
+  catch<TResult = never>(
+    onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null,
+  ): Promise<void | TResult> {
     return this.animation.catch(onrejected);
   }
 

@@ -26,8 +26,8 @@ export function interpolateCssValue(from: string, to: string, progress: number):
 
   const fromTemplate = tokenizeNumbers(from);
   const toTemplate = tokenizeNumbers(to);
-  const compatibleTemplate = fromTemplate.template === toTemplate.template
-    && fromTemplate.values.length === toTemplate.values.length;
+  const compatibleTemplate =
+    fromTemplate.template === toTemplate.template && fromTemplate.values.length === toTemplate.values.length;
 
   const fromColor = parseColor(from);
   const toColor = parseColor(to);
@@ -64,22 +64,24 @@ const JOINED_TEMPLATE_THRESHOLD = 3;
 export function compileCssInterpolator(from: string, to: string): (progress: number) => string {
   const fromTemplate = tokenizeNumbers(from);
   const toTemplate = tokenizeNumbers(to);
-  const compatibleTemplate = fromTemplate.template === toTemplate.template
-    && fromTemplate.values.length === toTemplate.values.length;
+  const compatibleTemplate =
+    fromTemplate.template === toTemplate.template && fromTemplate.values.length === toTemplate.values.length;
 
   let render: (progress: number) => string;
   const fromColor = parseColor(from);
   const toColor = parseColor(to);
   if (fromColor && toColor) {
-    render = compatibleTemplate && !from.trim().startsWith('#')
-      ? compileColorTemplate(fromTemplate.template, fromColor, toColor)
-      : compileColorMix(fromColor, toColor);
+    render =
+      compatibleTemplate && !from.trim().startsWith('#')
+        ? compileColorTemplate(fromTemplate.template, fromColor, toColor)
+        : compileColorMix(fromColor, toColor);
   } else if (!compatibleTemplate) {
-    return (progress) => progress < 1 ? from : to; // 0 and 1 included: the one-shot path returns `from`/`to` there too
+    return (progress) => (progress < 1 ? from : to); // 0 and 1 included: the one-shot path returns `from`/`to` there too
   } else {
-    render = fromTemplate.values.length > JOINED_TEMPLATE_THRESHOLD
-      ? compileNumericTemplateJoined(fromTemplate, toTemplate)
-      : compileNumericTemplate(fromTemplate, toTemplate);
+    render =
+      fromTemplate.values.length > JOINED_TEMPLATE_THRESHOLD
+        ? compileNumericTemplateJoined(fromTemplate, toTemplate)
+        : compileNumericTemplate(fromTemplate, toTemplate);
   }
 
   return (progress) => {
@@ -100,7 +102,8 @@ export function compiledCssInterpolator(): ValueInterpolator<string> {
     (from, to, progress) => interpolateCssValue(from, to, progress),
     (from, to) => {
       const render = compileCssInterpolator(from, to);
-      return (start, end, progress) => start === from && end === to ? render(progress) : interpolateCssValue(start, end, progress);
+      return (start, end, progress) =>
+        start === from && end === to ? render(progress) : interpolateCssValue(start, end, progress);
     },
   );
   return cssInterpolator;
@@ -127,9 +130,10 @@ export function resolvePropertyFrames(
   index = 0,
   total = 1,
 ): CssAnimatableValue[] {
-  const resolvedFrames: CssAnimatableValue | readonly CssAnimatableValue[] = typeof propertyFrames === 'function'
-    ? propertyFrames(target, index, total)
-    : propertyFrames as CssAnimatableValue | readonly CssAnimatableValue[];
+  const resolvedFrames: CssAnimatableValue | readonly CssAnimatableValue[] =
+    typeof propertyFrames === 'function'
+      ? propertyFrames(target, index, total)
+      : (propertyFrames as CssAnimatableValue | readonly CssAnimatableValue[]);
   if (Array.isArray(resolvedFrames)) {
     const frames = [...resolvedFrames] as CssAnimatableValue[];
     if (frames.length === 0) throw new RangeError(`CSS property "${cssProperty}" cannot have an empty keyframe array.`);
@@ -161,11 +165,36 @@ export function toCssPropertyName(property: string): string {
   return property.replace(/[A-Z]/g, (character) => `-${character.toLowerCase()}`);
 }
 
-
 const UNIT_LESS_PROPERTIES = new Set([
-  'animation-iteration-count', 'aspect-ratio', 'border-image-slice', 'column-count', 'fill-opacity',
-  'flex', 'flex-grow', 'flex-shrink', 'flood-opacity', 'font-weight', 'grid-area', 'grid-column',
-  'grid-column-end', 'grid-column-start', 'grid-row', 'grid-row-end', 'grid-row-start', 'line-height',
-  'opacity', 'order', 'orphans', 'scale', 'stop-opacity', 'stroke-dasharray', 'stroke-dashoffset',
-  'stroke-miterlimit', 'stroke-opacity', 'tab-size', 'widows', 'z-index', 'zoom',
+  'animation-iteration-count',
+  'aspect-ratio',
+  'border-image-slice',
+  'column-count',
+  'fill-opacity',
+  'flex',
+  'flex-grow',
+  'flex-shrink',
+  'flood-opacity',
+  'font-weight',
+  'grid-area',
+  'grid-column',
+  'grid-column-end',
+  'grid-column-start',
+  'grid-row',
+  'grid-row-end',
+  'grid-row-start',
+  'line-height',
+  'opacity',
+  'order',
+  'orphans',
+  'scale',
+  'stop-opacity',
+  'stroke-dasharray',
+  'stroke-dashoffset',
+  'stroke-miterlimit',
+  'stroke-opacity',
+  'tab-size',
+  'widows',
+  'z-index',
+  'zoom',
 ]);

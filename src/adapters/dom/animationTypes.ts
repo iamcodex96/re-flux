@@ -8,8 +8,11 @@ export type CssStyleMap = Readonly<Record<string, string | null | undefined>>;
 /** A CSS property value. Arrays are interpreted as evenly distributed property keyframes. */
 export type CssAnimatableValue = string | number;
 /** Values factory evaluated once for a resolved target; must not perform playback-time side effects. */
-export type CssPropertyFramesFactory = (target: Element, index: number, total: number) =>
-  CssAnimatableValue | readonly CssAnimatableValue[];
+export type CssPropertyFramesFactory = (
+  target: Element,
+  index: number,
+  total: number,
+) => CssAnimatableValue | readonly CssAnimatableValue[];
 export type CssPropertyFrames = CssAnimatableValue | readonly CssAnimatableValue[] | CssPropertyFramesFactory;
 export type DOMAnimationTarget = string | Element | Iterable<Element>;
 
@@ -29,11 +32,22 @@ export interface DOMPropertyTimingOptions {
 /**
  * Property-level frames with independent timing. Choose one shape: `from` + `to`, `values`, or `keyframes`.
  */
-export type DOMPropertyOptions = DOMPropertyTimingOptions & (
-  | { readonly values: CssPropertyFrames; readonly keyframes?: never; readonly from?: never; readonly to?: never }
-  | { readonly keyframes: readonly DOMPropertyKeyframe[]; readonly values?: never; readonly from?: never; readonly to?: never }
-  | { readonly from: CssAnimatableValue; readonly to: CssAnimatableValue; readonly values?: never; readonly keyframes?: never }
-);
+export type DOMPropertyOptions = DOMPropertyTimingOptions &
+  (
+    | { readonly values: CssPropertyFrames; readonly keyframes?: never; readonly from?: never; readonly to?: never }
+    | {
+        readonly keyframes: readonly DOMPropertyKeyframe[];
+        readonly values?: never;
+        readonly from?: never;
+        readonly to?: never;
+      }
+    | {
+        readonly from: CssAnimatableValue;
+        readonly to: CssAnimatableValue;
+        readonly values?: never;
+        readonly keyframes?: never;
+      }
+  );
 
 /** A property may use the shorthand syntax or its own keyframes and timing configuration. */
 export type CssPropertyDefinition = CssPropertyFrames | DOMPropertyOptions;

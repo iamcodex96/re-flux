@@ -23,19 +23,42 @@ describe('Given a generated flow field', () => {
         { column: 1, row: 1, index: 3, x: 25, y: 35 },
       ]);
       expect(field.vectors).toEqual([
-        { x: 1, y: 1 }, { x: 2, y: 1 },
-        { x: 1, y: 2 }, { x: 2, y: 2 },
+        { x: 1, y: 1 },
+        { x: 2, y: 1 },
+        { x: 1, y: 2 },
+        { x: 2, y: 2 },
       ]);
       expect(Object.isFrozen(field)).toBe(true);
       expect(Object.isFrozen(field.vectors)).toBe(true);
     });
 
     it('Then it rejects invalid dimensions, cell sizes, origins and generated vectors', () => {
-      expect(() => createFlowField({ columns: 0, rows: 1, cellSize: 10, vectorAtCell: () => ({ x: 1, y: 0 }) })).toThrow(RangeError);
-      expect(() => createFlowField({ columns: 1, rows: 1, cellSize: 0, vectorAtCell: () => ({ x: 1, y: 0 }) })).toThrow(RangeError);
-      expect(() => createFlowField({ columns: 1, rows: 1, cellSize: 10, origin: { x: Number.NaN, y: 0 }, vectorAtCell: () => ({ x: 1, y: 0 }) })).toThrow(RangeError);
-      expect(() => createFlowField({ columns: 1, rows: 1, cellSize: 10, vectorAtCell: () => ({ x: Number.POSITIVE_INFINITY, y: 0 }) })).toThrow(RangeError);
-      expect(() => createFlowField({ columns: 2, rows: 1, cellSize: Number.MAX_VALUE, vectorAtCell: () => ({ x: 1, y: 0 }) })).toThrow(RangeError);
+      expect(() =>
+        createFlowField({ columns: 0, rows: 1, cellSize: 10, vectorAtCell: () => ({ x: 1, y: 0 }) }),
+      ).toThrow(RangeError);
+      expect(() => createFlowField({ columns: 1, rows: 1, cellSize: 0, vectorAtCell: () => ({ x: 1, y: 0 }) })).toThrow(
+        RangeError,
+      );
+      expect(() =>
+        createFlowField({
+          columns: 1,
+          rows: 1,
+          cellSize: 10,
+          origin: { x: Number.NaN, y: 0 },
+          vectorAtCell: () => ({ x: 1, y: 0 }),
+        }),
+      ).toThrow(RangeError);
+      expect(() =>
+        createFlowField({
+          columns: 1,
+          rows: 1,
+          cellSize: 10,
+          vectorAtCell: () => ({ x: Number.POSITIVE_INFINITY, y: 0 }),
+        }),
+      ).toThrow(RangeError);
+      expect(() =>
+        createFlowField({ columns: 2, rows: 1, cellSize: Number.MAX_VALUE, vectorAtCell: () => ({ x: 1, y: 0 }) }),
+      ).toThrow(RangeError);
     });
   });
 
@@ -54,7 +77,9 @@ describe('Given a generated flow field', () => {
     it('Then it rejects invalid sample positions and malformed fields', () => {
       expect(() => sampleFlowField(field, { x: Number.NaN, y: 10 })).toThrow(RangeError);
       expect(() => sampleFlowField({ ...field, vectors: [] }, { x: 10, y: 20 })).toThrow(RangeError);
-      expect(() => sampleFlowField({ ...field, vectors: [{ x: Number.NaN, y: 0 }, ...field.vectors.slice(1)] }, { x: 10, y: 20 })).toThrow(RangeError);
+      expect(() =>
+        sampleFlowField({ ...field, vectors: [{ x: Number.NaN, y: 0 }, ...field.vectors.slice(1)] }, { x: 10, y: 20 }),
+      ).toThrow(RangeError);
       expect(() => sampleFlowField(field, { x: 0, y: 0 }, 'invalid' as 'clamp')).toThrow(RangeError);
     });
   });

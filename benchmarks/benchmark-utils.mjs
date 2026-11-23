@@ -82,9 +82,8 @@ export function median(values) {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((left, right) => left - right);
   const middle = Math.floor(sorted.length / 2);
-  const result = sorted.length % 2 === 0
-    ? ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2
-    : (sorted[middle] ?? 0);
+  const result =
+    sorted.length % 2 === 0 ? ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2 : (sorted[middle] ?? 0);
   return result;
 }
 
@@ -245,13 +244,19 @@ function correlateFramesWithGc(frameStarts, frameDurations, gcEntries) {
     return gcEntries.some((entry) => entry.startTime < end && entry.startTime + entry.duration > start);
   };
   const slowCount = Math.min(frameCount, Math.max(3, Math.ceil(frameCount * 0.01)));
-  const slowest = frameDurations.map((duration, index) => ({ duration, index }))
+  const slowest = frameDurations
+    .map((duration, index) => ({ duration, index }))
     .sort((left, right) => right.duration - left.duration)
     .slice(0, slowCount);
   let allOverlapping = 0;
   for (let index = 0; index < frameCount; index += 1) if (overlaps(index)) allOverlapping += 1;
   const slowestOverlapping = slowest.filter(({ index }) => overlaps(index)).length;
-  return { frameCount, framesOverlappingGc: allOverlapping, slowestFrameCount: slowCount, slowestFramesOverlappingGc: slowestOverlapping };
+  return {
+    frameCount,
+    framesOverlappingGc: allOverlapping,
+    slowestFrameCount: slowCount,
+    slowestFramesOverlappingGc: slowestOverlapping,
+  };
 }
 
 /**
@@ -305,15 +310,17 @@ export function summarizeGcRuns(runs) {
     gcMedianPauseMs: round(median(pauses), 4),
     gcMaxPauseMs: round(Math.max(0, ...runs.map((run) => run.gc?.maxPauseMs ?? 0)), 4),
     heapMedianDeltaMb: round(median(heapDeltas), 3),
-    ...(tail.length === 0 ? {} : {
-      tailCorrelation: {
-        slowestFramesOverlappingGcRate: round(slowRate, 3),
-        allFramesOverlappingGcRate: round(allRate, 3),
-        lift: allRate > 0 ? round(slowRate / allRate, 2) : null,
-        slowestFramesSampled: slowTotal,
-        framesSampled: frameTotal,
-      },
-    }),
+    ...(tail.length === 0
+      ? {}
+      : {
+          tailCorrelation: {
+            slowestFramesOverlappingGcRate: round(slowRate, 3),
+            allFramesOverlappingGcRate: round(allRate, 3),
+            lift: allRate > 0 ? round(slowRate / allRate, 2) : null,
+            slowestFramesSampled: slowTotal,
+            framesSampled: frameTotal,
+          },
+        }),
   };
 }
 
@@ -323,7 +330,8 @@ export function summarizeGcRuns(runs) {
  */
 export function classifyDelta(deltaPercent, leftCv, rightCv) {
   const bandPercent = Math.max(5, 2 * 100 * Math.max(leftCv ?? 0, rightCv ?? 0));
-  if (deltaPercent === null || !Number.isFinite(deltaPercent)) return { label: 'not comparable', noiseBandPercent: round(bandPercent, 2) };
+  if (deltaPercent === null || !Number.isFinite(deltaPercent))
+    return { label: 'not comparable', noiseBandPercent: round(bandPercent, 2) };
   if (Math.abs(deltaPercent) <= bandPercent) return { label: 'within noise', noiseBandPercent: round(bandPercent, 2) };
   return { label: deltaPercent > 0 ? 'second slower' : 'second faster', noiseBandPercent: round(bandPercent, 2) };
 }
@@ -338,7 +346,12 @@ export const BUSY_LOAD_PER_CORE = 0.5;
 export function systemLoad() {
   const cpuCount = os.cpus().length || 1;
   const loadAvg1m = os.loadavg()[0];
-  return { cpuCount, loadAvg1m: round(loadAvg1m, 2), loadPerCore: round(loadAvg1m / cpuCount, 2), busy: loadAvg1m / cpuCount > BUSY_LOAD_PER_CORE };
+  return {
+    cpuCount,
+    loadAvg1m: round(loadAvg1m, 2),
+    loadPerCore: round(loadAvg1m / cpuCount, 2),
+    busy: loadAvg1m / cpuCount > BUSY_LOAD_PER_CORE,
+  };
 }
 
 const loadAtStart = systemLoad();
@@ -363,16 +376,20 @@ export function harnessInfo(repeats) {
  */
 export function consume(value) {
   switch (typeof value) {
-    case 'number': return Number.isFinite(value) ? value : 1;
-    case 'string': return value.length * 31 + value.charCodeAt(value.length - 1) + value.charCodeAt(0);
-    case 'boolean': return value ? 1 : 0;
+    case 'number':
+      return Number.isFinite(value) ? value : 1;
+    case 'string':
+      return value.length * 31 + value.charCodeAt(value.length - 1) + value.charCodeAt(0);
+    case 'boolean':
+      return value ? 1 : 0;
     case 'object': {
       if (value === null) return 0;
       let total = 0;
       for (const entry of Array.isArray(value) ? value : Object.values(value)) total += consume(entry);
       return total;
     }
-    default: return 0;
+    default:
+      return 0;
   }
 }
 
@@ -397,7 +414,16 @@ export function createSequence(seed = 1) {
  * proxy that needs no heap snapshots: short-lived garbage fills the new space at a rate proportional to bytes
  * allocated per operation. It is only a relative measure; compare it between two runs of the same case.
  */
-export async function measureMicro({ name, group = '', iterations, repeats, warmupRounds, op, prepare = () => undefined, allowZeroChecksum = false }) {
+export async function measureMicro({
+  name,
+  group = '',
+  iterations,
+  repeats,
+  warmupRounds,
+  op,
+  prepare = () => undefined,
+  allowZeroChecksum = false,
+}) {
   const warmupIterations = Math.min(iterations, 20_000);
   for (let warmup = 0; warmup < warmupRounds; warmup += 1) {
     const context = prepare();
@@ -422,9 +448,13 @@ export async function measureMicro({ name, group = '', iterations, repeats, warm
 
   const checksum = runs[0].checksum;
   if (!Number.isFinite(checksum)) throw new Error(`${name}: checksum is not finite.`);
-  if (!allowZeroChecksum && checksum === 0) throw new Error(`${name}: checksum is zero; the measured operation appears to do nothing.`);
+  if (!allowZeroChecksum && checksum === 0)
+    throw new Error(`${name}: checksum is zero; the measured operation appears to do nothing.`);
   for (const run of runs) {
-    if (run.checksum !== checksum) throw new Error(`${name}: checksum changed between repeats (${run.checksum} vs ${checksum}); the operation is not deterministic.`);
+    if (run.checksum !== checksum)
+      throw new Error(
+        `${name}: checksum changed between repeats (${run.checksum} vs ${checksum}); the operation is not deterministic.`,
+      );
   }
 
   const opsPerMs = runs.map((run) => iterations / Math.max(1e-6, run.elapsedMs));
@@ -454,7 +484,9 @@ export async function measureMicro({ name, group = '', iterations, repeats, warm
 export async function measureMicroCases(cases, defaults) {
   const results = [];
   for (const { scale = 1, ...entry } of cases) {
-    results.push(await measureMicro({ ...defaults, iterations: Math.max(1, Math.round(defaults.iterations * scale)), ...entry }));
+    results.push(
+      await measureMicro({ ...defaults, iterations: Math.max(1, Math.round(defaults.iterations * scale)), ...entry }),
+    );
   }
   return results;
 }

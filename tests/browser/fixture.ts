@@ -132,16 +132,19 @@ window.__reFluxBrowserTest = {
     pointerCompleted = false;
     pointerError = null;
     pointerSubscription = pointerGestures$(gestureTarget).subscribe({
-      next: (event) => pointerEvents.push({
-        type: event.type,
-        pointerId: event.pointerId,
-        x: event.x,
-        y: event.y,
-      }),
+      next: (event) =>
+        pointerEvents.push({
+          type: event.type,
+          pointerId: event.pointerId,
+          x: event.x,
+          y: event.y,
+        }),
       error: (error: unknown) => {
         pointerError = error instanceof Error ? error.message : String(error);
       },
-      complete: () => { pointerCompleted = true; },
+      complete: () => {
+        pointerCompleted = true;
+      },
     });
   },
 
@@ -202,9 +205,13 @@ window.__reFluxBrowserTest = {
   runFlip(): FlipMeasurement {
     flipAnimation?.dispose();
     const beforeLeft = flipTarget.getBoundingClientRect().left;
-    flipAnimation = flip(flipTarget, () => {
-      flipTarget.style.left = '180px';
-    }, { duration: 500 });
+    flipAnimation = flip(
+      flipTarget,
+      () => {
+        flipTarget.style.left = '180px';
+      },
+      { duration: 500 },
+    );
     flipAnimation.seek(0);
     return {
       beforeLeft,
@@ -229,11 +236,16 @@ window.__reFluxBrowserTest = {
     canvasSubscription?.unsubscribe();
     const { context } = resizeCanvas(canvasTarget, { width: 16, height: 16, pixelRatio: 1 });
     canvasDraws = 0;
-    canvasSubscription = bindCanvas(context, canvasValues, (drawingContext, color) => {
-      canvasDraws += 1;
-      drawingContext.fillStyle = color;
-      drawingContext.fillRect(0, 0, 16, 16);
-    }, { clearOnUnsubscribe: true });
+    canvasSubscription = bindCanvas(
+      context,
+      canvasValues,
+      (drawingContext, color) => {
+        canvasDraws += 1;
+        drawingContext.fillStyle = color;
+        drawingContext.fillRect(0, 0, 16, 16);
+      },
+      { clearOnUnsubscribe: true },
+    );
   },
 
   emitCanvasColor(color: string): void {
@@ -268,10 +280,18 @@ window.__reFluxBrowserTest = {
     motionAnimation = new Animation({
       duration: 60_000,
       motion: motionOptions,
-      onStart: () => { motionCallbacks.starts += 1; },
-      onPause: () => { motionCallbacks.pauses += 1; },
-      onResume: () => { motionCallbacks.resumes += 1; },
-      onComplete: () => { motionCallbacks.completes += 1; },
+      onStart: () => {
+        motionCallbacks.starts += 1;
+      },
+      onPause: () => {
+        motionCallbacks.pauses += 1;
+      },
+      onResume: () => {
+        motionCallbacks.resumes += 1;
+      },
+      onComplete: () => {
+        motionCallbacks.completes += 1;
+      },
     });
     void motionAnimation.catch(() => undefined);
 
@@ -307,7 +327,7 @@ window.__reFluxBrowserTest = {
     simulatedVisibility = visible;
     Object.defineProperty(document, 'visibilityState', {
       configurable: true,
-      get: () => simulatedVisibility ? 'visible' : 'hidden',
+      get: () => (simulatedVisibility ? 'visible' : 'hidden'),
     });
     document.dispatchEvent(new Event('visibilitychange'));
   },

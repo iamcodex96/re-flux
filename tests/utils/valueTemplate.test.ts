@@ -87,7 +87,15 @@ describe('Given the shared color parser', () => {
       expect(parseColor('rgb(1e2, 0, 0)')).toEqual({ r: 100, g: 0, b: 0, a: 1 });
     });
     it('Then it rejects anything that is not exactly an rgb color', () => {
-      for (const bad of ['rgb(1px, 2, 3)', 'rgb(1, 2)', 'rgb(1, 2, 3, 4, 5)', 'hsl(0, 0%, 0%)', 'red', 'rgb(1,2,3) x', '10px']) {
+      for (const bad of [
+        'rgb(1px, 2, 3)',
+        'rgb(1, 2)',
+        'rgb(1, 2, 3, 4, 5)',
+        'hsl(0, 0%, 0%)',
+        'red',
+        'rgb(1,2,3) x',
+        '10px',
+      ]) {
         expect(parseColor(bad)).toBeNull();
       }
     });
@@ -112,10 +120,22 @@ describe('Given the pre-compiled renderers (PERF-002)', () => {
 
   it('Then compileColorMix equals formatRgba(mixRgba()) for varying and constant alpha', () => {
     const pairs = [
-      [{ r: 0, g: 100, b: 255, a: 0 }, { r: 255, g: 100, b: 0, a: 1 }],
-      [{ r: 16, g: 32, b: 48, a: 1 }, { r: 240, g: 224, b: 208, a: 1 }],
-      [{ r: 10.5, g: 20.25, b: 30.75, a: 0.2 }, { r: 240, g: 220, b: 200, a: 0.9 }],
-      [{ r: 1, g: 2, b: 3, a: 0.4 }, { r: 3, g: 2, b: 1, a: 0.4 }],
+      [
+        { r: 0, g: 100, b: 255, a: 0 },
+        { r: 255, g: 100, b: 0, a: 1 },
+      ],
+      [
+        { r: 16, g: 32, b: 48, a: 1 },
+        { r: 240, g: 224, b: 208, a: 1 },
+      ],
+      [
+        { r: 10.5, g: 20.25, b: 30.75, a: 0.2 },
+        { r: 240, g: 220, b: 200, a: 0.9 },
+      ],
+      [
+        { r: 1, g: 2, b: 3, a: 0.4 },
+        { r: 3, g: 2, b: 1, a: 0.4 },
+      ],
     ] as const;
     for (const [from, to] of pairs) {
       const render = compileColorMix(from, to);

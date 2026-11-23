@@ -67,7 +67,6 @@ const DEFAULT_ARRIVE_RADIUS = 100;
 const DEFAULT_SEPARATION_DISTANCE = 24;
 const ZERO_VECTOR: Vector2 = Object.freeze({ x: 0, y: 0 });
 
-
 /**
  * Turn a steering force into a new agent state using semi-implicit Euler integration.
  * The steering force is treated as acceleration (equivalent to unit mass); no input is mutated.
@@ -117,11 +116,7 @@ export function stepSteeringAgent(
 }
 
 /** Steer toward the vector direction sampled from a flow field at the agent's position. */
-export function followFlowField(
-  agent: SteeringAgent,
-  field: FlowField,
-  options: FlowFollowingOptions = {},
-): Vector2 {
+export function followFlowField(agent: SteeringAgent, field: FlowField, options: FlowFollowingOptions = {}): Vector2 {
   assertFiniteAgent(agent);
   const { maxSpeed, maxForce } = resolveLimits(options);
   const flow = sampleFlowField(field, agent, options.edgeMode ?? 'clamp');
@@ -204,10 +199,7 @@ export function separate(
 }
 
 /** Combine weighted steering forces, then cap their resulting magnitude. */
-export function combineSteering(
-  forces: Iterable<WeightedSteeringForce>,
-  maxForce = DEFAULT_MAX_FORCE,
-): Vector2 {
+export function combineSteering(forces: Iterable<WeightedSteeringForce>, maxForce = DEFAULT_MAX_FORCE): Vector2 {
   if (!Number.isFinite(maxForce) || maxForce < 0) {
     throw new RangeError('Maximum combined steering force must be a finite non-negative number.');
   }
@@ -233,8 +225,13 @@ function resolveLimits(options: SteeringOptions): { maxSpeed: number; maxForce: 
 }
 
 function assertFiniteAgent(agent: SteeringAgent): void {
-  if (!agent || !Number.isFinite(agent.x) || !Number.isFinite(agent.y)
-    || !Number.isFinite(agent.vx) || !Number.isFinite(agent.vy)) {
+  if (
+    !agent ||
+    !Number.isFinite(agent.x) ||
+    !Number.isFinite(agent.y) ||
+    !Number.isFinite(agent.vx) ||
+    !Number.isFinite(agent.vy)
+  ) {
     throw new RangeError('Steering agent position and velocity must be finite numbers.');
   }
 }

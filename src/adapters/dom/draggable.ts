@@ -1,7 +1,16 @@
 import { Observable, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Tween } from '../../values/Tween.js';
-import type { AnimationState, DragAxis, DragInertiaOptions, DragInertiaSample, EasingOption, Point2D, PointBounds, PointerGestureEvent } from '../../types.js';
+import type {
+  AnimationState,
+  DragAxis,
+  DragInertiaOptions,
+  DragInertiaSample,
+  EasingOption,
+  Point2D,
+  PointBounds,
+  PointerGestureEvent,
+} from '../../types.js';
 import { dragInertia, pointerGestures$ } from '../../operators/gestures.js';
 
 /** Options for a production-oriented draggable DOM element. Bounds are expressed as translation coordinates. */
@@ -78,8 +87,7 @@ export function draggable(target: HTMLElement, options: DraggableOptions = {}): 
     ...(options.bounds === undefined ? {} : { bounds: options.bounds }),
     ...(options.getBounds === undefined ? {} : { getBounds: options.getBounds }),
   };
-   
-   
+
   const dragOperator = dragInertia(dragOptions);
   const initialBounds = normalizeDraggableBounds(options.getBounds?.() ?? options.bounds ?? {});
   const initial: Point2D = Object.freeze({
@@ -137,8 +145,14 @@ export function draggable(target: HTMLElement, options: DraggableOptions = {}): 
     const stepY = typeof options.snapTo === 'number' ? options.snapTo : options.snapTo.y;
     const bounds = normalizeDraggableBounds(options.getBounds?.() ?? options.bounds ?? {});
     const snapped: Point2D = {
-      x: axis === 'y' ? point.x : clampDraggableCoordinate(Math.round(point.x / stepX) * stepX, bounds.minX, bounds.maxX),
-      y: axis === 'x' ? point.y : clampDraggableCoordinate(Math.round(point.y / stepY) * stepY, bounds.minY, bounds.maxY),
+      x:
+        axis === 'y'
+          ? point.x
+          : clampDraggableCoordinate(Math.round(point.x / stepX) * stepX, bounds.minX, bounds.maxX),
+      y:
+        axis === 'x'
+          ? point.y
+          : clampDraggableCoordinate(Math.round(point.y / stepY) * stepY, bounds.minY, bounds.maxY),
     };
     if (Math.abs(snapped.x - point.x) < 0.001 && Math.abs(snapped.y - point.y) < 0.001) return;
 
@@ -189,38 +203,55 @@ export function draggable(target: HTMLElement, options: DraggableOptions = {}): 
   );
   const samples = mappedGestures$.pipe(dragOperator);
   const subscription = new Subscription();
-  subscription.add(samples.subscribe({
-    next: (sample: DragInertiaSample) => {
-      applyPosition(sample);
-      if (sample.phase === 'dragging' && !gestureStarted) {
-        gestureStarted = true;
-        target.style.setProperty('cursor', 'grabbing');
-        options.onStart?.(sample, target);
-      }
-      options.onUpdate?.(sample, target);
-      if (sample.phase === 'rest') {
-        isDragging = false;
-        options.onEnd?.(sample, target);
-        try { startSnapAnimation(sample); }
-        catch (error: unknown) {
-          errors.next(error);
-          try { options.onError?.(error); } finally { destroy(); }
+  subscription.add(
+    samples.subscribe({
+      next: (sample: DragInertiaSample) => {
+        applyPosition(sample);
+        if (sample.phase === 'dragging' && !gestureStarted) {
+          gestureStarted = true;
+          target.style.setProperty('cursor', 'grabbing');
+          options.onStart?.(sample, target);
         }
-      }
-    },
-    error: (error: unknown) => {
-      errors.next(error);
-      try { options.onError?.(error); } finally { destroy(); }
-    },
-  }));
+        options.onUpdate?.(sample, target);
+        if (sample.phase === 'rest') {
+          isDragging = false;
+          options.onEnd?.(sample, target);
+          try {
+            startSnapAnimation(sample);
+          } catch (error: unknown) {
+            errors.next(error);
+            try {
+              options.onError?.(error);
+            } finally {
+              destroy();
+            }
+          }
+        }
+      },
+      error: (error: unknown) => {
+        errors.next(error);
+        try {
+          options.onError?.(error);
+        } finally {
+          destroy();
+        }
+      },
+    }),
+  );
 
   const onKeyDown = (event: KeyboardEvent): void => {
     if (destroyed || keyboardStep === 0) return;
     cancelSnapAnimation();
-    const direction: Partial<Point2D> = event.key === 'ArrowLeft' ? { x: -1 }
-      : event.key === 'ArrowRight' ? { x: 1 }
-        : event.key === 'ArrowUp' ? { y: -1 }
-          : event.key === 'ArrowDown' ? { y: 1 } : {};
+    const direction: Partial<Point2D> =
+      event.key === 'ArrowLeft'
+        ? { x: -1 }
+        : event.key === 'ArrowRight'
+          ? { x: 1 }
+          : event.key === 'ArrowUp'
+            ? { y: -1 }
+            : event.key === 'ArrowDown'
+              ? { y: 1 }
+              : {};
     if (direction.x === undefined && direction.y === undefined) return;
     if ((axis === 'y' && direction.x !== undefined) || (axis === 'x' && direction.y !== undefined)) return;
     event.preventDefault();
@@ -238,10 +269,21 @@ export function draggable(target: HTMLElement, options: DraggableOptions = {}): 
       };
     } catch (error: unknown) {
       errors.next(error);
-      try { options.onError?.(error); } finally { destroy(); }
+      try {
+        options.onError?.(error);
+      } finally {
+        destroy();
+      }
       return;
     }
-    const sample: DragInertiaSample = Object.freeze({ ...bounded, vx: 0, vy: 0, phase: 'rest', timestamp: event.timeStamp, pointerId: null });
+    const sample: DragInertiaSample = Object.freeze({
+      ...bounded,
+      vx: 0,
+      vy: 0,
+      phase: 'rest',
+      timestamp: event.timeStamp,
+      pointerId: null,
+    });
     applyPosition(sample);
     options.onUpdate?.(sample, target);
   };
@@ -251,17 +293,35 @@ export function draggable(target: HTMLElement, options: DraggableOptions = {}): 
     if (destroyed) return;
     destroyed = true;
     const teardownErrors: unknown[] = [];
-    try { cancelSnapAnimation(); } catch (error: unknown) { teardownErrors.push(error); }
-    try { subscription.unsubscribe(); } catch (error: unknown) { teardownErrors.push(error); }
-    try { target.removeEventListener('keydown', onKeyDown); } catch (error: unknown) { teardownErrors.push(error); }
+    try {
+      cancelSnapAnimation();
+    } catch (error: unknown) {
+      teardownErrors.push(error);
+    }
+    try {
+      subscription.unsubscribe();
+    } catch (error: unknown) {
+      teardownErrors.push(error);
+    }
+    try {
+      target.removeEventListener('keydown', onKeyDown);
+    } catch (error: unknown) {
+      teardownErrors.push(error);
+    }
     isDragging = false;
     for (const [property, snapshot] of originalStyles) {
-      try { restoreProperty(property, snapshot); } catch (error: unknown) { teardownErrors.push(error); }
+      try {
+        restoreProperty(property, snapshot);
+      } catch (error: unknown) {
+        teardownErrors.push(error);
+      }
     }
     try {
       if (originalTabIndex === null) target.removeAttribute('tabindex');
       else target.setAttribute('tabindex', originalTabIndex);
-    } catch (error: unknown) { teardownErrors.push(error); }
+    } catch (error: unknown) {
+      teardownErrors.push(error);
+    }
     errors.complete();
     if (teardownErrors.length > 0) throw new AggregateError(teardownErrors, 'Draggable cleanup failed.');
   }
@@ -269,8 +329,12 @@ export function draggable(target: HTMLElement, options: DraggableOptions = {}): 
   return {
     element: target,
     errors$: errors.asObservable(),
-    get position() { return { ...position }; },
-    get isDragging() { return isDragging; },
+    get position() {
+      return { ...position };
+    },
+    get isDragging() {
+      return isDragging;
+    },
     destroy,
     dispose: destroy,
   };
@@ -281,17 +345,18 @@ function readInitialTranslate(target: HTMLElement): Point2D {
   try {
     const computed = target.ownerDocument?.defaultView?.getComputedStyle?.(target).getPropertyValue('translate');
     if (computed && computed !== 'none') value = computed;
-  } catch {
-    
-  }
+  } catch {}
   if (!value.trim() || value.trim() === 'none') return { x: 0, y: 0 };
-  const match = value.trim().match(/^(-?(?:\d+\.?\d*|\.\d+))(?:px)?(?:\s+(-?(?:\d+\.?\d*|\.\d+))(?:px)?)?(?:\s+0(?:px)?)?$/i);
+  const match = value
+    .trim()
+    .match(/^(-?(?:\d+\.?\d*|\.\d+))(?:px)?(?:\s+(-?(?:\d+\.?\d*|\.\d+))(?:px)?)?(?:\s+0(?:px)?)?$/i);
   if (!match) {
     throw new RangeError('draggable() cannot infer a non-pixel CSS translate; provide initialPosition explicitly.');
   }
   const x = Number(match[1]);
   const y = match[2] === undefined ? 0 : Number(match[2]);
-  if (!Number.isFinite(x) || !Number.isFinite(y)) throw new RangeError('draggable() computed translate must contain finite pixel values.');
+  if (!Number.isFinite(x) || !Number.isFinite(y))
+    throw new RangeError('draggable() computed translate must contain finite pixel values.');
   return { x, y };
 }
 
@@ -302,8 +367,11 @@ function normalizeDraggableBounds(bounds: PointBounds): Required<PointBounds> {
     minY: bounds.minY ?? Number.NEGATIVE_INFINITY,
     maxY: bounds.maxY ?? Number.POSITIVE_INFINITY,
   };
-  if ([normalized.minX, normalized.maxX, normalized.minY, normalized.maxY].some(Number.isNaN)
-    || normalized.minX > normalized.maxX || normalized.minY > normalized.maxY) {
+  if (
+    [normalized.minX, normalized.maxX, normalized.minY, normalized.maxY].some(Number.isNaN) ||
+    normalized.minX > normalized.maxX ||
+    normalized.minY > normalized.maxY
+  ) {
     throw new RangeError('Draggable bounds must be valid numbers and each minimum must not exceed its maximum.');
   }
   return normalized;

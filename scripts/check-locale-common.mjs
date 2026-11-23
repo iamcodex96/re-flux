@@ -51,4 +51,6 @@ const commonValueCount = Object.values(common).reduce((total, group) => {
   return total + Object.keys(group).length;
 }, 0);
 
-console.log(`✓ Common locale contains ${commonValueCount} shared strings and ${references.length} references; no repeated literal copy remains.`);
+console.log(
+  `✓ Common locale contains ${commonValueCount} shared strings and ${references.length} references; no repeated literal copy remains.`,
+);

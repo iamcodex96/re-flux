@@ -8,7 +8,9 @@ function fakeObject(): ThreeObjectLike & { matrixUpdates: number } {
     rotation: { x: 0, y: 0, z: 0 },
     scale: { x: 1, y: 1, z: 1 },
     matrixUpdates: 0,
-    updateMatrix() { this.matrixUpdates += 1; },
+    updateMatrix() {
+      this.matrixUpdates += 1;
+    },
   };
 }
 

@@ -72,11 +72,21 @@ export class DOMAnimation extends Timeline {
     const errors: unknown[] = [];
     try {
       if (this.state$.value === 'running' || this.state$.value === 'paused') this.stop();
-    } catch (error) { errors.push(error); }
-    try { this.bindings.unsubscribe(); } catch (error) { errors.push(error); }
+    } catch (error) {
+      errors.push(error);
+    }
+    try {
+      this.bindings.unsubscribe();
+    } catch (error) {
+      errors.push(error);
+    }
     this.disposed = true;
     for (const callback of this.disposeCallbacks) {
-      try { callback(); } catch (error) { errors.push(error); }
+      try {
+        callback();
+      } catch (error) {
+        errors.push(error);
+      }
     }
     this.disposeCallbacks.clear();
     if (errors.length > 0) throw new AggregateError(errors, 'DOMAnimation disposal failed.');
@@ -98,19 +108,30 @@ export function animate(targets: DOMAnimationTarget, options: DOMAnimateOptions)
   const propertyNames = new Set<string>();
   for (const entry of propertyEntries) {
     if (propertyNames.has(entry.cssProperty)) {
-      throw new RangeError(`CSS property "${entry.cssProperty}" was provided more than once. Use either camelCase or kebab-case, not both.`);
+      throw new RangeError(
+        `CSS property "${entry.cssProperty}" was provided more than once. Use either camelCase or kebab-case, not both.`,
+      );
     }
     propertyNames.add(entry.cssProperty);
   }
   const elements = resolveTargets(targets);
 
-  const { properties: _properties, duration: _duration, delay = 0, easing: _easing, repeat: _repeat, yoyo: _yoyo, stagger = 0, ...timelineOptions } = options;
+  const {
+    properties: _properties,
+    duration: _duration,
+    delay = 0,
+    easing: _easing,
+    repeat: _repeat,
+    yoyo: _yoyo,
+    stagger = 0,
+    ...timelineOptions
+  } = options;
   const animation = new DOMAnimation(timelineOptions);
 
   try {
     elements.forEach((element, elementIndex) => {
-       
-      const staggerDelay = typeof stagger === 'function' ? stagger(elementIndex, element, elements.length) : elementIndex * stagger;
+      const staggerDelay =
+        typeof stagger === 'function' ? stagger(elementIndex, element, elements.length) : elementIndex * stagger;
       if (!Number.isFinite(staggerDelay)) {
         throw new RangeError(`stagger must return a finite number of milliseconds for target ${elementIndex}.`);
       }
@@ -126,7 +147,9 @@ export function animate(targets: DOMAnimationTarget, options: DOMAnimateOptions)
           interpolate: compiledCssInterpolator(),
         });
 
-        animation.attachBinding(bindStyleProperty(element as HTMLElement | SVGElement, property.cssProperty, keyframeItem.value$));
+        animation.attachBinding(
+          bindStyleProperty(element as HTMLElement | SVGElement, property.cssProperty, keyframeItem.value$),
+        );
         const startTime = Math.max(0, delay + property.delay + staggerDelay);
         animation.add(keyframeItem, startTime);
       }

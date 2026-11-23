@@ -6,23 +6,22 @@ const easeOutSine: EasingFunction = (t) => Math.sin((t * Math.PI) / 2);
 const easeInOutSine: EasingFunction = (t) => -(Math.cos(Math.PI * t) - 1) / 2;
 const easeInQuad: EasingFunction = (t) => t * t;
 const easeOutQuad: EasingFunction = (t) => t * (2 - t);
-const easeInOutQuad: EasingFunction = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const easeInOutQuad: EasingFunction = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 const easeInCubic: EasingFunction = (t) => t * t * t;
 const easeOutCubic: EasingFunction = (t) => 1 - Math.pow(1 - t, 3);
-const easeInOutCubic: EasingFunction = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeInOutCubic: EasingFunction = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const easeInQuart: EasingFunction = (t) => t * t * t * t;
 const easeOutQuart: EasingFunction = (t) => 1 - Math.pow(1 - t, 4);
-const easeInOutQuart: EasingFunction = (t) => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+const easeInOutQuart: EasingFunction = (t) => (t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2);
 const easeInQuint: EasingFunction = (t) => t * t * t * t * t;
 const easeOutQuint: EasingFunction = (t) => 1 - Math.pow(1 - t, 5);
-const easeInOutQuint: EasingFunction = (t) => t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
+const easeInOutQuint: EasingFunction = (t) => (t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2);
 const easeInCirc: EasingFunction = (t) => 1 - Math.sqrt(1 - t * t);
 const easeOutCirc: EasingFunction = (t) => Math.sqrt(1 - Math.pow(t - 1, 2));
-const easeInOutCirc: EasingFunction = (t) => t < 0.5
-  ? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
-  : (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2;
-const easeInExpo: EasingFunction = (t) => t === 0 ? 0 : Math.pow(2, 10 * t - 10);
-const easeOutExpo: EasingFunction = (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+const easeInOutCirc: EasingFunction = (t) =>
+  t < 0.5 ? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2 : (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2;
+const easeInExpo: EasingFunction = (t) => (t === 0 ? 0 : Math.pow(2, 10 * t - 10));
+const easeOutExpo: EasingFunction = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
 const easeInOutExpo: EasingFunction = (t) => {
   if (t === 0 || t === 1) return t;
   return t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
@@ -38,7 +37,7 @@ const easeOutBack: EasingFunction = (t) => {
 const easeInOutBack: EasingFunction = (t) => {
   const c2 = 1.70158 * 1.525;
   return t < 0.5
-    ? Math.pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2) / 2
+    ? (Math.pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2
     : (Math.pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2;
 };
 const easeInElastic: EasingFunction = (t) => {
@@ -55,36 +54,59 @@ const easeInOutElastic: EasingFunction = (t) => {
   if (t === 0 || t === 1) return t;
   const c5 = (2 * Math.PI) / 4.5;
   const sine = Math.sin((20 * t - 11.125) * c5);
-  return t < 0.5
-    ? -(Math.pow(2, 20 * t - 10) * sine) / 2
-    : (Math.pow(2, -20 * t + 10) * sine) / 2 + 1;
+  return t < 0.5 ? -(Math.pow(2, 20 * t - 10) * sine) / 2 : (Math.pow(2, -20 * t + 10) * sine) / 2 + 1;
 };
 const easeOutBounce: EasingFunction = (t) => {
   const n1 = 7.5625;
   const d1 = 2.75;
   if (t < 1 / d1) return n1 * t * t;
-  if (t < 2 / d1) { const shifted = t - 1.5 / d1; return n1 * shifted * shifted + 0.75; }
-  if (t < 2.5 / d1) { const shifted = t - 2.25 / d1; return n1 * shifted * shifted + 0.9375; }
+  if (t < 2 / d1) {
+    const shifted = t - 1.5 / d1;
+    return n1 * shifted * shifted + 0.75;
+  }
+  if (t < 2.5 / d1) {
+    const shifted = t - 2.25 / d1;
+    return n1 * shifted * shifted + 0.9375;
+  }
   const shifted = t - 2.625 / d1;
   return n1 * shifted * shifted + 0.984375;
 };
 const easeInBounce: EasingFunction = (t) => 1 - easeOutBounce(1 - t);
-const easeInOutBounce: EasingFunction = (t) => t < 0.5
-  ? (1 - easeOutBounce(1 - 2 * t)) / 2
-  : (1 + easeOutBounce(2 * t - 1)) / 2;
+const easeInOutBounce: EasingFunction = (t) =>
+  t < 0.5 ? (1 - easeOutBounce(1 - 2 * t)) / 2 : (1 + easeOutBounce(2 * t - 1)) / 2;
 
 export const Easings: Readonly<Record<string, EasingFunction>> = Object.freeze({
   linear,
-  easeInSine, easeOutSine, easeInOutSine,
-  easeInQuad, easeOutQuad, easeInOutQuad,
-  easeInCubic, easeOutCubic, easeInOutCubic,
-  easeInQuart, easeOutQuart, easeInOutQuart,
-  easeInQuint, easeOutQuint, easeInOutQuint,
-  easeInCirc, easeOutCirc, easeInOutCirc,
-  easeInExpo, easeOutExpo, easeInOutExpo,
-  easeInBack, easeOutBack, easeInOutBack,
-  easeInElastic, easeOutElastic, easeInOutElastic,
-  easeInBounce, easeOutBounce, easeInOutBounce,
+  easeInSine,
+  easeOutSine,
+  easeInOutSine,
+  easeInQuad,
+  easeOutQuad,
+  easeInOutQuad,
+  easeInCubic,
+  easeOutCubic,
+  easeInOutCubic,
+  easeInQuart,
+  easeOutQuart,
+  easeInOutQuart,
+  easeInQuint,
+  easeOutQuint,
+  easeInOutQuint,
+  easeInCirc,
+  easeOutCirc,
+  easeInOutCirc,
+  easeInExpo,
+  easeOutExpo,
+  easeInOutExpo,
+  easeInBack,
+  easeOutBack,
+  easeInOutBack,
+  easeInElastic,
+  easeOutElastic,
+  easeInOutElastic,
+  easeInBounce,
+  easeOutBounce,
+  easeInOutBounce,
 });
 
 const warnedEasingNames = new Set<string>();
@@ -104,7 +126,9 @@ export function resolveEasing(easing?: EasingOption): EasingFunction {
     if (Object.prototype.hasOwnProperty.call(Easings, easing)) return Easings[easing]!;
     if (!isProduction() && !warnedEasingNames.has(easing)) {
       warnedEasingNames.add(easing);
-      console.warn(`[re;Flux] Unknown easing "${easing}"; falling back to "linear". Known names: ${Object.keys(Easings).join(', ')}.`);
+      console.warn(
+        `[re;Flux] Unknown easing "${easing}"; falling back to "linear". Known names: ${Object.keys(Easings).join(', ')}.`,
+      );
     }
   }
   return Easings.linear!;
@@ -115,8 +139,10 @@ export function cubicBezier(x1: number, y1: number, x2: number, y2: number): Eas
   if (![x1, y1, x2, y2].every(Number.isFinite) || x1 < 0 || x1 > 1 || x2 < 0 || x2 > 1) {
     throw new RangeError('Cubic-bezier x control points must be in [0, 1] and all values must be finite.');
   }
-  const coordinate = (t: number, a: number, b: number): number => 3 * (1 - t) * (1 - t) * t * a + 3 * (1 - t) * t * t * b + t * t * t;
-  const derivative = (t: number, a: number, b: number): number => 3 * (1 - t) * (1 - t) * a + 6 * (1 - t) * t * (b - a) + 3 * t * t * (1 - b);
+  const coordinate = (t: number, a: number, b: number): number =>
+    3 * (1 - t) * (1 - t) * t * a + 3 * (1 - t) * t * t * b + t * t * t;
+  const derivative = (t: number, a: number, b: number): number =>
+    3 * (1 - t) * (1 - t) * a + 6 * (1 - t) * t * (b - a) + 3 * t * t * (1 - b);
   return (progress) => {
     if (progress <= 0 || progress >= 1) return progress;
     let t = progress;
@@ -126,11 +152,13 @@ export function cubicBezier(x1: number, y1: number, x2: number, y2: number): Eas
       if (Math.abs(error) < 1e-7 || Math.abs(slope) < 1e-7) break;
       t = Math.max(0, Math.min(1, t - error / slope));
     }
-    let low = 0; let high = 1;
+    let low = 0;
+    let high = 1;
     for (let i = 0; i < 16; i += 1) {
       const x = coordinate(t, x1, x2);
       if (Math.abs(x - progress) < 1e-7) break;
-      if (x < progress) low = t; else high = t;
+      if (x < progress) low = t;
+      else high = t;
       t = (low + high) / 2;
     }
     return coordinate(t, y1, y2);

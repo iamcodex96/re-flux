@@ -41,7 +41,10 @@ describe('Given a FrameCoordinator write channel (PERF-008)', () => {
     it('Then the follow-up run happens in the next frame, not in the current one', () => {
       const coordinator = new FrameCoordinator();
       let runs = 0;
-      const channel = openWriteChannel(() => { runs += 1; if (runs < 3) channel.request(); }, coordinator);
+      const channel = openWriteChannel(() => {
+        runs += 1;
+        if (runs < 3) channel.request();
+      }, coordinator);
 
       channel.request();
       raf.advance(10);
@@ -77,7 +80,12 @@ describe('Given a FrameCoordinator write channel (PERF-008)', () => {
     it('Then disposing from inside the callback lets the current run finish and stops the clock', () => {
       const coordinator = new FrameCoordinator();
       const ran: string[] = [];
-      const channel = openWriteChannel(() => { ran.push('start'); channel.dispose(); channel.request(); ran.push('end'); }, coordinator);
+      const channel = openWriteChannel(() => {
+        ran.push('start');
+        channel.dispose();
+        channel.request();
+        ran.push('end');
+      }, coordinator);
 
       channel.request();
       raf.advance(10);
@@ -93,10 +101,19 @@ describe('Given a FrameCoordinator write channel (PERF-008)', () => {
       const coordinator = new FrameCoordinator();
       const uncaught: unknown[] = [];
       const original = globalThis.queueMicrotask;
-      globalThis.queueMicrotask = ((task: () => void) => { try { task(); } catch (error) { uncaught.push(error); } }) as typeof queueMicrotask;
+      globalThis.queueMicrotask = ((task: () => void) => {
+        try {
+          task();
+        } catch (error) {
+          uncaught.push(error);
+        }
+      }) as typeof queueMicrotask;
       try {
         let calls = 0;
-        const channel = openWriteChannel(() => { calls += 1; if (calls === 1) throw new Error('draw failed'); }, coordinator);
+        const channel = openWriteChannel(() => {
+          calls += 1;
+          if (calls === 1) throw new Error('draw failed');
+        }, coordinator);
         channel.request();
         raf.advance(10);
         expect(uncaught).toHaveLength(1);

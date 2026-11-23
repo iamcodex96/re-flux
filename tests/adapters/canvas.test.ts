@@ -15,7 +15,8 @@ function fakeContext(): CanvasRenderingContext2D & { calls: string[] } {
     save: () => calls.push('save'),
     restore: () => calls.push('restore'),
     setTransform: () => calls.push('identity'),
-    clearRect: (x: number, y: number, width: number, height: number) => calls.push(`clear:${x},${y},${width},${height}`),
+    clearRect: (x: number, y: number, width: number, height: number) =>
+      calls.push(`clear:${x},${y},${width},${height}`),
     beginPath: () => calls.push('beginPath'),
     arc: (_x: number, _y: number, _r: number) => calls.push('arc'),
     fill: () => calls.push('fill'),
@@ -75,7 +76,9 @@ describe('Given many Canvas bindings sharing the coordinator (PERF-008)', () => 
         const context = fakeContext();
         const source = new Subject<number>();
         const drawn: number[] = [];
-        const binding = bindCanvas(context, source, (_context, value) => { drawn.push(value); });
+        const binding = bindCanvas(context, source, (_context, value) => {
+          drawn.push(value);
+        });
         return { source, drawn, binding, index };
       });
 
@@ -93,7 +96,10 @@ describe('Given many Canvas bindings sharing the coordinator (PERF-008)', () => 
       for (const { drawn } of bindings) expect(drawn).toHaveLength(1);
 
       // New emissions after a flush are drawn again, once per binding per frame.
-      for (const { source } of bindings) { source.next(-1); source.next(-2); }
+      for (const { source } of bindings) {
+        source.next(-1);
+        source.next(-2);
+      }
       raf.advance(48);
       for (const { drawn } of bindings) expect(drawn.slice(1)).toEqual([-2]);
 
@@ -108,9 +114,13 @@ describe('Given many Canvas bindings sharing the coordinator (PERF-008)', () => 
       const context = fakeContext();
       const source = new Subject<number>();
       const frames: number[] = [];
-      const binding = bindCanvas(context, source, (_context, _value, frame) => { frames.push(frame.frame); });
+      const binding = bindCanvas(context, source, (_context, _value, frame) => {
+        frames.push(frame.frame);
+      });
 
-      const consumer = frameCoordinator.frames$.subscribe((frame) => { if (frame.frame === 2) source.next(7); });
+      const consumer = frameCoordinator.frames$.subscribe((frame) => {
+        if (frame.frame === 2) source.next(7);
+      });
       source.next(1);
       raf.advance(16);
       expect(frames).toEqual([1]);
@@ -171,7 +181,6 @@ describe('Given many Canvas bindings sharing the coordinator (PERF-008)', () => 
     });
   });
 });
-
 
 describe('Given resizeCanvas', () => {
   describe('When a Canvas element is resized', () => {

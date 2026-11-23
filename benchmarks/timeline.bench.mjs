@@ -21,7 +21,11 @@ const durationReads = positiveInteger(process.env.BENCH_DURATION_READS, 1_000_00
 const seekFrameCount = positiveInteger(process.env.BENCH_SEEK_FRAMES, 180, 'BENCH_SEEK_FRAMES');
 const repeats = positiveInteger(process.env.BENCH_REPEATS, 10, 'BENCH_REPEATS');
 const warmupRounds = nonNegativeInteger(process.env.BENCH_WARMUP_ROUNDS, 2, 'BENCH_WARMUP_ROUNDS');
-const callbackWorkIterations = nonNegativeInteger(process.env.BENCH_TIMELINE_CALLBACK_WORK, 0, 'BENCH_TIMELINE_CALLBACK_WORK');
+const callbackWorkIterations = nonNegativeInteger(
+  process.env.BENCH_TIMELINE_CALLBACK_WORK,
+  0,
+  'BENCH_TIMELINE_CALLBACK_WORK',
+);
 const groupSize = 50;
 let callbackSink = 0;
 let callbackCountSink = 0;
@@ -54,21 +58,33 @@ function buildNestedTimeline() {
       const absoluteIndex = baseIndex + localIndex;
       const duration = 40 + ((absoluteIndex * 13) % 81);
       const offset = (localIndex * 17) % 80;
-      nested.add(new Animation({
-        duration,
-        onUpdate: (progress, easedProgress) => {
-          localCallbackCount += 1;
-          let value = progress + easedProgress;
-          for (let work = 0; work < callbackWorkIterations; work += 1) value = Math.sin(value + work);
-          localSink += value;
-        },
-      }), offset);
+      nested.add(
+        new Animation({
+          duration,
+          onUpdate: (progress, easedProgress) => {
+            localCallbackCount += 1;
+            let value = progress + easedProgress;
+            for (let work = 0; work < callbackWorkIterations; work += 1) value = Math.sin(value + work);
+            localSink += value;
+          },
+        }),
+        offset,
+      );
     }
     root.add(nested, nestedTimelineCount * 4);
     nestedTimelineCount += 1;
   }
 
-  return { timeline: root, nestedTimelineCount, get callbackCount() { return localCallbackCount; }, get sink() { return localSink; } };
+  return {
+    timeline: root,
+    nestedTimelineCount,
+    get callbackCount() {
+      return localCallbackCount;
+    },
+    get sink() {
+      return localSink;
+    },
+  };
 }
 
 function measureNestedScrub(framesToRun) {
@@ -91,7 +107,10 @@ function measureNestedScrub(framesToRun) {
 
   const result = {
     buildMs: round(buildMs, 3),
-    seekElapsedMs: round(seekSamples.reduce((sum, value) => sum + value, 0), 3),
+    seekElapsedMs: round(
+      seekSamples.reduce((sum, value) => sum + value, 0),
+      3,
+    ),
     seekFrameStats: summarizeSamples(seekSamples),
     segmentCount,
     nestedTimelineCount: scenario.nestedTimelineCount,
@@ -118,7 +137,10 @@ async function runDurationReadBenchmark() {
   for (let warmup = 0; warmup < warmupRounds; warmup += 1) measureDurationReads(timeline, warmupReads);
   const runs = [];
   for (let repetition = 0; repetition < repeats; repetition += 1) {
-    runs.push({ repetition: repetition + 1, ...(await observeRun(() => measureDurationReads(timeline, durationReads))) });
+    runs.push({
+      repetition: repetition + 1,
+      ...(await observeRun(() => measureDurationReads(timeline, durationReads))),
+    });
   }
   return {
     segmentCount,
@@ -129,7 +151,12 @@ async function runDurationReadBenchmark() {
       medianReadsPerMs: round(durationReads / Math.max(0.000001, median(runs.map((run) => run.durationMs))), 2),
       ...summarizeGcRuns(runs),
     },
-    runs: runs.map((run) => ({ repetition: run.repetition, durationMs: round(run.durationMs, 4), durationChecksum: run.durationChecksum, ...gcRunFields(run) })),
+    runs: runs.map((run) => ({
+      repetition: run.repetition,
+      durationMs: round(run.durationMs, 4),
+      durationChecksum: run.durationChecksum,
+      ...gcRunFields(run),
+    })),
     durationChecksum: runs.at(-1)?.durationChecksum ?? 0,
   };
 }
@@ -147,7 +174,16 @@ try {
   emitReport({
     benchmark: 're;Flux timeline duration reads and nested overlapping scrub',
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
-    configuration: { segmentCount, durationReads, seekFrameCount, warmupRounds, warmupFrameCount, repeats, callbackWorkIterations, nestedTimelineGroupSize: groupSize },
+    configuration: {
+      segmentCount,
+      durationReads,
+      seekFrameCount,
+      warmupRounds,
+      warmupFrameCount,
+      repeats,
+      callbackWorkIterations,
+      nestedTimelineGroupSize: groupSize,
+    },
     harness: harnessInfo(repeats),
     durationReads: durationReadResults,
     nestedTimelineScrub: {

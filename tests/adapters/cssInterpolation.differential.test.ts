@@ -1,6 +1,10 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { animate } from '../../src/adapters/dom.js';
-import { compileCssInterpolator, compiledCssInterpolator, interpolateCssValue } from '../../src/adapters/dom/cssInterpolation.js';
+import {
+  compileCssInterpolator,
+  compiledCssInterpolator,
+  interpolateCssValue,
+} from '../../src/adapters/dom/cssInterpolation.js';
 import { withInterpolatorCompiler } from '../../src/values/compiledInterpolators.js';
 import { Keyframes } from '../../src/values/Keyframes.js';
 import {
@@ -28,8 +32,8 @@ function oracleInterpolateCssValue(from: string, to: string, progress: number): 
 
   const fromTemplate = tokenizeNumbers(from);
   const toTemplate = tokenizeNumbers(to);
-  const compatibleTemplate = fromTemplate.template === toTemplate.template
-    && fromTemplate.values.length === toTemplate.values.length;
+  const compatibleTemplate =
+    fromTemplate.template === toTemplate.template && fromTemplate.values.length === toTemplate.values.length;
 
   const fromColor = parseColor(from);
   const toColor = parseColor(to);
@@ -88,14 +92,22 @@ const chance = (probability: number): boolean => random() < probability;
 function numberText(): string {
   const base = Math.round((random() * 600 - 300) * 1000) / 1000;
   switch (int(9)) {
-    case 0: return String(int(500));
-    case 1: return `+${int(500)}`;
-    case 2: return `-${int(500)}.${int(100)}`;
-    case 3: return `.${int(1000)}`;
-    case 4: return `${int(50)}.`;
-    case 5: return `${int(9) + 1}e${pick(['-', '+', ''])}${int(4)}`;
-    case 6: return `-.${int(99)}e-${int(3)}`;
-    default: return String(base);
+    case 0:
+      return String(int(500));
+    case 1:
+      return `+${int(500)}`;
+    case 2:
+      return `-${int(500)}.${int(100)}`;
+    case 3:
+      return `.${int(1000)}`;
+    case 4:
+      return `${int(50)}.`;
+    case 5:
+      return `${int(9) + 1}e${pick(['-', '+', ''])}${int(4)}`;
+    case 6:
+      return `-.${int(99)}e-${int(3)}`;
+    default:
+      return String(base);
   }
 }
 
@@ -136,11 +148,13 @@ function templatePair(): readonly [string, string] {
   const from = Array.from({ length: count }, numberText);
   const mode = int(10);
   if (mode < 6) return [fill(shape, from), fill(shape, Array.from({ length: count }, numberText))]; // compatible
-  if (mode === 6) { // one unit differs
-    const units = shape.units.map((unit, index) => index === 0 ? (unit === 'px' ? 'em' : 'px') : unit);
+  if (mode === 6) {
+    // one unit differs
+    const units = shape.units.map((unit, index) => (index === 0 ? (unit === 'px' ? 'em' : 'px') : unit));
     return [fill(shape, from), fill(shape, Array.from({ length: count }, numberText), units)];
   }
-  if (mode === 7) { // different number of values
+  if (mode === 7) {
+    // different number of values
     const other = { ...shape, units: [...shape.units, 'px'], separators: [...shape.separators, ' '] };
     return [fill(shape, from), fill(other, Array.from({ length: count + 1 }, numberText))];
   }
@@ -154,29 +168,45 @@ function longTemplatePair(): readonly [string, string] {
   const nums = (count: number): string[] => Array.from({ length: count }, numberText);
   if (kind === 0) return [`matrix3d(${nums(16).join(', ')})`, `matrix3d(${nums(16).join(', ')})`];
   if (kind === 1) {
-    const shadow = (): string => `${nums(4).map((n, i) => n + (i < 3 ? 'px' : '')).join(' ')} rgba(${int(255)}, ${int(255)}, ${int(255)}, ${random().toFixed(2)})`;
+    const shadow = (): string =>
+      `${nums(4)
+        .map((n, i) => n + (i < 3 ? 'px' : ''))
+        .join(' ')} rgba(${int(255)}, ${int(255)}, ${int(255)}, ${random().toFixed(2)})`;
     const count = 2 + int(2);
     return [Array.from({ length: count }, shadow).join(', '), Array.from({ length: count }, shadow).join(', ')];
   }
-  if (kind === 2) { const count = 9 + int(12); return [nums(count).join(' '), nums(count).join(' ')]; }
+  if (kind === 2) {
+    const count = 9 + int(12);
+    return [nums(count).join(' '), nums(count).join(' ')];
+  }
   const count = 9 + int(8); // incompatible: different counts
   return [nums(count).join(' '), nums(count + 1).join(' ')];
 }
 
 const hexDigits = (length: number): string => Array.from({ length }, () => int(16).toString(16)).join('');
-const channelText = (): string => pick([String(int(256)), String(int(300) - 20), `${int(60) + 0.5}`, `${int(101)}%`, `${int(130) - 10}%`]);
-const alphaText = (): string => pick([String(Math.round(random() * 100) / 100), `${int(101)}%`, `.${int(100)}`, '1', '0']);
+const channelText = (): string =>
+  pick([String(int(256)), String(int(300) - 20), `${int(60) + 0.5}`, `${int(101)}%`, `${int(130) - 10}%`]);
+const alphaText = (): string =>
+  pick([String(Math.round(random() * 100) / 100), `${int(101)}%`, `.${int(100)}`, '1', '0']);
 
 function colorText(): string {
   switch (int(8)) {
-    case 0: return `#${hexDigits(3)}`;
-    case 1: return `#${hexDigits(4)}`;
-    case 2: return `#${hexDigits(6)}`;
-    case 3: return `#${hexDigits(8)}`.toUpperCase();
-    case 4: return `rgb(${channelText()}, ${channelText()}, ${channelText()})`;
-    case 5: return `rgba(${channelText()},${channelText()},${channelText()},${alphaText()})`;
-    case 6: return `rgb(${channelText()} ${channelText()} ${channelText()} / ${alphaText()})`;
-    default: return pick([' ', '']) + `RGB( ${channelText()} ${channelText()} ${channelText()} )` + pick([' ', '']);
+    case 0:
+      return `#${hexDigits(3)}`;
+    case 1:
+      return `#${hexDigits(4)}`;
+    case 2:
+      return `#${hexDigits(6)}`;
+    case 3:
+      return `#${hexDigits(8)}`.toUpperCase();
+    case 4:
+      return `rgb(${channelText()}, ${channelText()}, ${channelText()})`;
+    case 5:
+      return `rgba(${channelText()},${channelText()},${channelText()},${alphaText()})`;
+    case 6:
+      return `rgb(${channelText()} ${channelText()} ${channelText()} / ${alphaText()})`;
+    default:
+      return pick([' ', '']) + `RGB( ${channelText()} ${channelText()} ${channelText()} )` + pick([' ', '']);
   }
 }
 
@@ -184,11 +214,16 @@ function sameShapeColor(): readonly [string, string] {
   const style = int(5);
   const make = (): string => {
     switch (style) {
-      case 0: return `rgb(${channelText()}, ${channelText()}, ${channelText()})`;
-      case 1: return `rgba(${int(300) - 20},${int(300) - 20},${int(300) - 20},${alphaText()})`;
-      case 2: return `rgb(${int(256)} ${int(256)} ${int(256)} / ${alphaText()})`;
-      case 3: return `rgb(${int(101)}% ${int(101)}% ${int(101)}% / ${int(101)}%)`;
-      default: return `#${hexDigits(pick([3, 4, 6, 8]))}`;
+      case 0:
+        return `rgb(${channelText()}, ${channelText()}, ${channelText()})`;
+      case 1:
+        return `rgba(${int(300) - 20},${int(300) - 20},${int(300) - 20},${alphaText()})`;
+      case 2:
+        return `rgb(${int(256)} ${int(256)} ${int(256)} / ${alphaText()})`;
+      case 3:
+        return `rgb(${int(101)}% ${int(101)}% ${int(101)}% / ${int(101)}%)`;
+      default:
+        return `#${hexDigits(pick([3, 4, 6, 8]))}`;
     }
   };
   return [make(), make()];
@@ -208,21 +243,60 @@ function randomPair(): readonly [string, string] {
 
 const LONG_PAIRS = Array.from({ length: 200 }, longTemplatePair);
 
-const FIXED_PROGRESS = [0, 1, -0, 0.001, 0.1, 0.25, 0.5, 0.75, 0.9, 0.999, 1.2, -0.2, 2.5, -3, Number.NaN, Infinity, -Infinity] as const;
+const FIXED_PROGRESS = [
+  0,
+  1,
+  -0,
+  0.001,
+  0.1,
+  0.25,
+  0.5,
+  0.75,
+  0.9,
+  0.999,
+  1.2,
+  -0.2,
+  2.5,
+  -3,
+  Number.NaN,
+  Infinity,
+  -Infinity,
+] as const;
 
 const HAND_PICKED: ReadonlyArray<readonly [string, string]> = [
-  ['0px', '320px'], ['0', '1'], ['auto', '100px'], ['auto', 'auto'], ['', ''],
+  ['0px', '320px'],
+  ['0', '1'],
+  ['auto', '100px'],
+  ['auto', 'auto'],
+  ['', ''],
   ['translate(0px, 0px) scale(1)', 'translate(100px, 50px) scale(2)'],
   ['0 0 4px rgba(0,0,0,0.2)', '10px 10px 12px rgba(0,0,0,0.9)'],
   ['0px 0px 4px #000', '10px 10px 12px #fff'],
-  ['+5px', '-5px'], ['1e-3px', '2e-3px'], ['1e3px', '2e3px'], ['1em', '3em'], ['.5', '5.'],
-  ['50%', '75.5%'], ['10px', '10em'], ['10px', '10px 20px'],
-  ['#102030', '#f0e0d0'], ['#fff', '#000'], ['#f008', '#0f08'], ['#112233', 'rgb(100, 120, 140)'],
-  ['rgb(10, 20, 30)', 'rgba(240, 220, 200, 0.5)'], ['rgb(10, 20, 30)', 'rgb(240, 220, 200)'],
-  ['rgba(0,0,0,.123456)', 'rgba(0,0,0,.9)'], ['rgb(300 0 0 / 50%)', 'rgb(0 0 300 / 100%)'],
-  ['rgb(10% 20% 30%)', 'rgb(50% 60% 70%)'], ['rgb(10% 20% 30%)', '#ffffff'],
-  ['rgb(0, 0, 0)', 'rgb(255, 255, 255)'], ['  rgb(0,0,0)  ', 'rgb(255,255,255)'], [' #000', ' #fff'],
-  ['rgb(1,2,3)', 'rgb(1,2,3)'], ['#abc', '#abc'], ['red', 'blue'], ['Infinity', '1e999px'],
+  ['+5px', '-5px'],
+  ['1e-3px', '2e-3px'],
+  ['1e3px', '2e3px'],
+  ['1em', '3em'],
+  ['.5', '5.'],
+  ['50%', '75.5%'],
+  ['10px', '10em'],
+  ['10px', '10px 20px'],
+  ['#102030', '#f0e0d0'],
+  ['#fff', '#000'],
+  ['#f008', '#0f08'],
+  ['#112233', 'rgb(100, 120, 140)'],
+  ['rgb(10, 20, 30)', 'rgba(240, 220, 200, 0.5)'],
+  ['rgb(10, 20, 30)', 'rgb(240, 220, 200)'],
+  ['rgba(0,0,0,.123456)', 'rgba(0,0,0,.9)'],
+  ['rgb(300 0 0 / 50%)', 'rgb(0 0 300 / 100%)'],
+  ['rgb(10% 20% 30%)', 'rgb(50% 60% 70%)'],
+  ['rgb(10% 20% 30%)', '#ffffff'],
+  ['rgb(0, 0, 0)', 'rgb(255, 255, 255)'],
+  ['  rgb(0,0,0)  ', 'rgb(255,255,255)'],
+  [' #000', ' #fff'],
+  ['rgb(1,2,3)', 'rgb(1,2,3)'],
+  ['#abc', '#abc'],
+  ['red', 'blue'],
+  ['Infinity', '1e999px'],
 ];
 
 describe('Given the compiled CSS interpolator and the pre-PERF-003 implementation', () => {
@@ -239,7 +313,10 @@ describe('Given the compiled CSS interpolator and the pre-PERF-003 implementatio
           const expected = oracleInterpolateCssValue(from, to, progress);
           const actual = interpolator(progress);
           compared += 1;
-          if (!Object.is(actual, expected)) mismatches.push(`${JSON.stringify(from)} -> ${JSON.stringify(to)} @ ${progress}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+          if (!Object.is(actual, expected))
+            mismatches.push(
+              `${JSON.stringify(from)} -> ${JSON.stringify(to)} @ ${progress}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
+            );
         }
       }
       expect(mismatches.slice(0, 10)).toEqual([]);
@@ -247,11 +324,12 @@ describe('Given the compiled CSS interpolator and the pre-PERF-003 implementatio
     });
 
     it('Then more than 100 compatible pairs use the joined path with more than 8 numbers, and the 4-8 number range is covered too', () => {
-      const compatible = (counts: (n: number) => boolean, pairs: ReadonlyArray<readonly [string, string]>): number => pairs.filter(([from, to]) => {
-        const a = tokenizeNumbers(from);
-        const b = tokenizeNumbers(to);
-        return counts(a.values.length) && a.template === b.template && !parseColor(from);
-      }).length;
+      const compatible = (counts: (n: number) => boolean, pairs: ReadonlyArray<readonly [string, string]>): number =>
+        pairs.filter(([from, to]) => {
+          const a = tokenizeNumbers(from);
+          const b = tokenizeNumbers(to);
+          return counts(a.values.length) && a.template === b.template && !parseColor(from);
+        }).length;
       expect(compatible((n) => n > 8, LONG_PAIRS)).toBeGreaterThan(100);
       expect(compatible((n) => n >= 4 && n <= 8, Array.from({ length: 1500 }, templatePair))).toBeGreaterThan(100);
     });
@@ -277,7 +355,11 @@ describe('Given the compiled CSS interpolator and the pre-PERF-003 implementatio
 
   describe('When progress is exactly 0 or 1', () => {
     it('Then the exact input strings come back, including their original spacing and case', () => {
-      for (const [from, to] of [[' #FFF ', 'RGB( 1 2 3 )'], ['0PX', '10px'], ['auto', '1px']] as const) {
+      for (const [from, to] of [
+        [' #FFF ', 'RGB( 1 2 3 )'],
+        ['0PX', '10px'],
+        ['auto', '1px'],
+      ] as const) {
         const interpolator = compile(from, to);
         expect(interpolator(0)).toBe(from);
         expect(interpolator(1)).toBe(to);
@@ -291,7 +373,9 @@ describe('Given interpolateCssValue after PERF-003', () => {
     it('Then it still equals the pre-PERF-003 implementation (the public function is unchanged)', () => {
       for (const [from, to] of [...HAND_PICKED, ...Array.from({ length: 300 }, randomPair)]) {
         for (const progress of [0, 0.3, 0.5, 1, 1.4, -0.4, Number.NaN]) {
-          expect(Object.is(interpolateCssValue(from, to, progress), oracleInterpolateCssValue(from, to, progress))).toBe(true);
+          expect(
+            Object.is(interpolateCssValue(from, to, progress), oracleInterpolateCssValue(from, to, progress)),
+          ).toBe(true);
         }
       }
     });
@@ -301,7 +385,9 @@ describe('Given interpolateCssValue after PERF-003', () => {
 describe('Given Keyframes receives an interpolator that carries a compiler', () => {
   describe('When it is constructed and then seeked many times', () => {
     it('Then the compiler runs once per segment at construction, never per frame, and its closure produces the values', () => {
-      const compiler = jest.fn((from: string, to: string) => (_start: string, _end: string, progress: number) => `${from}>${to}@${progress}`);
+      const compiler = jest.fn(
+        (from: string, to: string) => (_start: string, _end: string, progress: number) => `${from}>${to}@${progress}`,
+      );
       const interpolate = withInterpolatorCompiler<string>(() => 'one-shot', compiler);
       const keyframes = new Keyframes<string>({
         duration: 1000,
@@ -328,7 +414,12 @@ describe('Given Keyframes receives an interpolator that carries a compiler', () 
   describe('When the interpolator has no compiler', () => {
     it('Then the plain interpolator is called per frame exactly as before', () => {
       const interpolate = jest.fn((from: string, to: string, progress: number) => `${from}>${to}@${progress}`);
-      const keyframes = new Keyframes<string>({ duration: 1000, easing: 'linear', keyframes: [{ value: 'a' }, { value: 'b' }], interpolate });
+      const keyframes = new Keyframes<string>({
+        duration: 1000,
+        easing: 'linear',
+        keyframes: [{ value: 'a' }, { value: 'b' }],
+        interpolate,
+      });
       try {
         keyframes.seek(500);
         expect(interpolate).toHaveBeenCalledWith('a', 'b', 0.5);
@@ -346,8 +437,12 @@ describe('Given animate() drives mock elements with the compiled CSS interpolato
     const style = {
       getPropertyValue: (name: string) => values.get(name) ?? '',
       getPropertyPriority: () => '',
-      setProperty: (name: string, value: string) => { values.set(name, value); },
-      removeProperty: (name: string) => { values.delete(name); },
+      setProperty: (name: string, value: string) => {
+        values.set(name, value);
+      },
+      removeProperty: (name: string) => {
+        values.delete(name);
+      },
     };
     return {
       nodeType: 1,
@@ -360,7 +455,11 @@ describe('Given animate() drives mock elements with the compiled CSS interpolato
     it('Then every written declaration equals a Keyframes that uses the pre-PERF-003 interpolateCssValue per frame', () => {
       const sequences: Record<string, string[]> = {
         width: ['0px', '120px', '40px'],
-        transform: ['translate(0px, 0px) scale(1)', 'translate(100px, 50px) scale(2)', 'translate(-20px, 10px) scale(0.5)'],
+        transform: [
+          'translate(0px, 0px) scale(1)',
+          'translate(100px, 50px) scale(2)',
+          'translate(-20px, 10px) scale(0.5)',
+        ],
         'background-color': ['#102030', 'rgb(240, 220, 200)', '#f0e0d0cc'],
         color: ['rgb(0 0 0 / 0)', 'rgb(255 128 64 / 0.5)', 'rgb(10% 20% 30%)'],
         display: ['auto', '100px', 'auto'],
@@ -383,7 +482,9 @@ describe('Given animate() drives mock elements with the compiled CSS interpolato
           animation.seek(time);
           for (const { name, keyframes } of references) {
             keyframes.seek(time);
-            expect(`${name}@${time}: ${element.style.getPropertyValue(name)}`).toBe(`${name}@${time}: ${keyframes.value$.value}`);
+            expect(`${name}@${time}: ${element.style.getPropertyValue(name)}`).toBe(
+              `${name}@${time}: ${keyframes.value$.value}`,
+            );
           }
         }
       } finally {

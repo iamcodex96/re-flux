@@ -16,8 +16,12 @@ describe('Given retargetMotion', () => {
         const targets = new Subject<number>();
         const samples: MotionSample[] = [];
         let completed = false;
-        const subscription = targets.pipe(retargetMotion({ initialValue: 0, stiffness: 220, damping: 28 }))
-          .subscribe({ next: (sample) => samples.push(sample), complete: () => { completed = true; } });
+        const subscription = targets.pipe(retargetMotion({ initialValue: 0, stiffness: 220, damping: 28 })).subscribe({
+          next: (sample) => samples.push(sample),
+          complete: () => {
+            completed = true;
+          },
+        });
 
         expect(samples[0]?.value).toBe(0);
         targets.next(100);
@@ -50,9 +54,11 @@ describe('Given retargetMotion', () => {
         const targets = new Subject<number>();
         const firstSamples: MotionSample[] = [];
         const secondSamples: MotionSample[] = [];
-        const first = targets.pipe(retargetMotion({ initialValue: 0, stiffness: 220, damping: 28 }))
+        const first = targets
+          .pipe(retargetMotion({ initialValue: 0, stiffness: 220, damping: 28 }))
           .subscribe((sample) => firstSamples.push(sample));
-        const second = targets.pipe(retargetMotion({ initialValue: 20, stiffness: 220, damping: 28 }))
+        const second = targets
+          .pipe(retargetMotion({ initialValue: 20, stiffness: 220, damping: 28 }))
           .subscribe((sample) => secondSamples.push(sample));
 
         targets.next(100);
@@ -75,7 +81,9 @@ describe('Given retargetMotion', () => {
         const failure = new Error('target source failed');
         let receivedError: unknown;
         const subscription = targets.pipe(retargetMotion()).subscribe({
-          error: (error: unknown) => { receivedError = error; },
+          error: (error: unknown) => {
+            receivedError = error;
+          },
         });
 
         targets.next(100);
@@ -91,7 +99,11 @@ describe('Given retargetMotion', () => {
       it('Then it completes immediately when the target stream is empty', () => {
         const targets = new Subject<number>();
         let completed = false;
-        const subscription = targets.pipe(retargetMotion()).subscribe({ complete: () => { completed = true; } });
+        const subscription = targets.pipe(retargetMotion()).subscribe({
+          complete: () => {
+            completed = true;
+          },
+        });
 
         targets.complete();
         expect(completed).toBe(true);
@@ -117,7 +129,11 @@ describe('Given retargetMotion', () => {
       it('Then it rejects non-finite targets and cleans up the frame clock', () => {
         const targets = new Subject<number>();
         let receivedError: unknown;
-        const subscription = targets.pipe(retargetMotion()).subscribe({ error: (error: unknown) => { receivedError = error; } });
+        const subscription = targets.pipe(retargetMotion()).subscribe({
+          error: (error: unknown) => {
+            receivedError = error;
+          },
+        });
 
         targets.next(Number.NaN);
         expect(receivedError).toBeInstanceOf(RangeError);

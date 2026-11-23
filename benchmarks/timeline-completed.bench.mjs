@@ -15,13 +15,15 @@ const TOTAL_MS = SEGMENTS * SEGMENT_MS;
 
 function positiveSegments(raw, fallback) {
   const value = raw === undefined ? fallback : Number(raw);
-  if (!Number.isSafeInteger(value) || value < 100) throw new RangeError(`BENCH_SEGMENTS must be an integer >= 100, received ${raw}.`);
+  if (!Number.isSafeInteger(value) || value < 100)
+    throw new RangeError(`BENCH_SEGMENTS must be an integer >= 100, received ${raw}.`);
   return value;
 }
 
 function buildTimeline() {
   const timeline = new Timeline();
-  for (let index = 0; index < SEGMENTS; index += 1) timeline.add(new Animation({ duration: SEGMENT_MS }), index * SEGMENT_MS);
+  for (let index = 0; index < SEGMENTS; index += 1)
+    timeline.add(new Animation({ duration: SEGMENT_MS }), index * SEGMENT_MS);
   return timeline;
 }
 
@@ -60,7 +62,13 @@ const results = await measureMicroCases(cases, settings);
 emitReport({
   benchmark: 're;Flux Timeline seek with completed segments',
   runtime: { node: process.version, platform: process.platform, arch: process.arch },
-  configuration: { ...settings, segments: SEGMENTS, segmentMs: SEGMENT_MS, totalMs: TOTAL_MS, completedFractions: [0, 0.5, 0.99] },
+  configuration: {
+    ...settings,
+    segments: SEGMENTS,
+    segmentMs: SEGMENT_MS,
+    totalMs: TOTAL_MS,
+    completedFractions: [0, 0.5, 0.99],
+  },
   harness: harnessInfo(settings.repeats),
   note: 'Sequential non-overlapping segments; the playhead stays inside the first not-yet-finished segment. Timings are descriptive, not pass/fail thresholds.',
   results,

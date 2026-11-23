@@ -38,12 +38,17 @@ export function normalizeDOMProperties(options: DOMAnimateOptions): NormalizedDO
       const hasTo = 'to' in definition && definition.to !== undefined;
       const hasFromTo = hasFrom && hasTo;
       if (Number(hasValues) + Number(hasKeyframes) + Number(hasFromTo) !== 1 || hasFrom !== hasTo) {
-        throw new TypeError(`CSS property "${cssProperty}" must define exactly one of "from" + "to", "values", or "keyframes".`);
+        throw new TypeError(
+          `CSS property "${cssProperty}" must define exactly one of "from" + "to", "values", or "keyframes".`,
+        );
       }
       if (hasKeyframes) {
         frames = { kind: 'keyframes', keyframes: definition.keyframes as readonly DOMPropertyKeyframe[] };
       } else if (hasFromTo) {
-        frames = { kind: 'values', values: [definition.from as CssAnimatableValue, definition.to as CssAnimatableValue] };
+        frames = {
+          kind: 'values',
+          values: [definition.from as CssAnimatableValue, definition.to as CssAnimatableValue],
+        };
       } else {
         frames = { kind: 'values', values: definition.values as CssPropertyFrames };
       }
@@ -133,5 +138,3 @@ function validateRepeat(repeat: number, label: string): void {
     throw new RangeError(`${label} must be a non-negative number or Infinity.`);
   }
 }
-
-

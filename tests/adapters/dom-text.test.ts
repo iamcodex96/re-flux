@@ -150,7 +150,10 @@ describe('Given animateNumber()', () => {
   });
 
   describe('When the endpoints are not finite', () => {
-    it.each([[Number.NaN, 1], [0, Infinity]])('Then from=%p and to=%p are rejected', (from, to) => {
+    it.each([
+      [Number.NaN, 1],
+      [0, Infinity],
+    ])('Then from=%p and to=%p are rejected', (from, to) => {
       const target = createTextElement('0');
       expect(() => animateNumber(target, { from, to, duration: 100 })).toThrow(RangeError);
     });

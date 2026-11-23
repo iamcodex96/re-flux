@@ -31,16 +31,27 @@ class PinnedKeyframes<T> {
   constructor(options: KeyframesOptions<T>) {
     this.frames = pinnedNormalize(options.keyframes);
     const compile = getInterpolatorCompiler(options.interpolate);
-    this.interpolators = this.frames.slice(0, -1).map((frame, index) => compile
-      ? compile(frame.value, this.frames[index + 1]!.value)
-      : resolveInterpolator(frame.value, this.frames[index + 1]!.value, options.interpolate, 'Keyframes'),
-    );
+    this.interpolators = this.frames
+      .slice(0, -1)
+      .map((frame, index) =>
+        compile
+          ? compile(frame.value, this.frames[index + 1]!.value)
+          : resolveInterpolator(frame.value, this.frames[index + 1]!.value, options.interpolate, 'Keyframes'),
+      );
     const defaultEasing = resolveEasing(options.easing);
-    this.segmentEasings = this.frames.slice(0, -1).map((frame) => frame.easing === undefined ? defaultEasing : resolveEasing(frame.easing));
+    this.segmentEasings = this.frames
+      .slice(0, -1)
+      .map((frame) => (frame.easing === undefined ? defaultEasing : resolveEasing(frame.easing)));
     this.onValueUpdate = options.onUpdate;
     this.value$ = new BehaviorSubject<T>(this.frames[0]!.value);
 
-    const { keyframes: _keyframes, interpolate: _interpolate, onUpdate, easing: _easing, ...animationOptions } = options;
+    const {
+      keyframes: _keyframes,
+      interpolate: _interpolate,
+      onUpdate,
+      easing: _easing,
+      ...animationOptions
+    } = options;
     this.animation = new Animation({
       ...animationOptions,
       easing: 'linear',
@@ -48,12 +59,16 @@ class PinnedKeyframes<T> {
     });
   }
 
-  play(): void { this.animation.play(); }
+  play(): void {
+    this.animation.play();
+  }
   stop(): void {
     this.animation.stop();
     this.publishValue(this.frames[0]!.value, 0);
   }
-  seek(ms: number): void { this.animation.seek(ms); }
+  seek(ms: number): void {
+    this.animation.seek(ms);
+  }
 
   private updateValue(progress: number): void {
     const normalizedProgress = Math.min(1, Math.max(0, progress));
@@ -79,7 +94,11 @@ class PinnedKeyframes<T> {
 
     const span = end.offset - start.offset;
     const localProgress = span <= 0 ? 1 : Math.min(1, Math.max(0, (normalizedProgress - start.offset) / span));
-    const value = this.interpolators[segmentIndex]!(start.value, end.value, this.segmentEasings[segmentIndex]!(localProgress));
+    const value = this.interpolators[segmentIndex]!(
+      start.value,
+      end.value,
+      this.segmentEasings[segmentIndex]!(localProgress),
+    );
     this.publishValue(value, progress);
   }
 
@@ -190,7 +209,8 @@ function buildKeyframes(count: number, offsets: OffsetStyle, easing: EasingStyle
       // Quadratic spacing: clearly uneven, strictly increasing for every count used here.
       if (offsets === 'uneven') frame.offset = (index / (count - 1)) ** 2;
       // Only some frames carry an explicit offset; the rest are interpolated between them.
-      if (offsets === 'partial' && (index === 0 || index === count - 1 || index % 3 === 1)) frame.offset = index / (count - 1);
+      if (offsets === 'partial' && (index === 0 || index === count - 1 || index % 3 === 1))
+        frame.offset = index / (count - 1);
       // First offset > 0 and last offset < 1: normalization adds synthetic boundary frames.
       if (offsets === 'inset') frame.offset = 0.125 + (0.75 * index) / (count - 1);
     }
@@ -207,15 +227,16 @@ function factoryFor(
   mode: 'numeric' | 'tagged',
   extra: Partial<KeyframesOptions<unknown>> = {},
 ): OptionsFactory {
-  return (onUpdate) => ({
-    duration: DURATION,
-    keyframes: buildKeyframes(count, offsets, easing),
-    ...(easing === 'named' ? { easing: 'easeInOutQuad' } : {}),
-    ...(easing === 'function' ? { easing: (t: number) => t * t } : {}),
-    ...(mode === 'tagged' ? { interpolate: tagged } : {}),
-    ...extra,
-    onUpdate,
-  } as KeyframesOptions<unknown>);
+  return (onUpdate) =>
+    ({
+      duration: DURATION,
+      keyframes: buildKeyframes(count, offsets, easing),
+      ...(easing === 'named' ? { easing: 'easeInOutQuad' } : {}),
+      ...(easing === 'function' ? { easing: (t: number) => t * t } : {}),
+      ...(mode === 'tagged' ? { interpolate: tagged } : {}),
+      ...extra,
+      onUpdate,
+    }) as KeyframesOptions<unknown>;
 }
 
 /** Exact offset positions (in ms) of the normalized frames, plus their float neighbours. */
@@ -242,8 +263,16 @@ function boundaryPositions(count: number, offsets: OffsetStyle): number[] {
 function expectSameSeeks(factory: OptionsFactory, positions: readonly number[]): void {
   const actual: Emission[] = [];
   const expected: Emission[] = [];
-  const real = new Keyframes(factory((value, progress) => { actual.push([value, progress]); }));
-  const pinned = new PinnedKeyframes(factory((value, progress) => { expected.push([value, progress]); }));
+  const real = new Keyframes(
+    factory((value, progress) => {
+      actual.push([value, progress]);
+    }),
+  );
+  const pinned = new PinnedKeyframes(
+    factory((value, progress) => {
+      expected.push([value, progress]);
+    }),
+  );
   const actualValues: unknown[] = [];
   const expectedValues: unknown[] = [];
   try {
@@ -289,7 +318,16 @@ describe('Given the segment lookup of Keyframes<T> (PERF-005 golden table)', () 
               // Boundary hops in a fixed zig-zag so each boundary is reached from above and from below.
               const zigzag = ascending.flatMap((ms, index) => [ms, descending[index]!]);
               expectSameSeeks(factoryFor(count, offsets, easing, mode), [
-                ...forward, ...backward, ...ascending, ...descending, ...zigzag, 0, DURATION, 0, DURATION, 0,
+                ...forward,
+                ...backward,
+                ...ascending,
+                ...descending,
+                ...zigzag,
+                0,
+                DURATION,
+                0,
+                DURATION,
+                0,
               ]);
             });
           }
@@ -314,10 +352,14 @@ describe('Given the segment lookup of Keyframes<T> (PERF-005 golden table)', () 
             let current = random() * DURATION;
             for (let step = 0; step < length; step += 1) {
               const move = random();
-              if (move < 0.35) current = Math.min(DURATION, current + random() * 12); // small forward drift (playback-like)
-              else if (move < 0.55) current = Math.max(0, current - random() * 12); // small backward drift
-              else if (move < 0.75) current = random() * DURATION; // arbitrary jump
-              else if (move < 0.9) current = boundaries[Math.floor(random() * boundaries.length)]!; // exact boundary
+              if (move < 0.35)
+                current = Math.min(DURATION, current + random() * 12); // small forward drift (playback-like)
+              else if (move < 0.55)
+                current = Math.max(0, current - random() * 12); // small backward drift
+              else if (move < 0.75)
+                current = random() * DURATION; // arbitrary jump
+              else if (move < 0.9)
+                current = boundaries[Math.floor(random() * boundaries.length)]!; // exact boundary
               else current = random() < 0.5 ? 0 : DURATION;
               positions.push(current);
             }
@@ -339,7 +381,15 @@ describe('Given the segment lookup of Keyframes<T> (PERF-005 golden table)', () 
           const positions: number[] = [];
           for (let ms = 0; ms <= total; ms += 37) positions.push(ms); // forward through delay + three cycles
           for (let ms = total; ms >= 0; ms -= 53) positions.push(ms); // and back again
-          for (const cycleEdge of [100, 100 + DURATION - 1, 100 + DURATION, 100 + DURATION + 1, 100 + 2 * DURATION, total]) positions.push(cycleEdge);
+          for (const cycleEdge of [
+            100,
+            100 + DURATION - 1,
+            100 + DURATION,
+            100 + DURATION + 1,
+            100 + 2 * DURATION,
+            total,
+          ])
+            positions.push(cycleEdge);
           expectSameSeeks(factoryFor(count, 'dyadic', 'per-keyframe', 'tagged', extra), positions);
           expectSameSeeks(factoryFor(count, 'implicit', 'named', 'numeric', extra), positions);
         });
@@ -353,8 +403,28 @@ describe('Given the segment lookup of Keyframes<T> (PERF-005 golden table)', () 
         const actual: Emission[] = [];
         const expected: Emission[] = [];
         const extra = { delay: 48, repeat: 2, yoyo };
-        const real = new Keyframes(factoryFor(20, 'uneven', 'per-keyframe', 'tagged', extra)((value, progress) => { actual.push([value, progress]); }));
-        const pinned = new PinnedKeyframes(factoryFor(20, 'uneven', 'per-keyframe', 'tagged', extra)((value, progress) => { expected.push([value, progress]); }));
+        const real = new Keyframes(
+          factoryFor(
+            20,
+            'uneven',
+            'per-keyframe',
+            'tagged',
+            extra,
+          )((value, progress) => {
+            actual.push([value, progress]);
+          }),
+        );
+        const pinned = new PinnedKeyframes(
+          factoryFor(
+            20,
+            'uneven',
+            'per-keyframe',
+            'tagged',
+            extra,
+          )((value, progress) => {
+            expected.push([value, progress]);
+          }),
+        );
         try {
           real.play();
           pinned.play();
@@ -378,8 +448,16 @@ describe('Given the segment lookup of Keyframes<T> (PERF-005 golden table)', () 
       const actual: Emission[] = [];
       const expected: Emission[] = [];
       const factory = factoryFor(5, 'implicit', 'per-keyframe', 'tagged', { repeat: 1, yoyo: true });
-      const real = new Keyframes(factory((value, progress) => { actual.push([value, progress]); }));
-      const pinned = new PinnedKeyframes(factory((value, progress) => { expected.push([value, progress]); }));
+      const real = new Keyframes(
+        factory((value, progress) => {
+          actual.push([value, progress]);
+        }),
+      );
+      const pinned = new PinnedKeyframes(
+        factory((value, progress) => {
+          expected.push([value, progress]);
+        }),
+      );
       try {
         for (let run = 0; run < 2; run += 1) {
           real.play();
@@ -399,7 +477,18 @@ describe('Given the segment lookup of Keyframes<T> (PERF-005 golden table)', () 
   describe('When a single keyframe or only two keyframes are given', () => {
     it('Then they match the pre-cursor implementation at 0, mid and 1 and on repeated seeks to the same position', () => {
       for (const count of [1, 2]) {
-        expectSameSeeks(factoryFor(count, 'implicit', 'linear', 'tagged'), [0, 0, 512, 512, 512, 1023, DURATION, DURATION, 3, 0]);
+        expectSameSeeks(factoryFor(count, 'implicit', 'linear', 'tagged'), [
+          0,
+          0,
+          512,
+          512,
+          512,
+          1023,
+          DURATION,
+          DURATION,
+          3,
+          0,
+        ]);
         expectSameSeeks(factoryFor(count, 'implicit', 'per-keyframe', 'numeric'), [DURATION, 0, 700, 100, 700, 0]);
       }
     });
@@ -415,10 +504,19 @@ describe('Given the segment lookup of Keyframes<T> (PERF-005 golden table)', () 
 
     it('Then NaN and Infinity seeks match the pre-cursor implementation, also between cursor-moving seeks', () => {
       for (const count of [2, 5, 20, 50, 100]) {
-        expectSameSeeks(
-          factoryFor(count, 'dyadic', 'per-keyframe', 'tagged'),
-          [900, Number.NaN, 900, Number.POSITIVE_INFINITY, 100, Number.NEGATIVE_INFINITY, 700, Number.NaN, Number.NaN, 3, 1023],
-        );
+        expectSameSeeks(factoryFor(count, 'dyadic', 'per-keyframe', 'tagged'), [
+          900,
+          Number.NaN,
+          900,
+          Number.POSITIVE_INFINITY,
+          100,
+          Number.NEGATIVE_INFINITY,
+          700,
+          Number.NaN,
+          Number.NaN,
+          3,
+          1023,
+        ]);
       }
     });
 
@@ -427,8 +525,16 @@ describe('Given the segment lookup of Keyframes<T> (PERF-005 golden table)', () 
         const emitted: Emission[] = [];
         const reference: Emission[] = [];
         const factory = factoryFor(count, 'implicit', 'linear', 'tagged');
-        const real = new Keyframes(factory((value, progress) => { emitted.push([value, progress]); }));
-        const pinned = new PinnedKeyframes(factory((value, progress) => { reference.push([value, progress]); }));
+        const real = new Keyframes(
+          factory((value, progress) => {
+            emitted.push([value, progress]);
+          }),
+        );
+        const pinned = new PinnedKeyframes(
+          factory((value, progress) => {
+            reference.push([value, progress]);
+          }),
+        );
         try {
           // Move the cursor to the last segment first, then feed NaN straight into the update step (a seek never produces one).
           real.seek(DURATION * 0.95);
@@ -451,7 +557,11 @@ describe('Given the segment lookup of Keyframes<T> (PERF-005 golden table)', () 
       const sequence = new Keyframes<unknown>({
         duration: DURATION,
         interpolate: tagged,
-        keyframes: [{ value: 'a', offset: 0 }, { value: 'b', offset: 0.5 }, { value: 'c', offset: 1 }],
+        keyframes: [
+          { value: 'a', offset: 0 },
+          { value: 'b', offset: 0.5 },
+          { value: 'c', offset: 1 },
+        ],
         onUpdate: (value) => emissions.push(value),
       });
       try {
@@ -464,7 +574,7 @@ describe('Given the segment lookup of Keyframes<T> (PERF-005 golden table)', () 
         expect(emissions).toEqual([
           'a>b@0',
           'a>b@1', // exact 0.5 belongs to the first segment, at its end
-          `b>c@${(1 / 1024 / 0.5)}`,
+          `b>c@${1 / 1024 / 0.5}`,
           'a>b@1',
           'a>b@0.5',
           'c',

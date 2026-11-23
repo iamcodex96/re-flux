@@ -23,7 +23,10 @@ describe('Given the segments snapshot of a Timeline', () => {
       expect(timeline.segments).toBe(first);
       expect(Object.isFrozen(first)).toBe(true);
       expect(Object.isFrozen(first[0])).toBe(true);
-      expect(first.map((segment) => [segment.startTime, segment.endTime, segment.duration])).toEqual([[0, 10, 10], [5, 25, 20]]);
+      expect(first.map((segment) => [segment.startTime, segment.endTime, segment.duration])).toEqual([
+        [0, 10, 10],
+        [5, 25, 20],
+      ]);
       timeline.seek(7);
       expect(timeline.segments).toBe(first);
     });
@@ -124,8 +127,17 @@ describe('Given a Timeline of sequential built-in children', () => {
   describe('When a child is not a built-in item', () => {
     it('Then it still receives every update after it has started, like before', () => {
       const calls: number[] = [];
-      const custom: AnimatableItem = { duration: 50, seekLocal: (local) => { calls.push(local); }, resetInternal: () => undefined };
-      const timeline = new Timeline().add(new Animation({ duration: 10 })).add(custom, 20).add(new Animation({ duration: 300 }), 0);
+      const custom: AnimatableItem = {
+        duration: 50,
+        seekLocal: (local) => {
+          calls.push(local);
+        },
+        resetInternal: () => undefined,
+      };
+      const timeline = new Timeline()
+        .add(new Animation({ duration: 10 }))
+        .add(custom, 20)
+        .add(new Animation({ duration: 300 }), 0);
 
       timeline.seek(10);
       timeline.seek(30);
@@ -139,7 +151,10 @@ describe('Given a Timeline of sequential built-in children', () => {
 
 describe('Given unusual updates', () => {
   /** Runs the same scenario on the old and the new implementation and returns both traces. */
-  function both(scenario: (Ctor: typeof Timeline | typeof LegacyTimeline, log: string[]) => void): { legacy: string[]; actual: string[] } {
+  function both(scenario: (Ctor: typeof Timeline | typeof LegacyTimeline, log: string[]) => void): {
+    legacy: string[];
+    actual: string[];
+  } {
     const legacy: string[] = [];
     scenario(LegacyTimeline, legacy);
     const actual: string[] = [];
@@ -153,13 +168,18 @@ describe('Given unusual updates', () => {
         const timeline: InstanceType<typeof Ctor> = new Ctor();
         let reentered = false;
         timeline.add(new Animation({ duration: 100, onComplete: () => log.push('a.complete') }));
-        timeline.add(new Animation({
-          duration: 100,
-          onUpdate: (progress) => {
-            log.push(`b:${progress}`);
-            if (!reentered && progress > 0.5) { reentered = true; timeline.seek(30); }
-          },
-        }));
+        timeline.add(
+          new Animation({
+            duration: 100,
+            onUpdate: (progress) => {
+              log.push(`b:${progress}`);
+              if (!reentered && progress > 0.5) {
+                reentered = true;
+                timeline.seek(30);
+              }
+            },
+          }),
+        );
         timeline.add(new Animation({ duration: 100, onUpdate: (progress) => log.push(`c:${progress}`) }), 100);
         for (const target of [60, 150, 180, 40, 250, 120, 300, 10]) {
           timeline.seek(target);
@@ -177,16 +197,26 @@ describe('Given unusual updates', () => {
         const timeline: InstanceType<typeof Ctor> = new Ctor();
         let thrown = false;
         timeline.add(new Animation({ duration: 100, onUpdate: (progress) => log.push(`a:${progress}`) }));
-        timeline.add(new Animation({
-          duration: 100,
-          onUpdate: (progress) => {
-            log.push(`b:${progress}`);
-            if (!thrown && progress > 0.3) { thrown = true; throw new Error('boom'); }
-          },
-        }), 50);
+        timeline.add(
+          new Animation({
+            duration: 100,
+            onUpdate: (progress) => {
+              log.push(`b:${progress}`);
+              if (!thrown && progress > 0.3) {
+                thrown = true;
+                throw new Error('boom');
+              }
+            },
+          }),
+          50,
+        );
         timeline.add(new Animation({ duration: 100, onUpdate: (progress) => log.push(`c:${progress}`) }), 150);
         for (const target of [20, 100, 120, 200, 80, 260]) {
-          try { timeline.seek(target); } catch (error) { log.push(`error:${(error as Error).message}`); }
+          try {
+            timeline.seek(target);
+          } catch (error) {
+            log.push(`error:${(error as Error).message}`);
+          }
           log.push(`@${target}`);
         }
       });

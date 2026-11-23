@@ -25,7 +25,9 @@ async function nextMacrotask(): Promise<void> {
  */
 async function unhandledDuring(action: () => void | Promise<void>): Promise<unknown[]> {
   const seen: unknown[] = [];
-  const listener = (reason: unknown): void => { seen.push(reason); };
+  const listener = (reason: unknown): void => {
+    seen.push(reason);
+  };
   process.on('unhandledRejection', listener);
   try {
     await action();

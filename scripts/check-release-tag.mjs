@@ -18,9 +18,8 @@ assert.ok(
   'GITHUB_REPOSITORY must be in owner/repository format.',
 );
 
-const rawRepositoryUrl = typeof packageJson.repository === 'string'
-  ? packageJson.repository
-  : packageJson.repository?.url;
+const rawRepositoryUrl =
+  typeof packageJson.repository === 'string' ? packageJson.repository : packageJson.repository?.url;
 assert.ok(
   rawRepositoryUrl,
   'Set package.json "repository" to the real GitHub repository URL before publishing with Trusted Publishing.',
@@ -41,11 +40,7 @@ assert.equal(
   expectedRepositoryUrl,
   `package.json repository URL must match ${expectedRepositoryUrl} (GITHUB_REPOSITORY).`,
 );
-assert.equal(
-  packageJson.publishConfig?.access,
-  'public',
-  'Scoped package must set publishConfig.access to "public".',
-);
+assert.equal(packageJson.publishConfig?.access, 'public', 'Scoped package must set publishConfig.access to "public".');
 
 process.stdout.write(`✓ release tag ${refName} matches ${packageJson.name}@${packageJson.version}\n`);
 process.stdout.write(`✓ package repository matches ${expectedRepositoryUrl}\n`);

@@ -23,16 +23,16 @@ function numericValues(text: string): number[] {
   }
   const rgb = /^rgba?\((.*)\)$/.exec(value);
   if (rgb) {
-    const parts = rgb[1]!.replace('/', ' ').split(/[\s,]+/).filter(Boolean);
+    const parts = rgb[1]!
+      .replace('/', ' ')
+      .split(/[\s,]+/)
+      .filter(Boolean);
     const numbers = parts.map((part, index) => {
       const number = Number.parseFloat(part);
       if (!part.endsWith('%')) return number;
       return index < 3 ? (number / 100) * 255 : number / 100;
     });
-    return [
-      ...numbers.slice(0, 3).map((channel) => Math.round(Math.max(0, Math.min(255, channel)))),
-      numbers[3] ?? 1,
-    ];
+    return [...numbers.slice(0, 3).map((channel) => Math.round(Math.max(0, Math.min(255, channel)))), numbers[3] ?? 1];
   }
   return (value.match(NUMBER) ?? []).map(Number);
 }

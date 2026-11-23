@@ -26,7 +26,14 @@ export function lerp(from: number, to: number, progress: number): number {
 }
 
 /** Map a number from one range to another; degenerate input ranges map to the output start. */
-export function mapRange(value: number, inputMin: number, inputMax: number, outputMin: number, outputMax: number, shouldClamp = false): number {
+export function mapRange(
+  value: number,
+  inputMin: number,
+  inputMax: number,
+  outputMin: number,
+  outputMax: number,
+  shouldClamp = false,
+): number {
   if (inputMin === inputMax) return outputMin;
   const progress = (value - inputMin) / (inputMax - inputMin);
   const normalized = shouldClamp ? clamp(progress) : progress;
@@ -36,7 +43,8 @@ export function mapRange(value: number, inputMin: number, inputMax: number, outp
 /** Snap a value to the nearest interval or to the nearest entry in a supplied list. */
 export function snap(value: number, target: SnapTarget): number {
   if (typeof target === 'number') {
-    if (!(target > 0) || !Number.isFinite(target)) throw new RangeError('Snap interval must be a finite number greater than zero.');
+    if (!(target > 0) || !Number.isFinite(target))
+      throw new RangeError('Snap interval must be a finite number greater than zero.');
     return Math.round(value / target) * target;
   }
   if (target.length === 0) throw new RangeError('Snap target list must not be empty.');
@@ -44,16 +52,20 @@ export function snap(value: number, target: SnapTarget): number {
   let distance = Math.abs(value - closest);
   for (const candidate of target.slice(1)) {
     const nextDistance = Math.abs(value - candidate);
-    if (nextDistance < distance) { closest = candidate; distance = nextDistance; }
+    if (nextDistance < distance) {
+      closest = candidate;
+      distance = nextDistance;
+    }
   }
   return closest;
 }
 
 /** Wrap a value into [min, max), useful for looping angles and indices. */
 export function wrap(value: number, min: number, max: number): number {
-  if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) throw new RangeError('Wrap bounds must be finite and different.');
+  if (!Number.isFinite(min) || !Number.isFinite(max) || min === max)
+    throw new RangeError('Wrap bounds must be finite and different.');
   const span = max - min;
-  return ((value - min) % span + span) % span + min;
+  return ((((value - min) % span) + span) % span) + min;
 }
 
 /** Generate a random value in [min, max); inject a random source for deterministic tests. */
@@ -68,14 +80,25 @@ export function interpolate<T>(from: T, to: T, progress: number): T {
 }
 
 /** Create a piecewise numeric interpolator from an input range and matching output range. */
-export function interpolateRange(input: NumericRange | readonly number[], output: readonly number[], shouldClamp = false): (value: number) => number {
-  if (input.length < 2 || input.length !== output.length) throw new RangeError('Input and output ranges must have the same length (at least two entries).');
-  if (input.some((value, index) => index > 0 && value < input[index - 1]!)) throw new RangeError('Input range must be sorted in ascending order.');
+export function interpolateRange(
+  input: NumericRange | readonly number[],
+  output: readonly number[],
+  shouldClamp = false,
+): (value: number) => number {
+  if (input.length < 2 || input.length !== output.length)
+    throw new RangeError('Input and output ranges must have the same length (at least two entries).');
+  if (input.some((value, index) => index > 0 && value < input[index - 1]!))
+    throw new RangeError('Input range must be sorted in ascending order.');
   return (value) => {
     if (shouldClamp) value = clamp(value, input[0]!, input[input.length - 1]!);
     if (value <= input[0]!) return lerp(output[0]!, output[1]!, (value - input[0]!) / (input[1]! - input[0]! || 1));
     const last = input.length - 1;
-    if (value >= input[last]!) return lerp(output[last - 1]!, output[last]!, (value - input[last - 1]!) / (input[last]! - input[last - 1]! || 1));
+    if (value >= input[last]!)
+      return lerp(
+        output[last - 1]!,
+        output[last]!,
+        (value - input[last - 1]!) / (input[last]! - input[last - 1]! || 1),
+      );
     for (let index = 1; index < input.length; index += 1) {
       if (value <= input[index]!) {
         const span = input[index]! - input[index - 1]!;
@@ -94,8 +117,8 @@ export function pipe<T>(...functions: readonly ((value: T) => T)[]): (value: T) 
 /** Distribute a numeric value across target indices, optionally eased or reversed. */
 export function distribute(options: DistributeOptions = {}): (index: number, total: number) => number {
   const from = options.from ?? 0;
-  const start = Array.isArray(from) ? from[0] ?? 0 : from as number;
-  const end = options.to ?? (Array.isArray(from) ? from[1] ?? start : start);
+  const start = Array.isArray(from) ? (from[0] ?? 0) : (from as number);
+  const end = options.to ?? (Array.isArray(from) ? (from[1] ?? start) : start);
   const base = options.base ?? 0;
   const easing = options.ease === undefined ? (value: number) => value : resolveEasing(options.ease);
   return (index, total) => {

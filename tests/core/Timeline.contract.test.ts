@@ -94,9 +94,7 @@ describe('Given Timeline public contracts', () => {
       it('Then the callback waits for the next forward crossing', () => {
         // Given: a callback positioned midway through the timeline.
         const callback = jest.fn();
-        const timeline = new Timeline()
-          .add(new Animation({ duration: 100 }))
-          .call(callback, 50);
+        const timeline = new Timeline().add(new Animation({ duration: 100 })).call(callback, 50);
 
         // When: the playhead crosses the marker for the first time.
         timeline.seek(75);
@@ -223,7 +221,6 @@ describe('Given Timeline public contracts', () => {
     });
   });
 
-
   describe('When reverse playback starts from the beginning', () => {
     describe('And When a finite Timeline reverses to its start', () => {
       it('Then it begins at the end and resolves completion after traversing backward', async () => {
@@ -255,8 +252,6 @@ describe('Given Timeline public contracts', () => {
       });
     });
   });
-
-
 
   describe('When a Timeline has completed in reverse', () => {
     describe('And When forward playback is requested again', () => {
@@ -292,5 +287,4 @@ describe('Given Timeline public contracts', () => {
       });
     });
   });
-
 });

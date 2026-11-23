@@ -48,7 +48,7 @@ interface TimelineLike extends AnimatableItem {
 }
 type TimelineCtor = new (options?: TimelineOptions) => TimelineLike;
 
-const pick = <T,>(random: () => number, values: readonly T[]): T => values[Math.floor(random() * values.length)]!;
+const pick = <T>(random: () => number, values: readonly T[]): T => values[Math.floor(random() * values.length)]!;
 const int = (random: () => number, min: number, max: number): number => min + Math.floor(random() * (max - min + 1));
 
 function randomOffset(random: () => number, labels: readonly string[]): TimelineOffset | undefined {
@@ -63,16 +63,32 @@ function randomOffset(random: () => number, labels: readonly string[]): Timeline
 }
 
 function fill(Ctor: TimelineCtor, random: () => number, log: string[], prefix: string, depth: number): TimelineLike {
-  const note = (event: string) => (): void => { log.push(`${prefix}:${event}`); };
+  const note = (event: string) => (): void => {
+    log.push(`${prefix}:${event}`);
+  };
   const timeline = new Ctor({
-    onStart: note('T.start'), onUpdate: (progress) => log.push(`${prefix}:T.update:${progress}`), onComplete: note('T.complete'),
-    onPause: note('T.pause'), onResume: note('T.resume'), onStop: note('T.stop'),
+    onStart: note('T.start'),
+    onUpdate: (progress) => log.push(`${prefix}:T.update:${progress}`),
+    onComplete: note('T.complete'),
+    onPause: note('T.pause'),
+    onResume: note('T.resume'),
+    onStop: note('T.stop'),
   });
   const labels: string[] = [];
   const count = int(random, 1, depth === 0 ? 14 : 5);
   for (let index = 0; index < count; index += 1) {
     const id = `${prefix}.${index}`;
-    const kind = pick(random, ['anim', 'anim', 'anim', 'tween', 'keyframes', 'call', 'call', 'custom', depth < 2 ? 'nested' : 'anim'] as const);
+    const kind = pick(random, [
+      'anim',
+      'anim',
+      'anim',
+      'tween',
+      'keyframes',
+      'call',
+      'call',
+      'custom',
+      depth < 2 ? 'nested' : 'anim',
+    ] as const);
     const offset = randomOffset(random, labels);
     const duration = random() < 0.1 ? 0 : int(random, 1, 160);
     const options = {
@@ -87,19 +103,44 @@ function fill(Ctor: TimelineCtor, random: () => number, log: string[], prefix: s
     };
     try {
       if (kind === 'anim') {
-        timeline.add(new Animation({ ...options, onUpdate: (progress, eased) => log.push(`${id}.update:${progress}:${eased}`) }), offset);
+        timeline.add(
+          new Animation({ ...options, onUpdate: (progress, eased) => log.push(`${id}.update:${progress}:${eased}`) }),
+          offset,
+        );
       } else if (kind === 'tween') {
-        timeline.add(new Tween({ ...options, from: 0, to: 100, onUpdate: (value, progress) => log.push(`${id}.update:${value}:${progress}`) }), offset);
+        timeline.add(
+          new Tween({
+            ...options,
+            from: 0,
+            to: 100,
+            onUpdate: (value, progress) => log.push(`${id}.update:${value}:${progress}`),
+          }),
+          offset,
+        );
       } else if (kind === 'keyframes') {
-        timeline.add(new Keyframes({ ...options, keyframes: [{ value: 0 }, { value: 10, offset: 0.3 }, { value: 40 }], onUpdate: (value, progress) => log.push(`${id}.update:${value}:${progress}`) }), offset);
+        timeline.add(
+          new Keyframes({
+            ...options,
+            keyframes: [{ value: 0 }, { value: 10, offset: 0.3 }, { value: 40 }],
+            onUpdate: (value, progress) => log.push(`${id}.update:${value}:${progress}`),
+          }),
+          offset,
+        );
       } else if (kind === 'call') {
         timeline.call(note(`${id}.call`), offset);
       } else if (kind === 'custom') {
-        timeline.add({
-          duration: int(random, 0, 120),
-          seekLocal: (local, preserve) => { log.push(`${id}.seekLocal:${local}:${String(preserve)}`); },
-          resetInternal: () => { log.push(`${id}.reset`); },
-        }, offset);
+        timeline.add(
+          {
+            duration: int(random, 0, 120),
+            seekLocal: (local, preserve) => {
+              log.push(`${id}.seekLocal:${local}:${String(preserve)}`);
+            },
+            resetInternal: () => {
+              log.push(`${id}.reset`);
+            },
+          },
+          offset,
+        );
       } else {
         timeline.add(fill(Ctor, random, log, id, depth + 1), offset);
       }
@@ -108,7 +149,12 @@ function fill(Ctor: TimelineCtor, random: () => number, log: string[], prefix: s
     }
     if (random() < 0.15) {
       const name = `label${labels.length}`;
-      try { timeline.addLabel(name, randomOffset(random, labels)); labels.push(name); } catch { /* duplicate or invalid */ }
+      try {
+        timeline.addLabel(name, randomOffset(random, labels));
+        labels.push(name);
+      } catch {
+        /* duplicate or invalid */
+      }
     }
   }
   return timeline;
@@ -125,7 +171,11 @@ function run(Ctor: TimelineCtor, seed: number): string[] {
     log.push(`#${step} t=${timeline.currentTime} p=${timeline.progress$.value} s=${timeline.state$.value}`);
   };
   const guarded = (step: string, action: () => void): void => {
-    try { action(); } catch (error) { log.push(`#${step} error:${(error as Error).message}`); }
+    try {
+      action();
+    } catch (error) {
+      log.push(`#${step} error:${(error as Error).message}`);
+    }
     snapshot(step);
   };
   const operations = int(random, 8, 40);
@@ -133,52 +183,84 @@ function run(Ctor: TimelineCtor, seed: number): string[] {
     const roll = random();
     if (roll < 0.34) {
       const target = random() < 0.35 ? int(random, 0, Math.ceil(span / 25)) * 25 : random() * span * 1.15;
-      guarded(`${step}:seek:${target}`, () => { timeline.seek(target); });
+      guarded(`${step}:seek:${target}`, () => {
+        timeline.seek(target);
+      });
     } else if (roll < 0.42) {
       const progress = random() * 1.2 - 0.1;
-      guarded(`${step}:seekProgress:${progress}`, () => { timeline.seekProgress(progress); });
+      guarded(`${step}:seekProgress:${progress}`, () => {
+        timeline.seekProgress(progress);
+      });
     } else if (roll < 0.74) {
-      guarded(`${step}:play`, () => { timeline.play(); });
+      guarded(`${step}:play`, () => {
+        timeline.play();
+      });
       const frames = int(random, 1, 14);
       for (let frame = 0; frame < frames; frame += 1) {
         now += random() < 0.15 ? 0 : int(random, 1, 70);
-        guarded(`${step}:frame:${now}`, () => { raf.advance(now); });
+        guarded(`${step}:frame:${now}`, () => {
+          raf.advance(now);
+        });
       }
     } else if (roll < 0.8) {
-      guarded(`${step}:reverse`, () => { timeline.reverse(); });
+      guarded(`${step}:reverse`, () => {
+        timeline.reverse();
+      });
       const frames = int(random, 1, 10);
       for (let frame = 0; frame < frames; frame += 1) {
         now += int(random, 1, 70);
-        guarded(`${step}:frame:${now}`, () => { raf.advance(now); });
+        guarded(`${step}:frame:${now}`, () => {
+          raf.advance(now);
+        });
       }
     } else if (roll < 0.85) {
-      guarded(`${step}:pause`, () => { timeline.pause(); });
+      guarded(`${step}:pause`, () => {
+        timeline.pause();
+      });
     } else if (roll < 0.9) {
-      guarded(`${step}:stop`, () => { timeline.stop(); });
+      guarded(`${step}:stop`, () => {
+        timeline.stop();
+      });
     } else if (roll < 0.94) {
-      guarded(`${step}:restart`, () => { timeline.restart(); });
+      guarded(`${step}:restart`, () => {
+        timeline.restart();
+      });
     } else if (roll < 0.97) {
-      guarded(`${step}:timeScale`, () => { timeline.timeScale(pick(random, [0.5, 1, 2, 3])); });
+      guarded(`${step}:timeScale`, () => {
+        timeline.timeScale(pick(random, [0.5, 1, 2, 3]));
+      });
     } else {
       guarded(`${step}:late-add`, () => {
         timeline.stop();
         const id = `late${step}`;
-        timeline.add(new Animation({ duration: int(random, 1, 120), onUpdate: (progress) => log.push(`${id}.update:${progress}`), onComplete: () => log.push(`${id}.complete`) }), int(random, 0, 200));
+        timeline.add(
+          new Animation({
+            duration: int(random, 1, 120),
+            onUpdate: (progress) => log.push(`${id}.update:${progress}`),
+            onComplete: () => log.push(`${id}.complete`),
+          }),
+          int(random, 0, 200),
+        );
       });
     }
   }
-  guarded('final:stop', () => { timeline.stop(); });
+  guarded('final:stop', () => {
+    timeline.stop();
+  });
   frameCoordinator.assertIdle();
   return log;
 }
 
 describe('Given random timelines driven by seeks, frames and structure edits', () => {
   describe('When the optimized Timeline is compared with the pre-PERF-009 implementation', () => {
-    it.each(Array.from({ length: 250 }, (_, index) => index + 1))('Then seed %i produces an identical trace', (seed) => {
-      const legacy = run(LegacyTimeline as unknown as TimelineCtor, seed);
-      const actual = run(Timeline as unknown as TimelineCtor, seed);
-      expect(actual).toEqual(legacy);
-      expect(legacy.length).toBeGreaterThan(10);
-    });
+    it.each(Array.from({ length: 250 }, (_, index) => index + 1))(
+      'Then seed %i produces an identical trace',
+      (seed) => {
+        const legacy = run(LegacyTimeline as unknown as TimelineCtor, seed);
+        const actual = run(Timeline as unknown as TimelineCtor, seed);
+        expect(actual).toEqual(legacy);
+        expect(legacy.length).toBeGreaterThan(10);
+      },
+    );
   });
 });

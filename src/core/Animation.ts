@@ -36,15 +36,22 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
     this.cycleDuration = options.duration;
     this.delay = delay;
     this.repeats = repeatOption;
-    const computedDuration = this.cycleDuration === 0
-      ? this.delay
-      : this.delay + this.cycleDuration * (this.repeats === Infinity ? Infinity : this.repeats + 1);
+    const computedDuration =
+      this.cycleDuration === 0
+        ? this.delay
+        : this.delay + this.cycleDuration * (this.repeats === Infinity ? Infinity : this.repeats + 1);
     if (this.repeats !== Infinity && !Number.isFinite(computedDuration)) {
       throw new RangeError('Animation total duration must be finite; reduce the duration or repeat count.');
     }
     this.yoyo = options.yoyo ?? false;
     this.easing = resolveEasing(options.easing);
-    this.options = Object.freeze({ ...options, duration: this.cycleDuration, delay: this.delay, repeat: this.repeats, yoyo: this.yoyo });
+    this.options = Object.freeze({
+      ...options,
+      duration: this.cycleDuration,
+      delay: this.delay,
+      repeat: this.repeats,
+      yoyo: this.yoyo,
+    });
     this.playback = new PlaybackController(this, this.options, ANIMATION_PLAYBACK, this.completion);
     this.state$ = this.playback.state$;
   }
@@ -131,7 +138,7 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
 
     if (completeNow && this.hasCompleted) return;
     if (!completeNow) this.hasCompleted = false;
-     
+
     if (!preservePlaybackState) {
       this.playback.setState('running');
       if (previousState === 'paused') this.options.onResume?.();
@@ -158,7 +165,6 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
       this.options.onComplete?.();
       this.completion.resolve();
     } else if (target < this.delay && !completeNow) {
-       
       this.hasStarted = false;
     }
   }
@@ -186,7 +192,9 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
     return this.completion.promise.then(onfulfilled, onrejected);
   }
 
-  catch<TResult = never>(onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null): Promise<void | TResult> {
+  catch<TResult = never>(
+    onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null,
+  ): Promise<void | TResult> {
     return this.completion.promise.catch(onrejected);
   }
 
@@ -214,7 +222,6 @@ export class Animation implements AnimatableItem, PromiseLike<void> {
   private finalDirectionProgress(): number {
     return this.yoyo && this.repeats !== Infinity && this.repeats % 2 === 1 ? 0 : 1;
   }
-
 }
 
 // A completed Animation ignores every further seekLocal(); see `settle.ts`. Installed here, not as a member, so the

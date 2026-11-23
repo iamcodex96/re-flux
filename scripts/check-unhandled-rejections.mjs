@@ -8,13 +8,28 @@ import { Timeline } from '../dist/core/Timeline.js';
 
 let nextId = 1;
 const callbacks = new Map();
-globalThis.requestAnimationFrame = (callback) => { const id = nextId++; callbacks.set(id, callback); return id; };
-globalThis.cancelAnimationFrame = (id) => { callbacks.delete(id); };
-const advance = (timestamp) => { const current = [...callbacks.values()]; callbacks.clear(); for (const callback of current) callback(timestamp); };
-const settle = async () => { await new Promise((resolve) => setImmediate(resolve)); await new Promise((resolve) => setImmediate(resolve)); };
+globalThis.requestAnimationFrame = (callback) => {
+  const id = nextId++;
+  callbacks.set(id, callback);
+  return id;
+};
+globalThis.cancelAnimationFrame = (id) => {
+  callbacks.delete(id);
+};
+const advance = (timestamp) => {
+  const current = [...callbacks.values()];
+  callbacks.clear();
+  for (const callback of current) callback(timestamp);
+};
+const settle = async () => {
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+};
 
 const unhandled = [];
-process.on('unhandledRejection', (reason) => { unhandled.push(reason); });
+process.on('unhandledRejection', (reason) => {
+  unhandled.push(reason);
+});
 
 // Control: the listener must see a genuinely unhandled rejection.
 void Promise.reject(new Error('control'));

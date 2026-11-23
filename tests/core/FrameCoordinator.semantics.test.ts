@@ -68,10 +68,12 @@ describe('Given the per-phase delivery rules of FrameCoordinator', () => {
       const coordinator = new FrameCoordinator();
       const received: string[] = [];
       const subscriptions: Array<{ unsubscribe(): void }> = [];
-      subscriptions.push(coordinator.frames$.subscribe(() => {
-        received.push('a');
-        subscriptions[2]!.unsubscribe();
-      }));
+      subscriptions.push(
+        coordinator.frames$.subscribe(() => {
+          received.push('a');
+          subscriptions[2]!.unsubscribe();
+        }),
+      );
       subscriptions.push(coordinator.frames$.subscribe(() => received.push('b')));
       subscriptions.push(coordinator.frames$.subscribe(() => received.push('c')));
 
@@ -237,15 +239,19 @@ describe('Given the per-phase delivery rules of FrameCoordinator', () => {
     it('Then cancelling every pending task of a large batch leaves the coordinator idle', () => {
       const coordinator = new FrameCoordinator();
       const ran = jest.fn();
-      const subscriptions = Array.from({ length: 10_000 }, (_, index) => (index % 2 === 0
-        ? coordinator.scheduleWrite(ran)
-        : coordinator.scheduleRead(ran)));
+      const subscriptions = Array.from({ length: 10_000 }, (_, index) =>
+        index % 2 === 0 ? coordinator.scheduleWrite(ran) : coordinator.scheduleRead(ran),
+      );
       expect(coordinator.getDiagnostics()).toMatchObject({ pendingReadTasks: 5_000, pendingWriteTasks: 5_000 });
 
       for (const subscription of subscriptions) subscription.unsubscribe();
 
       expect(coordinator.getDiagnostics().isIdle).toBe(true);
-      expect(coordinator.getDiagnostics()).toMatchObject({ pendingReadTasks: 0, pendingWriteTasks: 0, clockActive: false });
+      expect(coordinator.getDiagnostics()).toMatchObject({
+        pendingReadTasks: 0,
+        pendingWriteTasks: 0,
+        clockActive: false,
+      });
       expect(raf.pendingCount).toBe(0);
       raf.advance(10);
       expect(ran).not.toHaveBeenCalled();
@@ -254,8 +260,12 @@ describe('Given the per-phase delivery rules of FrameCoordinator', () => {
     it('Then a partly cancelled large batch runs exactly the survivors, in order', () => {
       const coordinator = new FrameCoordinator();
       const order: number[] = [];
-      const subscriptions = Array.from({ length: 2_000 }, (_, index) => coordinator.scheduleWrite(() => order.push(index)));
-      subscriptions.forEach((subscription, index) => { if (index % 3 !== 0) subscription.unsubscribe(); });
+      const subscriptions = Array.from({ length: 2_000 }, (_, index) =>
+        coordinator.scheduleWrite(() => order.push(index)),
+      );
+      subscriptions.forEach((subscription, index) => {
+        if (index % 3 !== 0) subscription.unsubscribe();
+      });
 
       expect(coordinator.getDiagnostics().pendingWriteTasks).toBe(667);
       raf.advance(10);
@@ -297,13 +307,25 @@ describe('Given the per-phase delivery rules of FrameCoordinator', () => {
       const coordinator = new FrameCoordinator();
       const uncaught: unknown[] = [];
       const original = globalThis.queueMicrotask;
-      globalThis.queueMicrotask = ((task: () => void) => { try { task(); } catch (error) { uncaught.push(error); } }) as typeof queueMicrotask;
+      globalThis.queueMicrotask = ((task: () => void) => {
+        try {
+          task();
+        } catch (error) {
+          uncaught.push(error);
+        }
+      }) as typeof queueMicrotask;
       try {
         const order: string[] = [];
-        coordinator.scheduleRead(() => { order.push('read-1'); throw new Error('read failed'); });
+        coordinator.scheduleRead(() => {
+          order.push('read-1');
+          throw new Error('read failed');
+        });
         coordinator.scheduleRead(() => order.push('read-2'));
         const subscription = coordinator.frames$.subscribe(() => order.push('consumer'));
-        coordinator.scheduleWrite(() => { order.push('write-1'); throw new Error('write failed'); });
+        coordinator.scheduleWrite(() => {
+          order.push('write-1');
+          throw new Error('write failed');
+        });
         coordinator.scheduleWrite(() => order.push('write-2'));
 
         raf.advance(10);

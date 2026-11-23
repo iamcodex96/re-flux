@@ -18,8 +18,9 @@ describe('Given value interpolation', () => {
     describe('And When arrays and plain objects contain nested values', () => {
       it('Then it recursively interpolates arrays and plain objects', () => {
         expect(interpolate([0, 10], [10, 30], 0.5)).toEqual([5, 20]);
-        expect(interpolate({ position: { x: 0, y: 10 }, opacity: 0 }, { position: { x: 20, y: 30 }, opacity: 1 }, 0.5))
-          .toEqual({ position: { x: 10, y: 20 }, opacity: 0.5 });
+        expect(
+          interpolate({ position: { x: 0, y: 10 }, opacity: 0 }, { position: { x: 20, y: 30 }, opacity: 1 }, 0.5),
+        ).toEqual({ position: { x: 10, y: 20 }, opacity: 0.5 });
       });
     });
     describe('And When discrete strings or mismatched structures are supplied without a custom interpolator', () => {

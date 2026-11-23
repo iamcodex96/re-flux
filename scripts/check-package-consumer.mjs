@@ -36,13 +36,24 @@ try {
   run('tar', ['-xzf', tarball, '-C', packageDir, '--strip-components=1']);
 
   // The consumer gets RxJS as a peer dependency, just like a real application.
-  await symlink(path.join(root, 'node_modules', 'rxjs'), path.join(modulesDir, 'rxjs'), process.platform === 'win32' ? 'junction' : 'dir');
+  await symlink(
+    path.join(root, 'node_modules', 'rxjs'),
+    path.join(modulesDir, 'rxjs'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
 
-  await writeFile(path.join(consumerRoot, 'package.json'), JSON.stringify({
-    name: 're-flux-consumer-smoke',
-    private: true,
-    type: 'module',
-  }, null, 2));
+  await writeFile(
+    path.join(consumerRoot, 'package.json'),
+    JSON.stringify(
+      {
+        name: 're-flux-consumer-smoke',
+        private: true,
+        type: 'module',
+      },
+      null,
+      2,
+    ),
+  );
 
   const packageJson = JSON.parse(await readFile(path.join(packageDir, 'package.json'), 'utf8'));
   const exportPaths = Object.keys(packageJson.exports ?? {});
@@ -59,7 +70,7 @@ try {
     consumerRequire.resolve('@re-code/flux').replaceAll('\\', '/').endsWith('/dist/index.js'),
     'require.resolve("@re-code/flux") must resolve to dist/index.js through the "default" condition',
   );
-  const specifiers = exportPaths.map((entry) => entry === '.' ? '@re-code/flux' : `@re-code/flux/${entry.slice(2)}`);
+  const specifiers = exportPaths.map((entry) => (entry === '.' ? '@re-code/flux' : `@re-code/flux/${entry.slice(2)}`));
   const runtimeFixture = `
     const specifiers = ${JSON.stringify(specifiers)};
     for (const specifier of specifiers) {
@@ -108,21 +119,34 @@ const flow: FlowField = createFlowField({ columns: 2, rows: 2, cellSize: 10, vec
 void [vector, steeringAgent, flow, sampleFlowField(flow, vector), followFlowField(steeringAgent, flow), stepSteeringAgent(steeringAgent, vector, 1 / 60)];
 `;
   await writeFile(path.join(consumerRoot, 'consumer.ts'), typeFixture);
-  await writeFile(path.join(consumerRoot, 'tsconfig.json'), JSON.stringify({
-    compilerOptions: {
-      target: 'ES2022',
-      module: 'NodeNext',
-      moduleResolution: 'NodeNext',
-      strict: true,
-      noEmit: true,
-      skipLibCheck: false,
-      lib: ['ES2022', 'DOM', 'DOM.Iterable'],
-    },
-    files: ['consumer.ts'],
-  }, null, 2));
-  run(process.execPath, [path.join(root, 'node_modules/typescript/bin/tsc'), '--project', path.join(consumerRoot, 'tsconfig.json')], { cwd: consumerRoot });
+  await writeFile(
+    path.join(consumerRoot, 'tsconfig.json'),
+    JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ES2022',
+          module: 'NodeNext',
+          moduleResolution: 'NodeNext',
+          strict: true,
+          noEmit: true,
+          skipLibCheck: false,
+          lib: ['ES2022', 'DOM', 'DOM.Iterable'],
+        },
+        files: ['consumer.ts'],
+      },
+      null,
+      2,
+    ),
+  );
+  run(
+    process.execPath,
+    [path.join(root, 'node_modules/typescript/bin/tsc'), '--project', path.join(consumerRoot, 'tsconfig.json')],
+    { cwd: consumerRoot },
+  );
 
-  process.stdout.write(`✓ Consumer package validation passed (${specifiers.length} ESM subpath imports and TypeScript declarations)\n`);
+  process.stdout.write(
+    `✓ Consumer package validation passed (${specifiers.length} ESM subpath imports and TypeScript declarations)\n`,
+  );
 } finally {
   await rm(tempRoot, { recursive: true, force: true });
 }

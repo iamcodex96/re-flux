@@ -3,7 +3,17 @@ import { Animation } from '../dist/core/Animation.js';
 import { Timeline } from '../dist/core/Timeline.js';
 import { Keyframes } from '../dist/values/Keyframes.js';
 import { Tween } from '../dist/values/Tween.js';
-import { emitReport, forceGc, gcControl, harnessInfo, median, nonNegativeInteger, positiveInteger, round, variability } from './benchmark-utils.mjs';
+import {
+  emitReport,
+  forceGc,
+  gcControl,
+  harnessInfo,
+  median,
+  nonNegativeInteger,
+  positiveInteger,
+  round,
+  variability,
+} from './benchmark-utils.mjs';
 
 /**
  * Retained heap per instance: create N instances, force a full collection, and divide the growth in used heap by N.
@@ -20,13 +30,19 @@ const subjects = [
   { name: 'rxjs BehaviorSubject (reference)', create: (i) => new BehaviorSubject(i) },
   { name: 'Animation', create: () => new Animation({ duration: 100 }) },
   { name: 'Tween<number>', create: () => new Tween({ from: 0, to: 1, duration: 100 }) },
-  { name: 'Keyframes<number> (3 frames)', create: () => new Keyframes({ duration: 100, keyframes: [{ value: 0 }, { value: 1 }, { value: 2 }] }) },
+  {
+    name: 'Keyframes<number> (3 frames)',
+    create: () => new Keyframes({ duration: 100, keyframes: [{ value: 0 }, { value: 1 }, { value: 2 }] }),
+  },
   { name: 'Timeline (empty)', create: () => new Timeline() },
-  { name: 'Timeline (10 Animations)', create: () => {
-    const timeline = new Timeline();
-    for (let index = 0; index < 10; index += 1) timeline.add(new Animation({ duration: 10 }));
-    return timeline;
-  } },
+  {
+    name: 'Timeline (10 Animations)',
+    create: () => {
+      const timeline = new Timeline();
+      for (let index = 0; index < 10; index += 1) timeline.add(new Animation({ duration: 10 }));
+      return timeline;
+    },
+  },
 ];
 
 async function retainedHeap() {
@@ -52,7 +68,8 @@ async function measure(subject) {
     held = new Array(instances);
     for (let index = 0; index < instances; index += 1) held[index] = create(index);
     const after = await retainedHeap();
-    if (held.length !== instances || held[instances - 1] === undefined) throw new Error(`${subject.name}: instances were not retained.`);
+    if (held.length !== instances || held[instances - 1] === undefined)
+      throw new Error(`${subject.name}: instances were not retained.`);
     held = null; // release before the next repetition's "before" reading
     const bytesPerInstance = (after - before) / instances;
     if (!Number.isFinite(bytesPerInstance)) throw new Error(`${subject.name}: retained size is not finite.`);
@@ -61,7 +78,10 @@ async function measure(subject) {
   const values = runs.map((run) => run.bytesPerInstance);
   // A single run can come out slightly off if the collector frees unrelated garbage during it; the median
   // must still be positive or the measurement (usually too few instances) is meaningless.
-  if (median(values) <= 0) throw new Error(`${subject.name}: median retained size is not positive (${median(values)}); raise BENCH_MEMORY_INSTANCES.`);
+  if (median(values) <= 0)
+    throw new Error(
+      `${subject.name}: median retained size is not positive (${median(values)}); raise BENCH_MEMORY_INSTANCES.`,
+    );
   return {
     name: `memory › ${subject.name}`,
     instances,

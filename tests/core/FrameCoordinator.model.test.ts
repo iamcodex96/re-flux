@@ -25,7 +25,10 @@ function mulberry32(seed: number): () => number {
 }
 
 type Phase = 'read' | 'write';
-interface Script { readonly spawn: Phase | null; readonly cancelOffset: number | null }
+interface Script {
+  readonly spawn: Phase | null;
+  readonly cancelOffset: number | null;
+}
 
 function createScripts(random: () => number, count: number): Script[] {
   return Array.from({ length: count }, () => {
@@ -47,7 +50,11 @@ function runReference(seed: number, frames: number): { trace: string[]; pending:
   const cancelled = new Set<number>();
   const live = new Set<number>();
   let nextId = 0;
-  const schedule = (phase: Phase): void => { const id = nextId++; queues[phase].push(id); live.add(id); };
+  const schedule = (phase: Phase): void => {
+    const id = nextId++;
+    queues[phase].push(id);
+    live.add(id);
+  };
   const runBatch = (phase: Phase): void => {
     const batch = queues[phase];
     queues[phase] = [];
@@ -58,7 +65,10 @@ function runReference(seed: number, frames: number): { trace: string[]; pending:
       const script = scripts[id]!;
       if (script.cancelOffset !== null) {
         const target = id + 1 + script.cancelOffset;
-        if (live.has(target) && !cancelled.has(target)) { cancelled.add(target); live.delete(target); }
+        if (live.has(target) && !cancelled.has(target)) {
+          cancelled.add(target);
+          live.delete(target);
+        }
       }
       if (script.spawn) schedule(script.spawn);
     }
@@ -68,8 +78,14 @@ function runReference(seed: number, frames: number): { trace: string[]; pending:
     for (let index = 0; index < burst; index += 1) schedule(random() < 0.5 ? 'read' : 'write');
     // Pre-frame cancellations by index into the live set, in id order.
     const victims = [...live].sort((a, b) => a - b).filter(() => random() < 0.3);
-    for (const id of victims) { cancelled.add(id); live.delete(id); }
-    pending.push([queues.read.filter((id) => !cancelled.has(id)).length, queues.write.filter((id) => !cancelled.has(id)).length]);
+    for (const id of victims) {
+      cancelled.add(id);
+      live.delete(id);
+    }
+    pending.push([
+      queues.read.filter((id) => !cancelled.has(id)).length,
+      queues.write.filter((id) => !cancelled.has(id)).length,
+    ]);
     runBatch('read');
     runBatch('write');
   }
@@ -95,7 +111,10 @@ function runCoordinator(seed: number, frames: number): { trace: string[]; pendin
       if (script.cancelOffset !== null) {
         const target = id + 1 + script.cancelOffset;
         const subscription = subscriptions.get(target);
-        if (subscription) { subscription.unsubscribe(); subscriptions.delete(target); }
+        if (subscription) {
+          subscription.unsubscribe();
+          subscriptions.delete(target);
+        }
       }
       if (script.spawn) schedule(script.spawn);
     };
@@ -105,7 +124,10 @@ function runCoordinator(seed: number, frames: number): { trace: string[]; pendin
     const burst = Math.floor(random() * 30);
     for (let index = 0; index < burst; index += 1) schedule(random() < 0.5 ? 'read' : 'write');
     const victims = [...subscriptions.keys()].sort((a, b) => a - b).filter(() => random() < 0.3);
-    for (const id of victims) { subscriptions.get(id)!.unsubscribe(); subscriptions.delete(id); }
+    for (const id of victims) {
+      subscriptions.get(id)!.unsubscribe();
+      subscriptions.delete(id);
+    }
     const diagnostics = coordinator.getDiagnostics();
     pending.push([diagnostics.pendingReadTasks, diagnostics.pendingWriteTasks]);
     raf.advance(frame * 16);
@@ -118,12 +140,15 @@ function runCoordinator(seed: number, frames: number): { trace: string[]; pendin
 
 describe('Given random schedule and cancel traces', () => {
   describe('When the coordinator is compared with a reference model', () => {
-    it.each(Array.from({ length: 40 }, (_, index) => index + 1))('Then seed %i runs the same tasks in the same order with the same pending counts', (seed) => {
-      const reference = runReference(seed, 120);
-      const actual = runCoordinator(seed, 120);
-      expect(actual.trace).toEqual(reference.trace);
-      expect(actual.pending).toEqual(reference.pending);
-      expect(reference.trace.length).toBeGreaterThan(100);
-    });
+    it.each(Array.from({ length: 40 }, (_, index) => index + 1))(
+      'Then seed %i runs the same tasks in the same order with the same pending counts',
+      (seed) => {
+        const reference = runReference(seed, 120);
+        const actual = runCoordinator(seed, 120);
+        expect(actual.trace).toEqual(reference.trace);
+        expect(actual.pending).toEqual(reference.pending);
+        expect(reference.trace.length).toBeGreaterThan(100);
+      },
+    );
   });
 });

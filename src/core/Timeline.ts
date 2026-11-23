@@ -1,6 +1,12 @@
 import { BehaviorSubject } from 'rxjs';
 import { readonlyBehavior, type ReadonlyBehaviorObservable } from '../utils/readOnlyBehavior.js';
-import type { AnimatableItem, AnimationState, TimelineOffset, TimelineOptions, TimelineSegment } from '../types/animation.js';
+import type {
+  AnimatableItem,
+  AnimationState,
+  TimelineOffset,
+  TimelineOptions,
+  TimelineSegment,
+} from '../types/animation.js';
 import { Completion } from './Completion.js';
 import { PlaybackController, STOPPED_ERROR, type PlaybackHooks } from './PlaybackController.js';
 import { SETTLE_PROBE, type SettleProbed } from './settle.js';
@@ -77,13 +83,19 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   }
 
   /** Current playhead in milliseconds. */
-  get currentTime(): number { return this.currentTimeValue; }
+  get currentTime(): number {
+    return this.currentTimeValue;
+  }
 
   /** Current normalized playhead progress. */
-  get progress(): number { return this.duration > 0 ? Math.min(1, Math.max(0, this.currentTimeValue / this.duration)) : this.progress$.value; }
+  get progress(): number {
+    return this.duration > 0 ? Math.min(1, Math.max(0, this.currentTimeValue / this.duration)) : this.progress$.value;
+  }
 
   /** True while the clock advances toward the start. */
-  get isReversed(): boolean { return this.playbackDirection === -1; }
+  get isReversed(): boolean {
+    return this.playbackDirection === -1;
+  }
 
   /** Read-only named timeline positions, useful for editors and visual inspectors. */
   get timelineLabels(): Readonly<Record<string, number>> {
@@ -92,12 +104,16 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
   /** Read-only snapshot for rendering a Gantt chart without exposing the internal array. */
   get segments(): readonly TimelineSegment[] {
-    this.segmentsSnapshot ??= Object.freeze(this.entries.map((segment) => Object.freeze({
-      item: segment.item,
-      startTime: segment.startTime,
-      endTime: segment.endTime,
-      duration: segment.duration,
-    })));
+    this.segmentsSnapshot ??= Object.freeze(
+      this.entries.map((segment) =>
+        Object.freeze({
+          item: segment.item,
+          startTime: segment.startTime,
+          endTime: segment.endTime,
+          duration: segment.duration,
+        }),
+      ),
+    );
     return this.segmentsSnapshot;
   }
 
@@ -111,9 +127,11 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
         throw new TypeError('Adding this Timeline would create a nested Timeline cycle.');
       }
       if (item.parentOwner) {
-        throw new TypeError(item.parentOwner === this
-          ? 'A nested Timeline can only be added once to a parent Timeline.'
-          : 'A Timeline can only belong to one parent Timeline.');
+        throw new TypeError(
+          item.parentOwner === this
+            ? 'A nested Timeline can only be added once to a parent Timeline.'
+            : 'A Timeline can only belong to one parent Timeline.',
+        );
       }
       if (item.playback.hasActiveClock()) {
         throw new Error('Cannot add a running Timeline as a child. Stop it before adding it to a parent Timeline.');
@@ -122,14 +140,27 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     this.assertStructureMutable();
     const startTime = this.resolveOffset(offset);
     const duration = item.duration;
-    if (typeof duration !== 'number' || Number.isNaN(duration) || duration < 0 || (!Number.isFinite(duration) && duration !== Infinity)) {
+    if (
+      typeof duration !== 'number' ||
+      Number.isNaN(duration) ||
+      duration < 0 ||
+      (!Number.isFinite(duration) && duration !== Infinity)
+    ) {
       throw new RangeError('Timeline child duration must be a non-negative finite number or Infinity.');
     }
     const endTime = startTime + duration;
     if (duration !== Infinity && !Number.isFinite(endTime)) {
       throw new RangeError('Timeline segment end time must be finite; reduce the offset or child duration.');
     }
-    const segment: InternalSegment = { item, startTime, endTime, duration, beforeStart: false, index: this.entries.length, quiet: 0 };
+    const segment: InternalSegment = {
+      item,
+      startTime,
+      endTime,
+      duration,
+      beforeStart: false,
+      index: this.entries.length,
+      quiet: 0,
+    };
     if (item instanceof Timeline) item.parentOwner = this;
     this.entries.push(segment);
     this.segmentsSnapshot = null;
@@ -139,7 +170,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     this.durationValue = Math.max(this.durationValue, endTime);
     this.lastAddedStart = startTime;
     this.lastAddedEnd = segment.endTime;
-     
+
     return this;
   }
 
@@ -148,8 +179,10 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     this.assertStructureMutable();
     const label = name.trim();
     if (!label) throw new TypeError('Timeline label must not be empty.');
-    if (!/^[\w.-]+$/.test(label)) throw new TypeError('Timeline labels may contain only letters, numbers, underscores, dots and hyphens.');
-    if (this.labels.has(label)) throw new RangeError(`Timeline label "${label}" already exists. Use removeLabel() before replacing it.`);
+    if (!/^[\w.-]+$/.test(label))
+      throw new TypeError('Timeline labels may contain only letters, numbers, underscores, dots and hyphens.');
+    if (this.labels.has(label))
+      throw new RangeError(`Timeline label "${label}" already exists. Use removeLabel() before replacing it.`);
     const time = offset === undefined ? this.duration : this.resolveOffset(offset);
     assertFiniteNonNegative(time, 'Timeline label position');
     this.labels.set(label, time);
@@ -157,10 +190,16 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   }
 
   /** Remove a label without changing any segment positions. */
-  removeLabel(name: string): this { this.assertStructureMutable(); this.labels.delete(name); return this; }
+  removeLabel(name: string): this {
+    this.assertStructureMutable();
+    this.labels.delete(name);
+    return this;
+  }
 
   /** Resolve a label to its absolute time. */
-  labelTime(name: string): number | undefined { return this.labels.get(name); }
+  labelTime(name: string): number | undefined {
+    return this.labels.get(name);
+  }
 
   /** Add a callback at a timeline position. Seeking across the position triggers it once per pass. */
   call(callback: () => void, offset?: TimelineOffset): this {
@@ -203,7 +242,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     const previousStart = this.lastAddedStart;
     const previousEnd = this.lastAddedEnd;
     this.add(action, offset);
-     
+
     this.lastAddedStart = previousStart;
     this.lastAddedEnd = previousEnd;
     return this;
@@ -214,7 +253,8 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   timeScale(value: number): this;
   timeScale(value?: number): number | this {
     if (value === undefined) return this.playbackRate;
-    if (!Number.isFinite(value) || value <= 0) throw new RangeError('Timeline timeScale must be a finite number greater than zero.');
+    if (!Number.isFinite(value) || value <= 0)
+      throw new RangeError('Timeline timeScale must be a finite number greater than zero.');
     this.playbackRate = value;
     return this;
   }
@@ -240,7 +280,10 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
 
   play(): this {
     this.assertNotParentOwned('play');
-    if (this.state$.value === 'completed') { this.resetInternal(); this.playbackDirection = 1; }
+    if (this.state$.value === 'completed') {
+      this.resetInternal();
+      this.playbackDirection = 1;
+    }
     this.completion.ensurePending();
     if (this.playback.hasClock) return this;
     if (!this.playback.requestPlay()) return this;
@@ -330,17 +373,19 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
   private updateAt(ms: number, completionMode: 'forward' | 'reverse' | 'none', preservePlaybackState = false): void {
     if (!Number.isFinite(ms) && ms !== Infinity) ms = 0;
     const total = this.duration;
-    const bounded = completionMode === 'reverse'
-      ? Math.max(0, ms)
-      : (Number.isFinite(total) ? Math.min(Math.max(0, ms), total) : Math.max(0, ms));
-    const completeNow = Number.isFinite(total) && (
-      (completionMode === 'forward' && bounded >= total) ||
-      (completionMode === 'reverse' && bounded <= 0)
-    );
+    const bounded =
+      completionMode === 'reverse'
+        ? Math.max(0, ms)
+        : Number.isFinite(total)
+          ? Math.min(Math.max(0, ms), total)
+          : Math.max(0, ms);
+    const completeNow =
+      Number.isFinite(total) &&
+      ((completionMode === 'forward' && bounded >= total) || (completionMode === 'reverse' && bounded <= 0));
     if (completeNow && this.hasCompleted) return;
     if (!completeNow) this.hasCompleted = false;
     this.currentTimeValue = bounded;
-     
+
     const previousState = this.state$.value;
     if (!preservePlaybackState) {
       this.playback.setState('running');
@@ -351,10 +396,16 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
       this.options.onStart?.();
     }
 
-
     this.visitSegments(bounded, preservePlaybackState);
 
-    const progress = total > 0 && Number.isFinite(total) ? Math.min(1, bounded / total) : (completionMode === 'reverse' ? 0 : (bounded >= total ? 1 : 0));
+    const progress =
+      total > 0 && Number.isFinite(total)
+        ? Math.min(1, bounded / total)
+        : completionMode === 'reverse'
+          ? 0
+          : bounded >= total
+            ? 1
+            : 0;
     this.progressSubject.next(progress);
     this.options.onUpdate?.(progress, progress);
 
@@ -445,8 +496,10 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
       active.push(segment);
     }
     if (this.byStart === null || this.byEnd === null) {
-      this.byStart = [...this.entries].sort((a, b) => (a.startTime - b.startTime) || (a.index - b.index));
-      this.byEnd = [...this.entries].sort((a, b) => (a.endTime < b.endTime ? -1 : a.endTime > b.endTime ? 1 : a.index - b.index));
+      this.byStart = [...this.entries].sort((a, b) => a.startTime - b.startTime || a.index - b.index);
+      this.byEnd = [...this.entries].sort((a, b) =>
+        a.endTime < b.endTime ? -1 : a.endTime > b.endTime ? 1 : a.index - b.index,
+      );
     }
   }
 
@@ -490,7 +543,11 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     let activePosition = 0;
     let wokenPosition = 0;
     while (activePosition < active.length && wokenPosition < woken.length) {
-      merged.push(active[activePosition]!.index < woken[wokenPosition]!.index ? active[activePosition++]! : woken[wokenPosition++]!);
+      merged.push(
+        active[activePosition]!.index < woken[wokenPosition]!.index
+          ? active[activePosition++]!
+          : woken[wokenPosition++]!,
+      );
     }
     while (activePosition < active.length) merged.push(active[activePosition++]!);
     while (wokenPosition < woken.length) merged.push(woken[wokenPosition++]!);
@@ -528,7 +585,9 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     return this.completion.promise.then(onfulfilled, onrejected);
   }
 
-  catch<TResult = never>(onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null): Promise<void | TResult> {
+  catch<TResult = never>(
+    onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null,
+  ): Promise<void | TResult> {
     return this.completion.promise.catch(onrejected);
   }
 
@@ -565,7 +624,7 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
         return resolved;
       }
     }
-     
+
     throw new RangeError(`Unknown timeline offset or label: "${trimmed}".`);
   }
 
@@ -584,32 +643,44 @@ export class Timeline implements AnimatableItem, PromiseLike<void> {
     if (this === target) return true;
     if (visited.has(this)) return false;
     visited.add(this);
-    return this.entries.some((segment) => segment.item instanceof Timeline && segment.item.containsTimeline(target, visited));
+    return this.entries.some(
+      (segment) => segment.item instanceof Timeline && segment.item.containsTimeline(target, visited),
+    );
   }
 
   private assertStructureMutable(): void {
     if (this.parentOwner) {
-      throw new Error('Cannot modify a nested Timeline after adding it to a parent Timeline. Modify the child before adding it to its parent.');
+      throw new Error(
+        'Cannot modify a nested Timeline after adding it to a parent Timeline. Modify the child before adding it to its parent.',
+      );
     }
     if (this.structureLocked) {
-      throw new Error('Cannot modify a Timeline after playback or non-zero seeking begins. Call stop() before editing its structure.');
+      throw new Error(
+        'Cannot modify a Timeline after playback or non-zero seeking begins. Call stop() before editing its structure.',
+      );
     }
   }
-
 
   private assertNotParentOwned(operation: string): void {
     if (this.parentOwner) {
       throw new Error(`Cannot call ${operation}() on a nested Timeline controlled by its parent Timeline.`);
     }
   }
-
 }
 
-function startOf(segment: InternalSegment): number { return segment.startTime; }
-function endOf(segment: InternalSegment): number { return segment.endTime; }
+function startOf(segment: InternalSegment): number {
+  return segment.startTime;
+}
+function endOf(segment: InternalSegment): number {
+  return segment.endTime;
+}
 
 /** Index of the first element of `sorted` whose key is greater than `value` (binary search). */
-function firstAfter(sorted: readonly InternalSegment[], value: number, key: (segment: InternalSegment) => number): number {
+function firstAfter(
+  sorted: readonly InternalSegment[],
+  value: number,
+  key: (segment: InternalSegment) => number,
+): number {
   let low = 0;
   let high = sorted.length;
   while (low < high) {

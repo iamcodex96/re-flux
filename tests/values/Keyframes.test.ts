@@ -12,39 +12,32 @@ afterEach(() => {
 });
 
 describe('Given Keyframes<T>', () => {
-
   describe('When a keyframe sequence is configured', () => {
     describe('And When keyframes contain invalid adjacent value shapes', () => {
       it('Then it validates every adjacent value pair, including intermediate object and array shapes', () => {
-        expect(() => new Keyframes({
-          duration: 100,
-          keyframes: [
-            { value: { x: 0 } },
-            { value: { y: 10 } },
-            { value: { x: 20 } },
-          ],
-        })).toThrow('Keyframes requires an interpolate function');
+        expect(
+          () =>
+            new Keyframes({
+              duration: 100,
+              keyframes: [{ value: { x: 0 } }, { value: { y: 10 } }, { value: { x: 20 } }],
+            }),
+        ).toThrow('Keyframes requires an interpolate function');
 
-        expect(() => new Keyframes({
-          duration: 100,
-          keyframes: [
-            { value: [0, 1] },
-            { value: [0, 1, 2] },
-            { value: [2, 3] },
-          ],
-        })).toThrow('Keyframes requires an interpolate function');
+        expect(
+          () =>
+            new Keyframes({
+              duration: 100,
+              keyframes: [{ value: [0, 1] }, { value: [0, 1, 2] }, { value: [2, 3] }],
+            }),
+        ).toThrow('Keyframes requires an interpolate function');
       });
     });
     describe('And When keyframe value shapes differ and a custom interpolator is supplied', () => {
       it('Then it uses a custom interpolator for every segment when keyframe shapes differ', () => {
         const sequence = new Keyframes({
           duration: 100,
-          keyframes: [
-            { value: { x: 0 } },
-            { value: { y: 10 } },
-            { value: { x: 20 } },
-          ],
-          interpolate: (from, to, progress) => progress < 1 ? from : to,
+          keyframes: [{ value: { x: 0 } }, { value: { y: 10 } }, { value: { x: 20 } }],
+          interpolate: (from, to, progress) => (progress < 1 ? from : to),
         });
 
         sequence.seek(50);
@@ -73,11 +66,7 @@ describe('Given Keyframes<T>', () => {
       it('Then it fills missing offsets between explicit keyframes and holds values outside explicit endpoints', () => {
         const sequence = new Keyframes({
           duration: 100,
-          keyframes: [
-            { value: 10, offset: 0.2 },
-            { value: 50 },
-            { value: 90, offset: 0.8 },
-          ],
+          keyframes: [{ value: 10, offset: 0.2 }, { value: 50 }, { value: 90, offset: 0.8 }],
         });
 
         sequence.seek(0);
@@ -133,8 +122,19 @@ describe('Given Keyframes<T>', () => {
     describe('And When keyframe offsets or non-numeric values are invalid', () => {
       it('Then it validates offsets and requires a custom non-numeric interpolator', () => {
         expect(() => new Keyframes({ duration: 100, keyframes: [] })).toThrow('at least one frame');
-        expect(() => new Keyframes({ duration: 100, keyframes: [{ value: 0, offset: 0.8 }, { value: 1, offset: 0.2 }] })).toThrow('strictly increasing');
-        expect(() => new Keyframes({ duration: 100, keyframes: [{ value: 'a' }, { value: 'b' }] })).toThrow('Keyframes requires an interpolate function');
+        expect(
+          () =>
+            new Keyframes({
+              duration: 100,
+              keyframes: [
+                { value: 0, offset: 0.8 },
+                { value: 1, offset: 0.2 },
+              ],
+            }),
+        ).toThrow('strictly increasing');
+        expect(() => new Keyframes({ duration: 100, keyframes: [{ value: 'a' }, { value: 'b' }] })).toThrow(
+          'Keyframes requires an interpolate function',
+        );
       });
     });
   });

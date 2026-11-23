@@ -12,7 +12,6 @@ afterEach(() => {
 });
 
 describe('Given Animation lifecycle', () => {
-
   describe('When invalid timing options are supplied', () => {
     describe('And When an Animation is constructed', () => {
       it('Then it rejects them instead of silently normalizing them', () => {
@@ -193,13 +192,17 @@ describe('Given Animation lifecycle', () => {
   });
 });
 
-
 describe('Given Animation motion preferences', () => {
   describe('When reduced motion is already requested', () => {
     describe('And When a finite opted-in Animation plays', () => {
       it('Then it finishes immediately', async () => {
         const state = new BehaviorSubject({ reducedMotion: true, visible: true });
-        const preferences = { state$: state.asObservable(), get snapshot() { return state.value; } };
+        const preferences = {
+          state$: state.asObservable(),
+          get snapshot() {
+            return state.value;
+          },
+        };
         const animation = new Animation({ duration: 160, motion: { preferences } });
         const completion = animation.toPromise();
 
@@ -217,7 +220,12 @@ describe('Given Animation motion preferences', () => {
     describe('And When reduced motion is requested', () => {
       it('Then only the opted-in Animation is affected', () => {
         const state = new BehaviorSubject({ reducedMotion: false, visible: true });
-        const preferences = { state$: state.asObservable(), get snapshot() { return state.value; } };
+        const preferences = {
+          state$: state.asObservable(),
+          get snapshot() {
+            return state.value;
+          },
+        };
         const optedIn = new Animation({ duration: 200, motion: { preferences } });
         const unrestricted = new Animation({ duration: 200 });
         optedIn.play();
@@ -238,7 +246,12 @@ describe('Given Animation motion preferences', () => {
     describe('And When the preference changes', () => {
       it('Then playback continues', () => {
         const state = new BehaviorSubject({ reducedMotion: false, visible: true });
-        const preferences = { state$: state.asObservable(), get snapshot() { return state.value; } };
+        const preferences = {
+          state$: state.asObservable(),
+          get snapshot() {
+            return state.value;
+          },
+        };
         const animation = new Animation({ duration: 200, motion: { preferences, reducedMotion: 'ignore' } });
         animation.play();
         raf.advance(0);
@@ -256,7 +269,12 @@ describe('Given Animation motion preferences', () => {
     describe('And When visibility changes', () => {
       it('Then it pauses and resumes with visibility', () => {
         const state = new BehaviorSubject({ reducedMotion: false, visible: true });
-        const preferences = { state$: state.asObservable(), get snapshot() { return state.value; } };
+        const preferences = {
+          state$: state.asObservable(),
+          get snapshot() {
+            return state.value;
+          },
+        };
         const onResume = jest.fn();
         const animation = new Animation({ duration: 200, onResume, motion: { preferences, pauseWhenHidden: true } });
         animation.play();
@@ -283,7 +301,12 @@ describe('Given Animation motion preferences', () => {
     describe('And When the tab becomes visible', () => {
       it('Then it remains paused', () => {
         const state = new BehaviorSubject({ reducedMotion: false, visible: false });
-        const preferences = { state$: state.asObservable(), get snapshot() { return state.value; } };
+        const preferences = {
+          state$: state.asObservable(),
+          get snapshot() {
+            return state.value;
+          },
+        };
         const onResume = jest.fn();
         const animation = new Animation({ duration: 100, onResume, motion: { preferences, pauseWhenHidden: true } });
         animation.play();
@@ -301,7 +324,12 @@ describe('Given Animation motion preferences', () => {
     describe('And When the preference is cleared', () => {
       it('Then its lifecycle resumes without forcing completion', () => {
         const state = new BehaviorSubject({ reducedMotion: true, visible: true });
-        const preferences = { state$: state.asObservable(), get snapshot() { return state.value; } };
+        const preferences = {
+          state$: state.asObservable(),
+          get snapshot() {
+            return state.value;
+          },
+        };
         const onResume = jest.fn();
         const animation = new Animation({ duration: 100, repeat: Infinity, onResume, motion: { preferences } });
 
@@ -316,5 +344,4 @@ describe('Given Animation motion preferences', () => {
       });
     });
   });
-
 });

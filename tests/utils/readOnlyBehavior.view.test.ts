@@ -49,7 +49,9 @@ describe('Given a read-only BehaviorSubject view', () => {
       expect(view.value).toBe(source.value);
       source.next({ n: 2 });
       expect(view.value).toEqual({ n: 2 });
-      expect(() => { (view as { value: unknown }).value = { n: 3 }; }).toThrow(TypeError);
+      expect(() => {
+        (view as { value: unknown }).value = { n: 3 };
+      }).toThrow(TypeError);
       expect(view.value).toEqual({ n: 2 });
       for (const method of ['next', 'error', 'complete', 'getValue']) expect(Reflect.get(view, method)).toBeUndefined();
     });

@@ -26,11 +26,7 @@ class FlipAnimation extends DOMAnimation {
  * the returned timeline animates each selected element from its previous geometry to the new geometry.
  * Transform origins and inline transforms are restored by calling dispose().
  */
-export function flip(
-  targets: DOMAnimationTarget,
-  mutate: () => void,
-  options: FlipOptions = {},
-): DOMAnimation {
+export function flip(targets: DOMAnimationTarget, mutate: () => void, options: FlipOptions = {}): DOMAnimation {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     throw new Error('flip() requires a browser environment.');
   }
@@ -39,7 +35,21 @@ export function flip(
   const firstRects = elements.map((element) => element.getBoundingClientRect());
   mutate();
 
-  const { stagger = 0, duration = 400, delay, easing, repeat, yoyo, motion, onStart, onUpdate, onComplete, onPause, onResume, onStop } = options;
+  const {
+    stagger = 0,
+    duration = 400,
+    delay,
+    easing,
+    repeat,
+    yoyo,
+    motion,
+    onStart,
+    onUpdate,
+    onComplete,
+    onPause,
+    onResume,
+    onStop,
+  } = options;
   const scene = new FlipAnimation({
     ...(motion === undefined ? {} : { motion }),
     ...(onStart === undefined ? {} : { onStart }),

@@ -4,7 +4,6 @@ export interface AnimationFrameSource {
   readonly observable: Observable<number>;
 }
 
-
 /** Frame data emitted by the shared requestAnimationFrame coordinator. */
 export interface AnimationFrameTick {
   readonly timestamp: number;

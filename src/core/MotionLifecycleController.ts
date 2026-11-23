@@ -73,15 +73,20 @@ export class MotionLifecycleController {
     if (!options || this.stopped) return true;
 
     if (snapshot.reducedMotion && (options.reducedMotion ?? 'finish') === 'finish') {
-      const active = fromPlay || this.driver.isRunning() || this.waitingForVisible
-        || this.pausedForVisibility || this.pausedForReducedMotion;
+      const active =
+        fromPlay ||
+        this.driver.isRunning() ||
+        this.waitingForVisible ||
+        this.pausedForVisibility ||
+        this.pausedForReducedMotion;
       if (active) {
         if (this.driver.finishForReducedMotion()) {
           this.stop();
           return false;
         }
-         
-        this.reducedMotionWasRunning = this.driver.isRunning() || this.pausedForVisibility || this.pausedForReducedMotion;
+
+        this.reducedMotionWasRunning =
+          this.driver.isRunning() || this.pausedForVisibility || this.pausedForReducedMotion;
         this.pausedForReducedMotion = true;
         this.waitingForVisible = false;
         this.pausedForVisibility = false;

@@ -11,10 +11,18 @@ const settings = microSettings(200_000);
 
 class MockStyle {
   values = new Map();
-  getPropertyValue(name) { return this.values.get(name) ?? ''; }
-  getPropertyPriority() { return ''; }
-  setProperty(name, value) { this.values.set(name, String(value)); }
-  removeProperty(name) { this.values.delete(name); }
+  getPropertyValue(name) {
+    return this.values.get(name) ?? '';
+  }
+  getPropertyPriority() {
+    return '';
+  }
+  setProperty(name, value) {
+    this.values.set(name, String(value));
+  }
+  removeProperty(name) {
+    this.values.delete(name);
+  }
 }
 
 function createMockElement() {
@@ -67,7 +75,10 @@ for (const elementCount of elementCounts) {
     },
     op: (index, context) => {
       context.animation.seek((index * 0.61) % DURATION);
-      return consume(context.first.style.getPropertyValue('transform')) + consume(context.first.style.getPropertyValue('opacity'));
+      return (
+        consume(context.first.style.getPropertyValue('transform')) +
+        consume(context.first.style.getPropertyValue('opacity'))
+      );
     },
   });
 }

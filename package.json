@@ -93,6 +93,8 @@
     "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
     "test:coverage": "npm test -- --coverage",
     "typecheck:tests": "tsc -p tsconfig.test.json",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
     "bench": "npm run build:lib && node benchmarks/run-all.bench.mjs",
     "bench:gc": "npm run build:lib && node --expose-gc benchmarks/run-all.bench.mjs",
     "bench:save": "npm run build:lib && node benchmarks/save.mjs",
@@ -133,6 +135,7 @@
     "rxjs": "^7.8.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.8",
     "@jest/globals": "^30.2.0",
     "@types/node": "^22.10.0",
     "esbuild": "^0.24.2",

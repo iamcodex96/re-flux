@@ -14,7 +14,6 @@ afterEach(() => {
 });
 
 describe('Given Timeline temporal contracts', () => {
-
   describe('When invalid offsets or child durations are supplied', () => {
     describe('And When items are added to a Timeline', () => {
       it('Then the operation is rejected', () => {
@@ -23,11 +22,13 @@ describe('Given Timeline temporal contracts', () => {
         expect(() => timeline.add(animation, Number.NaN)).toThrow('Timeline offset');
         expect(() => timeline.add(animation, Infinity)).toThrow('Timeline offset');
         expect(() => timeline.add(animation, -1)).toThrow('Timeline offset');
-        expect(() => timeline.add({
-          duration: Number.NaN,
-          seekLocal: () => undefined,
-          resetInternal: () => undefined,
-        })).toThrow('Timeline child duration');
+        expect(() =>
+          timeline.add({
+            duration: Number.NaN,
+            seekLocal: () => undefined,
+            resetInternal: () => undefined,
+          }),
+        ).toThrow('Timeline child duration');
         expect(() => timeline.addLabel('bad', Infinity)).toThrow('Timeline offset');
         expect(() => timeline.addLabel('negative', -1)).toThrow('Timeline offset');
       });
@@ -179,13 +180,17 @@ describe('Given Timeline temporal contracts', () => {
   });
 });
 
-
 describe('Given Timeline motion preferences', () => {
   describe('When reduced motion is requested on a Timeline', () => {
     describe('And When it plays', () => {
       it('Then its child animations follow the parent policy', async () => {
         const state = new BehaviorSubject({ reducedMotion: true, visible: true });
-        const preferences = { state$: state.asObservable(), get snapshot() { return state.value; } };
+        const preferences = {
+          state$: state.asObservable(),
+          get snapshot() {
+            return state.value;
+          },
+        };
         const child = new Animation({ duration: 100 });
         const timeline = new Timeline({ motion: { preferences } }).add(child);
         const completion = timeline.toPromise();
@@ -202,7 +207,6 @@ describe('Given Timeline motion preferences', () => {
   });
 });
 
-
 describe('Given Timeline labels and transport controls', () => {
   describe('When a Timeline has named labels', () => {
     describe('And When segments use label-relative offsets', () => {
@@ -217,9 +221,13 @@ describe('Given Timeline labels and transport controls', () => {
         expect(timeline.labelTime('intro')).toBe(100);
         expect(timeline.timelineLabels).toEqual({ intro: 100, outro: 180 });
         expect(timeline.segments.map(({ startTime, endTime }) => [startTime, endTime])).toEqual([
-          [0, 100], [125, 175], [180, 200],
+          [0, 100],
+          [125, 175],
+          [180, 200],
         ]);
-        expect(() => timeline.add(new Animation({ duration: 10 }), 'missing-label')).toThrow('Unknown timeline offset or label');
+        expect(() => timeline.add(new Animation({ duration: 10 }), 'missing-label')).toThrow(
+          'Unknown timeline offset or label',
+        );
       });
     });
   });
@@ -233,7 +241,11 @@ describe('Given Timeline labels and transport controls', () => {
           .call(callback, 50)
           .add(new Animation({ duration: 100 }));
 
-        expect(timeline.segments.map(({ startTime, endTime }) => [startTime, endTime])).toEqual([[0, 100], [50, 50], [100, 200]]);
+        expect(timeline.segments.map(({ startTime, endTime }) => [startTime, endTime])).toEqual([
+          [0, 100],
+          [50, 50],
+          [100, 200],
+        ]);
         timeline.seek(75);
         expect(callback).toHaveBeenCalledTimes(1);
         timeline.seek(25);
@@ -247,9 +259,7 @@ describe('Given Timeline labels and transport controls', () => {
     describe('And When the playhead rewinds and advances again', () => {
       it('Then the callback rearms without firing during reverse travel', () => {
         const callback = jest.fn();
-        const timeline = new Timeline()
-          .call(callback, 0)
-          .add(new Animation({ duration: 100 }), 0);
+        const timeline = new Timeline().call(callback, 0).add(new Animation({ duration: 100 }), 0);
 
         timeline.seek(25);
         expect(callback).toHaveBeenCalledTimes(1);
@@ -384,5 +394,4 @@ describe('Given Timeline labels and transport controls', () => {
       });
     });
   });
-
 });

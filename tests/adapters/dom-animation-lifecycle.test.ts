@@ -61,11 +61,17 @@ describe('Given a DOMAnimation', () => {
       const ran: string[] = [];
       const animation = new DOMAnimation()
         .addDisposeCallback(() => ran.push('first'))
-        .addDisposeCallback(() => { throw new Error('callback failed'); })
+        .addDisposeCallback(() => {
+          throw new Error('callback failed');
+        })
         .addDisposeCallback(() => ran.push('third'));
 
       let caught: unknown;
-      try { animation.dispose(); } catch (error) { caught = error; }
+      try {
+        animation.dispose();
+      } catch (error) {
+        caught = error;
+      }
 
       expect(caught).toBeInstanceOf(AggregateError);
       expect((caught as AggregateError).errors).toHaveLength(1);
@@ -109,7 +115,11 @@ describe('Given a DOMAnimation', () => {
   describe('When a binding fails to tear down', () => {
     it('Then the failure is reported through the aggregate error', () => {
       const animation = new DOMAnimation();
-      animation.attachBinding(new Subscription(() => { throw new Error('teardown failed'); }));
+      animation.attachBinding(
+        new Subscription(() => {
+          throw new Error('teardown failed');
+        }),
+      );
 
       expect(() => animation.dispose()).toThrow(AggregateError);
     });

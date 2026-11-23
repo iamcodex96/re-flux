@@ -22,9 +22,26 @@ describe('Given an unknown easing name', () => {
   const cases: ReadonlyArray<readonly [string, string, () => { dispose?: () => void; stop?: () => void }]> = [
     ['Animation', 'policyTypoAnimation', () => new Animation({ duration: 100, easing: 'policyTypoAnimation' })],
     ['Tween', 'policyTypoTween', () => new Tween({ from: 0, to: 1, duration: 100, easing: 'policyTypoTween' })],
-    ['Keyframes', 'policyTypoKeyframes', () => new Keyframes({ keyframes: [{ value: 0 }, { value: 1 }], duration: 100, easing: 'policyTypoKeyframes' })],
-    ['Keyframes (per-keyframe easing)', 'policyTypoSegment', () => new Keyframes({ keyframes: [{ value: 0, easing: 'policyTypoSegment' }, { value: 1 }], duration: 100 })],
-    ['animate()', 'policyTypoAnimate', () => animate(createElement({ opacity: '0' }), { duration: 100, properties: { opacity: { values: [0, 1] } }, easing: 'policyTypoAnimate' })],
+    [
+      'Keyframes',
+      'policyTypoKeyframes',
+      () => new Keyframes({ keyframes: [{ value: 0 }, { value: 1 }], duration: 100, easing: 'policyTypoKeyframes' }),
+    ],
+    [
+      'Keyframes (per-keyframe easing)',
+      'policyTypoSegment',
+      () => new Keyframes({ keyframes: [{ value: 0, easing: 'policyTypoSegment' }, { value: 1 }], duration: 100 }),
+    ],
+    [
+      'animate()',
+      'policyTypoAnimate',
+      () =>
+        animate(createElement({ opacity: '0' }), {
+          duration: 100,
+          properties: { opacity: { values: [0, 1] } },
+          easing: 'policyTypoAnimate',
+        }),
+    ],
   ];
 
   describe.each(cases)('When a %s is constructed with it', (_label, name, build) => {

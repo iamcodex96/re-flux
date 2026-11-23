@@ -15,4 +15,8 @@ export type {
   TimelineOptions,
   TimelineSegment,
 } from './types.js';
-export type { MotionPreferencesOptions, MotionPreferencesSnapshot, MotionPreferencesSource } from './core/MotionPreferences.js';
+export type {
+  MotionPreferencesOptions,
+  MotionPreferencesSnapshot,
+  MotionPreferencesSource,
+} from './core/MotionPreferences.js';

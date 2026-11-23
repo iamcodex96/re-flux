@@ -58,7 +58,7 @@ export function stagger(each: number, options: StaggerOptions = {}): StaggerDela
 
     const distance = Math.abs(index - originIndex);
     const normalizedDistance = distance / farthestDistance;
-     
+
     const easedDistance = Math.max(0, Math.min(1, easing(normalizedDistance)));
     return start + easedDistance * each * farthestDistance;
   };

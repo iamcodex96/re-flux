@@ -32,14 +32,32 @@ type Pair = readonly [unknown, unknown];
 
 const generators: ReadonlyArray<() => Pair> = [
   () => [decimal(), decimal()],
-  () => [pick([hex, shortHex, alphaHex, rgba, rgbSpace, rgbPercent])(), pick([hex, shortHex, alphaHex, rgba, rgbSpace, rgbPercent])()],
-  () => { const unit = pick(['px', 'em', '%', 'deg', '']); return [`${decimal()}${unit}`, `${decimal()}${unit}`]; },
-  () => [`translate(${decimal()}px, ${decimal()}px) scale(${decimal()})`, `translate(${decimal()}px, ${decimal()}px) scale(${decimal()})`],
+  () => [
+    pick([hex, shortHex, alphaHex, rgba, rgbSpace, rgbPercent])(),
+    pick([hex, shortHex, alphaHex, rgba, rgbSpace, rgbPercent])(),
+  ],
+  () => {
+    const unit = pick(['px', 'em', '%', 'deg', '']);
+    return [`${decimal()}${unit}`, `${decimal()}${unit}`];
+  },
+  () => [
+    `translate(${decimal()}px, ${decimal()}px) scale(${decimal()})`,
+    `translate(${decimal()}px, ${decimal()}px) scale(${decimal()})`,
+  ],
   () => [`${decimal()}e-3px`, `${decimal()}e-2px`],
   () => [`+${int(50)}px`, `-${int(50)}px`],
-  () => [[decimal(), decimal(), decimal()], [decimal(), decimal(), decimal()]],
-  () => [[hex(), `${int(40)}px`], [hex(), `${int(40)}px`]],
-  () => [{ x: decimal(), y: decimal(), color: hex() }, { x: decimal(), y: decimal(), color: rgba() }],
+  () => [
+    [decimal(), decimal(), decimal()],
+    [decimal(), decimal(), decimal()],
+  ],
+  () => [
+    [hex(), `${int(40)}px`],
+    [hex(), `${int(40)}px`],
+  ],
+  () => [
+    { x: decimal(), y: decimal(), color: hex() },
+    { x: decimal(), y: decimal(), color: rgba() },
+  ],
   () => [{ nested: { a: [decimal(), `${int(9)}px`] } }, { nested: { a: [decimal(), `${int(9)}px`] } }],
 ];
 
@@ -72,8 +90,12 @@ describe('Given a compiled interpolator from resolveInterpolator()', () => {
   describe('When the closure is called repeatedly with the same endpoints', () => {
     it('Then every call gives the same answer as the first (no state leaks between frames)', () => {
       const interpolator = resolveInterpolator('rgba(10, 20, 30, 0.2)', 'rgba(240, 220, 200, 0.9)');
-      const first = Array.from({ length: 11 }, (_unused, i) => interpolator('rgba(10, 20, 30, 0.2)', 'rgba(240, 220, 200, 0.9)', i / 10));
-      const second = Array.from({ length: 11 }, (_unused, i) => interpolator('rgba(10, 20, 30, 0.2)', 'rgba(240, 220, 200, 0.9)', i / 10));
+      const first = Array.from({ length: 11 }, (_unused, i) =>
+        interpolator('rgba(10, 20, 30, 0.2)', 'rgba(240, 220, 200, 0.9)', i / 10),
+      );
+      const second = Array.from({ length: 11 }, (_unused, i) =>
+        interpolator('rgba(10, 20, 30, 0.2)', 'rgba(240, 220, 200, 0.9)', i / 10),
+      );
       expect(second).toEqual(first);
     });
   });
@@ -106,7 +128,9 @@ describe('Given a compiled interpolator from resolveInterpolator()', () => {
       const interpolator = resolveInterpolator([0, 1], [10, 11]);
       expect(interpolator([0, 1, 2], [10, 11, 12], 0.5)).toEqual(interpolate([0, 1, 2], [10, 11, 12], 0.5));
       const objects = resolveInterpolator<Record<string, number>>({ a: 0 }, { a: 10 });
-      expect(objects({ a: 0, b: 5 }, { a: 10, b: 15 }, 0.5)).toEqual(interpolate({ a: 0, b: 5 }, { a: 10, b: 15 }, 0.5));
+      expect(objects({ a: 0, b: 5 }, { a: 10, b: 15 }, 0.5)).toEqual(
+        interpolate({ a: 0, b: 5 }, { a: 10, b: 15 }, 0.5),
+      );
     });
   });
 

@@ -28,13 +28,7 @@ describe('Given FrameCoordinator', () => {
         coordinator.scheduleWrite(() => order.push('scheduled write'));
 
         raf.advance(10);
-        expect(order).toEqual([
-          'read',
-          'frame',
-          'scheduled write',
-          'write from read',
-          'write from frame',
-        ]);
+        expect(order).toEqual(['read', 'frame', 'scheduled write', 'write from read', 'write from frame']);
         expect(raf.pendingCount).toBe(1);
 
         subscription.unsubscribe();
@@ -49,9 +43,11 @@ describe('Given FrameCoordinator', () => {
         const coordinator = new FrameCoordinator();
         const consumerCount = 250;
         const receivedFrames = Array.from({ length: consumerCount }, () => 0);
-        const subscriptions = receivedFrames.map((_, index) => coordinator.frames$.subscribe(() => {
-          receivedFrames[index] = (receivedFrames[index] ?? 0) + 1;
-        }));
+        const subscriptions = receivedFrames.map((_, index) =>
+          coordinator.frames$.subscribe(() => {
+            receivedFrames[index] = (receivedFrames[index] ?? 0) + 1;
+          }),
+        );
 
         expect(raf.pendingCount).toBe(1);
 
@@ -143,10 +139,12 @@ describe('Given FrameCoordinator', () => {
       it('Then diagnostics update without keeping the clock alive', () => {
         const coordinator = new FrameCoordinator();
         const metrics: Array<{ totalFrames: number; lastFrameWorkMs: number }> = [];
-        const metricsSubscription = coordinator.metrics$.subscribe((sample) => metrics.push({
-          totalFrames: sample.totalFrames,
-          lastFrameWorkMs: sample.lastFrameWorkMs,
-        }));
+        const metricsSubscription = coordinator.metrics$.subscribe((sample) =>
+          metrics.push({
+            totalFrames: sample.totalFrames,
+            lastFrameWorkMs: sample.lastFrameWorkMs,
+          }),
+        );
         expect(raf.pendingCount).toBe(0);
         const subscription = coordinator.frames$.subscribe();
 

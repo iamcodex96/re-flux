@@ -100,7 +100,9 @@ describe('Given the built-in easing functions', () => {
 });
 
 describe('Given resolveEasing', () => {
-  afterEach(() => { jest.restoreAllMocks(); });
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   describe('When it receives a function', () => {
     it('Then it returns the same function', () => {
@@ -145,7 +147,8 @@ describe('Given resolveEasing', () => {
       try {
         expect(resolveEasing('resolveTypoProduction')(0.3)).toBe(0.3);
       } finally {
-        if (previous === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = previous;
+        if (previous === undefined) delete process.env.NODE_ENV;
+        else process.env.NODE_ENV = previous;
       }
       expect(warn).not.toHaveBeenCalled();
     });

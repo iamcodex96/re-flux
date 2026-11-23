@@ -17,7 +17,9 @@ const reports = [];
 
 const loadAtStart = systemLoad();
 if (loadAtStart.busy) {
-  process.stderr.write(`WARNING: this machine is busy (1-minute load average ${loadAtStart.loadAvg1m} on ${loadAtStart.cpuCount} logical cores, ${loadAtStart.loadPerCore} per core; the threshold is ${BUSY_LOAD_PER_CORE}). Timings measured now are not representative: close other builds, editors and agent sessions and re-run before drawing conclusions.\n`);
+  process.stderr.write(
+    `WARNING: this machine is busy (1-minute load average ${loadAtStart.loadAvg1m} on ${loadAtStart.cpuCount} logical cores, ${loadAtStart.loadPerCore} per core; the threshold is ${BUSY_LOAD_PER_CORE}). Timings measured now are not representative: close other builds, editors and agent sessions and re-run before drawing conclusions.\n`,
+  );
 }
 
 // Subreports must be captured from stdout, so the destination chosen for the aggregate report
@@ -65,7 +67,8 @@ function collectCv(node, keys, found = []) {
 const elapsedCvs = collectCv(reports, new Set(['elapsedMs', 'seekElapsedMs']));
 const tailCvs = collectCv(reports, new Set(['p99FrameVariability', 'seekP99Variability']));
 const noise = {
-  method: 'Twice the median coefficient of variation (stdev / mean across repeated runs) of the workloads in this report; floors of 5% (elapsed/mean metrics) and 10% (p95/p99/worst-frame metrics).',
+  method:
+    'Twice the median coefficient of variation (stdev / mean across repeated runs) of the workloads in this report; floors of 5% (elapsed/mean metrics) and 10% (p95/p99/worst-frame metrics).',
   thresholdPercent: Math.max(5, round(2 * 100 * median(elapsedCvs), 1)),
   tailThresholdPercent: Math.max(10, round(2 * 100 * median(tailCvs), 1)),
   medianElapsedCv: round(median(elapsedCvs), 4),

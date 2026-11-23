@@ -39,7 +39,6 @@ export interface RetargetableMotionOptions extends SpringOptions {
   readonly onComplete?: (sample: MotionSample) => void;
 }
 
-
 /** Two-dimensional point expressed in CSS pixels or another caller-defined unit. */
 export interface Point2D {
   readonly x: number;

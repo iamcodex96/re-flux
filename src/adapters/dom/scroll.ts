@@ -35,7 +35,7 @@ export function scrollProgress$(target: Element, options: ScrollProgressOptions 
         top = targetRect.top - rootRect.top - elementRoot.clientTop;
       }
       const denominator = rootHeight + targetRect.height;
-      const progress = denominator > 0 ? (rootHeight - top) / denominator : (top <= 0 ? 1 : 0);
+      const progress = denominator > 0 ? (rootHeight - top) / denominator : top <= 0 ? 1 : 0;
       subscriber.next(Math.min(1, Math.max(0, progress)));
     };
     const scrollTarget: Window | HTMLElement = root;
@@ -48,7 +48,6 @@ export function scrollProgress$(target: Element, options: ScrollProgressOptions 
     };
   });
 }
-
 
 /** Options for binding a timeline's playhead to normalized element scroll progress. */
 export interface ScrollTimelineOptions extends ScrollProgressOptions {
@@ -64,7 +63,11 @@ export interface ScrollTimelineOptions extends ScrollProgressOptions {
  * Scrub a Timeline from scroll position. Scroll/resize bursts are coalesced through the shared
  * FrameCoordinator write phase, and unsubscribing removes listeners and any pending frame task.
  */
-export function bindScrollTimeline(target: Element, timeline: Timeline, options: ScrollTimelineOptions = {}): Subscription {
+export function bindScrollTimeline(
+  target: Element,
+  timeline: Timeline,
+  options: ScrollTimelineOptions = {},
+): Subscription {
   const start = options.start ?? 0;
   const end = options.end ?? 1;
   if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {

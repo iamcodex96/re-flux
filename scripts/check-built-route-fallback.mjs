@@ -13,16 +13,30 @@ assert.ok(baseMatch, 'Built fallback script must include the normalized Vite bas
 const base = JSON.parse(baseMatch[1]);
 
 function run(pathname, search = '', hash = '') {
-  const location = { pathname, search, hash, redirectedTo: null, replace(url) { this.redirectedTo = url; } };
+  const location = {
+    pathname,
+    search,
+    hash,
+    redirectedTo: null,
+    replace(url) {
+      this.redirectedTo = url;
+    },
+  };
   runInNewContext(match[1], { window: { location } });
   return location.redirectedTo;
 }
 
 const deployedBase = base === '/' ? '/' : base;
-const routePath = (route) => deployedBase === '/' ? route : `${deployedBase}${route.slice(1)}`;
+const routePath = (route) => (deployedBase === '/' ? route : `${deployedBase}${route.slice(1)}`);
 assert.equal(run(routePath('/docs')), `${base}#/docs`, 'Built fallback must route clean documentation URLs.');
 assert.equal(run(routePath('/benchmarks')), `${base}#/benchmarks`, 'Built fallback must route clean benchmark URLs.');
-assert.equal(run(routePath('/docs/interactions'), '?example=1', '#section'), `${base}#/docs/interactions?example=1#section`, 'Built fallback must preserve query and anchor state.');
+assert.equal(
+  run(routePath('/docs/interactions'), '?example=1', '#section'),
+  `${base}#/docs/interactions?example=1#section`,
+  'Built fallback must preserve query and anchor state.',
+);
 assert.equal(run(routePath('/assets/missing.js')), null, 'Built fallback must not redirect missing static assets.');
 
-console.log(`Built route fallback passed for base ${JSON.stringify(base)}: Docs, Benchmarks, query/hash preservation and static asset guard.`);
+console.log(
+  `Built route fallback passed for base ${JSON.stringify(base)}: Docs, Benchmarks, query/hash preservation and static asset guard.`,
+);

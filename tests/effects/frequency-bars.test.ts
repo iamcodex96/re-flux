@@ -8,7 +8,9 @@ function createContext(): CanvasRenderingContext2D & { calls: string[] } {
     save: () => calls.push('save'),
     restore: () => calls.push('restore'),
     fillRect: () => calls.push('fillRect'),
-    set fillStyle(_value: string | CanvasGradient | CanvasPattern) { calls.push('fillStyle'); },
+    set fillStyle(_value: string | CanvasGradient | CanvasPattern) {
+      calls.push('fillStyle');
+    },
   } as unknown as CanvasRenderingContext2D & { calls: string[] };
 }
 

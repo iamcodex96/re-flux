@@ -37,16 +37,18 @@ export class MotionPreferences implements MotionPreferencesSource {
 
   constructor(options: MotionPreferencesOptions = {}) {
     const windowRef = options.window ?? (typeof window !== 'undefined' ? window : undefined);
-    this.documentRef = options.document ?? windowRef?.document
-      ?? (typeof document !== 'undefined' ? document : undefined);
+    this.documentRef =
+      options.document ?? windowRef?.document ?? (typeof document !== 'undefined' ? document : undefined);
     this.mediaQuery = options.mediaQueryList ?? windowRef?.matchMedia?.('(prefers-reduced-motion: reduce)') ?? null;
-    this.subject = new BehaviorSubject<MotionPreferencesSnapshot>(Object.freeze({
-      reducedMotion: this.mediaQuery?.matches ?? false,
-      visible: this.documentRef?.visibilityState !== 'hidden',
-    }));
+    this.subject = new BehaviorSubject<MotionPreferencesSnapshot>(
+      Object.freeze({
+        reducedMotion: this.mediaQuery?.matches ?? false,
+        visible: this.documentRef?.visibilityState !== 'hidden',
+      }),
+    );
     this.state$ = this.subject.asObservable();
     this.mediaQuery?.addEventListener?.('change', this.handleMediaChange);
-     
+
     if (this.mediaQuery && !this.mediaQuery.addEventListener) this.mediaQuery.addListener?.(this.handleMediaChange);
     this.documentRef?.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
@@ -60,7 +62,8 @@ export class MotionPreferences implements MotionPreferencesSource {
     if (this.destroyed) return;
     this.destroyed = true;
     this.mediaQuery?.removeEventListener?.('change', this.handleMediaChange);
-    if (this.mediaQuery && !this.mediaQuery.removeEventListener) this.mediaQuery.removeListener?.(this.handleMediaChange);
+    if (this.mediaQuery && !this.mediaQuery.removeEventListener)
+      this.mediaQuery.removeListener?.(this.handleMediaChange);
     this.documentRef?.removeEventListener('visibilitychange', this.handleVisibilityChange);
     this.subject.complete();
   }

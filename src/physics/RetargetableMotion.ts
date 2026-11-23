@@ -60,8 +60,10 @@ export class RetargetableMotion {
     this.targetSubject.next(target);
 
     const current = this.currentSample;
-    if (Math.abs(target - current.value) <= this.activeOptions.restDelta
-      && Math.abs(current.velocity) <= this.activeOptions.restSpeed) {
+    if (
+      Math.abs(target - current.value) <= this.activeOptions.restDelta &&
+      Math.abs(current.velocity) <= this.activeOptions.restSpeed
+    ) {
       this.stopClock();
       const sample = this.publish({ value: target, velocity: 0, timestamp: current.timestamp });
       this.setState('completed');
@@ -121,7 +123,6 @@ export class RetargetableMotion {
     let skipFirstFrame = true;
     const subscription = frameCoordinator.frames$.subscribe({
       next: (frame) => {
-         
         if (skipFirstFrame) {
           skipFirstFrame = false;
           return;

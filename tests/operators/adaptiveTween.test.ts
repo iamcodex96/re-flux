@@ -16,14 +16,18 @@ describe('Given adaptiveTween', () => {
       it('Then it adapts tween duration to observed cadence and clamps it to configured limits', () => {
         const source = new Subject<TimestampedValue<number>>();
         const samples: import('../../src/types.js').AdaptiveTweenSample<number>[] = [];
-        const subscription = source.pipe(adaptiveTween({
-          minDuration: 10,
-          maxDuration: 100,
-          durationFactor: 2,
-          cadenceSmoothing: 0.5,
-          initialCadence: 20,
-          interpolate: interpolateNumber,
-        })).subscribe((sample) => samples.push(sample));
+        const subscription = source
+          .pipe(
+            adaptiveTween({
+              minDuration: 10,
+              maxDuration: 100,
+              durationFactor: 2,
+              cadenceSmoothing: 0.5,
+              initialCadence: 20,
+              interpolate: interpolateNumber,
+            }),
+          )
+          .subscribe((sample) => samples.push(sample));
 
         source.next({ timestamp: 0, value: 0 });
         raf.advance(0);
@@ -45,13 +49,17 @@ describe('Given adaptiveTween', () => {
       it('Then it retargets from the current rendered value without a positional jump', () => {
         const source = new Subject<TimestampedValue<number>>();
         const samples: import('../../src/types.js').AdaptiveTweenSample<number>[] = [];
-        const subscription = source.pipe(adaptiveTween({
-          minDuration: 100,
-          maxDuration: 100,
-          durationFactor: 1,
-          initialCadence: 100,
-          interpolate: interpolateNumber,
-        })).subscribe((sample) => samples.push(sample));
+        const subscription = source
+          .pipe(
+            adaptiveTween({
+              minDuration: 100,
+              maxDuration: 100,
+              durationFactor: 1,
+              initialCadence: 100,
+              interpolate: interpolateNumber,
+            }),
+          )
+          .subscribe((sample) => samples.push(sample));
 
         source.next({ timestamp: 0, value: 0 });
         raf.advance(0);
@@ -75,12 +83,16 @@ describe('Given adaptiveTween', () => {
       it('Then it ignores duplicate and out-of-order source timestamps', () => {
         const source = new Subject<TimestampedValue<number>>();
         const samples: import('../../src/types.js').AdaptiveTweenSample<number>[] = [];
-        const subscription = source.pipe(adaptiveTween({
-          minDuration: 100,
-          maxDuration: 100,
-          initialCadence: 100,
-          interpolate: interpolateNumber,
-        })).subscribe((sample) => samples.push(sample));
+        const subscription = source
+          .pipe(
+            adaptiveTween({
+              minDuration: 100,
+              maxDuration: 100,
+              initialCadence: 100,
+              interpolate: interpolateNumber,
+            }),
+          )
+          .subscribe((sample) => samples.push(sample));
 
         source.next({ timestamp: 10, value: 10 });
         raf.advance(10);
@@ -103,12 +115,21 @@ describe('Given adaptiveTween', () => {
         const source = new Subject<TimestampedValue<number>>();
         const samples: import('../../src/types.js').AdaptiveTweenSample<number>[] = [];
         let completed = false;
-        source.pipe(adaptiveTween({
-          minDuration: 0,
-          maxDuration: 0,
-          durationFactor: 0,
-          interpolate: interpolateNumber,
-        })).subscribe({ next: (sample) => samples.push(sample), complete: () => { completed = true; } });
+        source
+          .pipe(
+            adaptiveTween({
+              minDuration: 0,
+              maxDuration: 0,
+              durationFactor: 0,
+              interpolate: interpolateNumber,
+            }),
+          )
+          .subscribe({
+            next: (sample) => samples.push(sample),
+            complete: () => {
+              completed = true;
+            },
+          });
 
         source.next({ timestamp: 0, value: 4 });
         raf.advance(0);
@@ -127,7 +148,9 @@ describe('Given adaptiveTween', () => {
         let completed = false;
         source.pipe(adaptiveTween({ interpolate: interpolateNumber })).subscribe({
           next: (sample) => samples.push(sample),
-          complete: () => { completed = true; },
+          complete: () => {
+            completed = true;
+          },
         });
 
         source.next({ timestamp: 0, value: 42 });
@@ -143,8 +166,11 @@ describe('Given adaptiveTween', () => {
       it('Then it forwards invalid timestamps as errors and releases the frame clock', () => {
         const source = new Subject<TimestampedValue<number>>();
         let receivedError: unknown;
-        const subscription = source.pipe(adaptiveTween({ interpolate: interpolateNumber }))
-          .subscribe({ error: (error: unknown) => { receivedError = error; } });
+        const subscription = source.pipe(adaptiveTween({ interpolate: interpolateNumber })).subscribe({
+          error: (error: unknown) => {
+            receivedError = error;
+          },
+        });
 
         source.next({ timestamp: Number.NaN, value: 1 });
         expect(receivedError).toBeInstanceOf(RangeError);
@@ -156,9 +182,19 @@ describe('Given adaptiveTween', () => {
       it('Then it forwards interpolation errors and releases the frame clock', () => {
         const source = new Subject<TimestampedValue<number>>();
         let receivedError: unknown;
-        const subscription = source.pipe(adaptiveTween<number>({
-          interpolate: () => { throw new Error('interpolator failed'); },
-        })).subscribe({ error: (error: unknown) => { receivedError = error; } });
+        const subscription = source
+          .pipe(
+            adaptiveTween<number>({
+              interpolate: () => {
+                throw new Error('interpolator failed');
+              },
+            }),
+          )
+          .subscribe({
+            error: (error: unknown) => {
+              receivedError = error;
+            },
+          });
 
         source.next({ timestamp: 0, value: 0 });
         raf.advance(0);
@@ -172,7 +208,9 @@ describe('Given adaptiveTween', () => {
     });
     describe('And When invalid adaptive duration or cadence settings are supplied', () => {
       it('Then it validates adaptive duration and cadence settings', () => {
-        expect(() => adaptiveTween({ minDuration: 80, maxDuration: 20, interpolate: interpolateNumber })).toThrow(RangeError);
+        expect(() => adaptiveTween({ minDuration: 80, maxDuration: 20, interpolate: interpolateNumber })).toThrow(
+          RangeError,
+        );
         expect(() => adaptiveTween({ cadenceSmoothing: 0, interpolate: interpolateNumber })).toThrow(RangeError);
         expect(() => adaptiveTween({ initialCadence: 0, interpolate: interpolateNumber })).toThrow(RangeError);
       });
@@ -182,8 +220,12 @@ describe('Given adaptiveTween', () => {
         const source = new Subject<TimestampedValue<number>>();
         const samples: import('../../src/types.js').AdaptiveTweenSample<number>[] = [];
         let completed = false;
-        source.pipe(adaptiveTween({ minDuration: 20, maxDuration: 20, interpolate: interpolateNumber }))
-          .subscribe({ next: (sample) => samples.push(sample), complete: () => { completed = true; } });
+        source.pipe(adaptiveTween({ minDuration: 20, maxDuration: 20, interpolate: interpolateNumber })).subscribe({
+          next: (sample) => samples.push(sample),
+          complete: () => {
+            completed = true;
+          },
+        });
 
         source.next({ timestamp: 0, value: 0 });
         raf.advance(0);

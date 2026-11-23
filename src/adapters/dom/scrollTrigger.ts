@@ -82,7 +82,9 @@ interface Measurement {
 
 const POSITION_NUMBER = '[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)';
 const TARGET_TOKEN = new RegExp(`^(top|center|bottom)(?:(\\+=|-=)(${POSITION_NUMBER})(?:px)?)?$`);
-const ROOT_TOKEN = new RegExp(`^(top|center|bottom|${POSITION_NUMBER}%|${POSITION_NUMBER}px)(?:(\\+=|-=)(${POSITION_NUMBER})(?:px)?)?$`);
+const ROOT_TOKEN = new RegExp(
+  `^(top|center|bottom|${POSITION_NUMBER}%|${POSITION_NUMBER}px)(?:(\\+=|-=)(${POSITION_NUMBER})(?:px)?)?$`,
+);
 
 /**
  * Create a scroll trigger with normalized progress and directional enter/leave callbacks.
@@ -115,10 +117,13 @@ class ScrollTriggerInstance implements ScrollTriggerController {
   private readonly onScroll = (): void => this.scheduleUpdate(true);
   private readonly onResize = (): void => this.scheduleUpdate(false);
 
-  constructor(private readonly target: Element, private readonly options: ScrollTriggerOptions) {
+  constructor(
+    private readonly target: Element,
+    private readonly options: ScrollTriggerOptions,
+  ) {
     this.root = options.root ?? window;
     this.scrollTarget = this.root;
-    this.rootWindow = isWindowRoot(this.root) ? this.root as Window : null;
+    this.rootWindow = isWindowRoot(this.root) ? (this.root as Window) : null;
     this.start = parsePosition(options.start ?? 'top bottom', { target: 'top', root: 'bottom' });
     this.end = parsePosition(options.end ?? 'bottom top', { target: 'bottom', root: 'top' });
     this.easing = resolveEasing(options.easing ?? 'linear');
@@ -159,15 +164,19 @@ class ScrollTriggerInstance implements ScrollTriggerController {
     }
   }
 
-  get progress(): number { return this.subject.value; }
-  get isActive(): boolean { return this.activeValue; }
+  get progress(): number {
+    return this.subject.value;
+  }
+  get isActive(): boolean {
+    return this.activeValue;
+  }
 
   refresh(): this {
     if (this.destroyed) return this;
     this.cancelPending();
     const measurement = this.measure();
     this.ensureValidRange(measurement);
-     
+
     this.previous = measurement;
     this.activeValue = measurement.active;
     this.subject.next(measurement.progress);
@@ -196,7 +205,9 @@ class ScrollTriggerInstance implements ScrollTriggerController {
     this.subject.complete();
   }
 
-  unsubscribe(): void { this.destroy(); }
+  unsubscribe(): void {
+    this.destroy();
+  }
 
   private scheduleUpdate(fromScrollEvent: boolean): void {
     if (this.destroyed || this.pendingRead || this.pendingWrite) return;
@@ -209,16 +220,17 @@ class ScrollTriggerInstance implements ScrollTriggerController {
         this.ensureValidRange(measurement);
       } catch (error) {
         this.destroy();
-        queueMicrotask(() => { throw error; });
+        queueMicrotask(() => {
+          throw error;
+        });
         return;
       }
       this.pendingWrite = frameCoordinator.scheduleWrite(() => {
         this.pendingWrite = null;
         if (this.destroyed) return;
         const previous = this.previous;
-        const direction = fromScrollEvent && previous
-          ? directionBetween(previous.scrollPosition, measurement.scrollPosition)
-          : 'none';
+        const direction =
+          fromScrollEvent && previous ? directionBetween(previous.scrollPosition, measurement.scrollPosition) : 'none';
         this.apply(measurement, direction, true);
         if (!fromScrollEvent) this.options.onRefresh?.(this.event(measurement, 'none', measurement.active));
       });
@@ -267,7 +279,12 @@ class ScrollTriggerInstance implements ScrollTriggerController {
     }
   }
 
-  private event(measurement: Measurement, direction: ScrollTriggerDirection, active: boolean, progress = measurement.progress): ScrollTriggerEvent {
+  private event(
+    measurement: Measurement,
+    direction: ScrollTriggerDirection,
+    active: boolean,
+    progress = measurement.progress,
+  ): ScrollTriggerEvent {
     return Object.freeze({
       target: this.target,
       progress,
@@ -300,16 +317,18 @@ class ScrollTriggerInstance implements ScrollTriggerController {
       scrollPosition = elementRoot.scrollTop;
     }
 
-    const startDistance = anchorCoordinate(rect, this.start.target)
-      - (rootTop + rootAnchorCoordinate(rootHeight, this.start.root))
-      + this.start.targetOffset - this.start.rootOffset;
-    const endDistance = anchorCoordinate(rect, this.end.target)
-      - (rootTop + rootAnchorCoordinate(rootHeight, this.end.root))
-      + this.end.targetOffset - this.end.rootOffset;
+    const startDistance =
+      anchorCoordinate(rect, this.start.target) -
+      (rootTop + rootAnchorCoordinate(rootHeight, this.start.root)) +
+      this.start.targetOffset -
+      this.start.rootOffset;
+    const endDistance =
+      anchorCoordinate(rect, this.end.target) -
+      (rootTop + rootAnchorCoordinate(rootHeight, this.end.root)) +
+      this.end.targetOffset -
+      this.end.rootOffset;
     const range = endDistance - startDistance;
-    const progress = range > Number.EPSILON
-      ? clamp01(-startDistance / range)
-      : (startDistance <= 0 ? 1 : 0);
+    const progress = range > Number.EPSILON ? clamp01(-startDistance / range) : startDistance <= 0 ? 1 : 0;
 
     return Object.freeze({
       progress,
@@ -322,7 +341,9 @@ class ScrollTriggerInstance implements ScrollTriggerController {
 
   private ensureValidRange(measurement: Measurement): void {
     if (measurement.endDistance - measurement.startDistance <= Number.EPSILON) {
-      throw new RangeError('createScrollTrigger() start must occur before end. Check the target/root anchors and offsets.');
+      throw new RangeError(
+        'createScrollTrigger() start must occur before end. Check the target/root anchors and offsets.',
+      );
     }
   }
 
@@ -350,13 +371,18 @@ function rootAnchorCoordinate(height: number, anchor: ScrollTriggerRootAnchor): 
   if (anchor === 'top') return 0;
   if (anchor === 'center') return height / 2;
   if (anchor === 'bottom') return height;
-  if (anchor.endsWith('%')) return height * Number(anchor.slice(0, -1)) / 100;
+  if (anchor.endsWith('%')) return (height * Number(anchor.slice(0, -1))) / 100;
   return Number(anchor.slice(0, -2));
 }
 
-function clamp01(value: number): number { return Math.min(1, Math.max(0, value)); }
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
 
-function parsePosition(value: ScrollTriggerPosition, fallback: { target: ScrollTriggerTargetAnchor; root: ScrollTriggerRootAnchor }): ParsedPosition {
+function parsePosition(
+  value: ScrollTriggerPosition,
+  fallback: { target: ScrollTriggerTargetAnchor; root: ScrollTriggerRootAnchor },
+): ParsedPosition {
   if (typeof value !== 'string') {
     const target = value.target ?? fallback.target;
     const root = value.root ?? fallback.root;
@@ -376,7 +402,9 @@ function parsePosition(value: ScrollTriggerPosition, fallback: { target: ScrollT
   const targetMatch = TARGET_TOKEN.exec(tokens[0]!);
   const rootMatch = ROOT_TOKEN.exec(tokens[1]!);
   if (!targetMatch || !rootMatch) {
-    throw new TypeError(`Invalid scroll trigger position "${value}". Supported anchors are top, center, bottom, percentages and pixel values.`);
+    throw new TypeError(
+      `Invalid scroll trigger position "${value}". Supported anchors are top, center, bottom, percentages and pixel values.`,
+    );
   }
   const target = targetMatch[1] as ScrollTriggerTargetAnchor;
   const targetOffset = offsetFromMatch(targetMatch[2], targetMatch[3]);
@@ -405,7 +433,9 @@ function validateScrollTriggerTargetAnchor(value: string): asserts value is Scro
 function validateScrollTriggerRootAnchor(value: string): asserts value is ScrollTriggerRootAnchor {
   if (value === 'top' || value === 'center' || value === 'bottom') return;
   if (/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)%$/.test(value) || /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)px$/.test(value)) return;
-  throw new TypeError(`Unsupported root anchor "${value}". Use top, center, bottom, a percentage, or a pixel coordinate.`);
+  throw new TypeError(
+    `Unsupported root anchor "${value}". Use top, center, bottom, a percentage, or a pixel coordinate.`,
+  );
 }
 
 function isWindowRoot(root: Window | HTMLElement): root is Window {

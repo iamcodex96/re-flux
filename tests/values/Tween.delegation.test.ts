@@ -139,11 +139,7 @@ describe('Given a Tween that wraps an Animation', () => {
       it('Then then(), finally() and await all observe completion', async () => {
         const tween = new Tween({ from: 0, to: 1, duration: 100 });
         const onFinally = jest.fn();
-        const settled = Promise.all([
-          tween.then(() => 'then'),
-          tween.finally(onFinally),
-          tween.toPromise(),
-        ]);
+        const settled = Promise.all([tween.then(() => 'then'), tween.finally(onFinally), tween.toPromise()]);
         tween.play();
         raf.advance(0);
         raf.advance(100);

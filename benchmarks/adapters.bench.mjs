@@ -22,7 +22,10 @@ import {
   harnessInfo,
 } from './benchmark-utils.mjs';
 
-const targetCounts = parseIntegerList(process.env.BENCH_ADAPTER_TARGETS, '100,1000', { minimum: 1, label: 'BENCH_ADAPTER_TARGETS' });
+const targetCounts = parseIntegerList(process.env.BENCH_ADAPTER_TARGETS, '100,1000', {
+  minimum: 1,
+  label: 'BENCH_ADAPTER_TARGETS',
+});
 const frameCount = positiveInteger(process.env.BENCH_ADAPTER_FRAMES, 180, 'BENCH_ADAPTER_FRAMES');
 const repeats = positiveInteger(process.env.BENCH_REPEATS, 10, 'BENCH_REPEATS');
 const warmupRounds = nonNegativeInteger(process.env.BENCH_WARMUP_ROUNDS, 2, 'BENCH_WARMUP_ROUNDS');
@@ -62,8 +65,12 @@ class MockStyleDeclaration {
   priorities = new Map();
   operations = 0;
 
-  getPropertyValue(property) { return this.values.get(property) ?? ''; }
-  getPropertyPriority(property) { return this.priorities.get(property) ?? ''; }
+  getPropertyValue(property) {
+    return this.values.get(property) ?? '';
+  }
+  getPropertyPriority(property) {
+    return this.priorities.get(property) ?? '';
+  }
   setProperty(property, value, priority = '') {
     this.operations += 1;
     this.values.set(property, String(value));
@@ -83,8 +90,12 @@ class MockSvgElement {
   attributes = new Map();
   operations = 0;
 
-  hasAttribute(name) { return this.attributes.has(name); }
-  getAttribute(name) { return this.attributes.get(name) ?? null; }
+  hasAttribute(name) {
+    return this.attributes.has(name);
+  }
+  getAttribute(name) {
+    return this.attributes.get(name) ?? null;
+  }
   setAttribute(name, value) {
     this.operations += 1;
     this.attributes.set(name, String(value));
@@ -101,10 +112,20 @@ class MockCanvasContext {
   drawCalls = 0;
   stackDepth = 0;
 
-  save() { this.operations += 1; this.stackDepth += 1; }
-  restore() { this.operations += 1; this.stackDepth -= 1; }
-  setTransform() { this.operations += 1; }
-  clearRect() { this.operations += 1; }
+  save() {
+    this.operations += 1;
+    this.stackDepth += 1;
+  }
+  restore() {
+    this.operations += 1;
+    this.stackDepth -= 1;
+  }
+  setTransform() {
+    this.operations += 1;
+  }
+  clearRect() {
+    this.operations += 1;
+  }
   fillRect(x, y, width, height) {
     this.operations += 1;
     this.drawCalls += 1;
@@ -134,29 +155,38 @@ function runStyleBinding(targetCount, framesToRun, steady = false) {
   for (let frame = 0; frame < framesToRun; frame += 1) {
     const startedAt = performance.now();
     frameStarts.push(startedAt);
-    source.next(steady
-      ? { transform: 'translate3d(12px, 6px, 0)', opacity: '0.5', '--re-flux-frame': '12' }
-      : {
-        transform: `translate3d(${frame}px, ${frame / 2}px, 0)`,
-        opacity: String((frame % 60) / 59),
-        '--re-flux-frame': String(frame),
-      });
+    source.next(
+      steady
+        ? { transform: 'translate3d(12px, 6px, 0)', opacity: '0.5', '--re-flux-frame': '12' }
+        : {
+            transform: `translate3d(${frame}px, ${frame / 2}px, 0)`,
+            opacity: String((frame % 60) / 59),
+            '--re-flux-frame': String(frame),
+          },
+    );
     sourceEmissions += 1;
     frameSamples.push(performance.now() - startedAt);
   }
   const operationsDuringMeasurement = targets.reduce((sum, target) => sum + target.style.operations, 0);
   for (const binding of bindings) binding.unsubscribe();
   source.complete();
-  assert(targets.every((target) => target.style.values.size === 0), 'DOM style bindings must restore the mock targets after cleanup.');
+  assert(
+    targets.every((target) => target.style.values.size === 0),
+    'DOM style bindings must restore the mock targets after cleanup.',
+  );
   return {
-    elapsedMs: round(frameSamples.reduce((sum, value) => sum + value, 0), 3),
+    elapsedMs: round(
+      frameSamples.reduce((sum, value) => sum + value, 0),
+      3,
+    ),
     frameStats: summarizeSamples(frameSamples),
     frameStarts,
     frameSamples,
     sourceEmissions,
     adapterOperations: operationsDuringMeasurement,
     writesPerTargetPerFrame: operationsDuringMeasurement / targetCount / framesToRun,
-    cleanupPassed: bindings.every((binding) => binding.closed) && targets.every((target) => target.style.values.size === 0),
+    cleanupPassed:
+      bindings.every((binding) => binding.closed) && targets.every((target) => target.style.values.size === 0),
   };
 }
 
@@ -170,29 +200,38 @@ function runSvgBinding(targetCount, framesToRun, steady = false) {
   for (let frame = 0; frame < framesToRun; frame += 1) {
     const startedAt = performance.now();
     frameStarts.push(startedAt);
-    source.next(steady
-      ? { transform: 'translate(12 6)', opacity: 0.5, 'data-frame': 12 }
-      : {
-        transform: `translate(${frame} ${frame / 2})`,
-        opacity: (frame % 60) / 59,
-        'data-frame': frame,
-      });
+    source.next(
+      steady
+        ? { transform: 'translate(12 6)', opacity: 0.5, 'data-frame': 12 }
+        : {
+            transform: `translate(${frame} ${frame / 2})`,
+            opacity: (frame % 60) / 59,
+            'data-frame': frame,
+          },
+    );
     sourceEmissions += 1;
     frameSamples.push(performance.now() - startedAt);
   }
   const operationsDuringMeasurement = targets.reduce((sum, target) => sum + target.operations, 0);
   for (const binding of bindings) binding.unsubscribe();
   source.complete();
-  assert(targets.every((target) => target.attributes.size === 0), 'SVG attribute bindings must restore the mock targets after cleanup.');
+  assert(
+    targets.every((target) => target.attributes.size === 0),
+    'SVG attribute bindings must restore the mock targets after cleanup.',
+  );
   return {
-    elapsedMs: round(frameSamples.reduce((sum, value) => sum + value, 0), 3),
+    elapsedMs: round(
+      frameSamples.reduce((sum, value) => sum + value, 0),
+      3,
+    ),
     frameStats: summarizeSamples(frameSamples),
     frameStarts,
     frameSamples,
     sourceEmissions,
     adapterOperations: operationsDuringMeasurement,
     writesPerTargetPerFrame: operationsDuringMeasurement / targetCount / framesToRun,
-    cleanupPassed: bindings.every((binding) => binding.closed) && targets.every((target) => target.attributes.size === 0),
+    cleanupPassed:
+      bindings.every((binding) => binding.closed) && targets.every((target) => target.attributes.size === 0),
   };
 }
 
@@ -201,11 +240,13 @@ function runCanvasBinding(targetCount, framesToRun, emissionsPerFrame) {
   assert.equal(rafCallbacks.size, 0, 'Canvas benchmark scenario must start with no pending RAF callbacks.');
   const source = new Subject();
   const contexts = Array.from({ length: targetCount }, () => new MockCanvasContext());
-  const bindings = contexts.map((context) => bindCanvas(context, source, (targetContext, value, frame) => {
-    const x = value.x + (frame.frame % 3);
-    targetContext.fillRect(x, value.y, 4, 4);
-    adapterSink += x + value.y;
-  }));
+  const bindings = contexts.map((context) =>
+    bindCanvas(context, source, (targetContext, value, frame) => {
+      const x = value.x + (frame.frame % 3);
+      targetContext.fillRect(x, value.y, 4, 4);
+      adapterSink += x + value.y;
+    }),
+  );
   const frameSamples = [];
   const frameStarts = [];
   let sourceEmissions = 0;
@@ -222,7 +263,11 @@ function runCanvasBinding(targetCount, framesToRun, emissionsPerFrame) {
     const callbacksRun = advanceRaf((frame + 1) * frameIntervalMs);
     assert.equal(callbacksRun, 1, 'Canvas targets should share one coordinator RAF callback per frame.');
     frameSamples.push(performance.now() - startedAt);
-    assert.equal(rafCallbacks.size, 0, 'The canvas coordinator should not retain a RAF callback after flushing writes.');
+    assert.equal(
+      rafCallbacks.size,
+      0,
+      'The canvas coordinator should not retain a RAF callback after flushing writes.',
+    );
   }
 
   const drawCallsDuringMeasurement = contexts.reduce((sum, context) => sum + context.drawCalls, 0);
@@ -232,12 +277,22 @@ function runCanvasBinding(targetCount, framesToRun, emissionsPerFrame) {
   frameCoordinator.assertIdle();
 
   const expectedDrawCalls = targetCount * framesToRun;
-  assert.equal(drawCallsDuringMeasurement, expectedDrawCalls, 'Canvas should draw once per target and frame, even when multiple values arrive before the frame.');
-  assert(contexts.every((context) => context.stackDepth === 0), 'Mock Canvas save/restore calls must stay balanced.');
+  assert.equal(
+    drawCallsDuringMeasurement,
+    expectedDrawCalls,
+    'Canvas should draw once per target and frame, even when multiple values arrive before the frame.',
+  );
+  assert(
+    contexts.every((context) => context.stackDepth === 0),
+    'Mock Canvas save/restore calls must stay balanced.',
+  );
   assert.equal(rafCallbacks.size, 0, 'Canvas teardown must leave no pending RAF callbacks.');
 
   return {
-    elapsedMs: round(frameSamples.reduce((sum, value) => sum + value, 0), 3),
+    elapsedMs: round(
+      frameSamples.reduce((sum, value) => sum + value, 0),
+      3,
+    ),
     frameStats: summarizeSamples(frameSamples),
     frameStarts,
     frameSamples,
@@ -305,12 +360,14 @@ try {
           maxFrameMs: result.frameStats.maxMs,
           sourceEmissions: result.sourceEmissions,
           adapterOperations: result.adapterOperations,
-          ...(result.drawCalls === undefined ? {} : {
-            drawCalls: result.drawCalls,
-            expectedDrawCalls: result.expectedDrawCalls,
-            peakPendingRafCallbacks: result.peakPendingRafCallbacks,
-            pendingRafCallbacksAfterCleanup: result.pendingRafCallbacksAfterCleanup,
-          }),
+          ...(result.drawCalls === undefined
+            ? {}
+            : {
+                drawCalls: result.drawCalls,
+                expectedDrawCalls: result.expectedDrawCalls,
+                peakPendingRafCallbacks: result.peakPendingRafCallbacks,
+                pendingRafCallbacksAfterCleanup: result.pendingRafCallbacksAfterCleanup,
+              }),
           cleanupPassed: result.cleanupPassed,
           ...gcRunFields(result),
         })),
@@ -321,7 +378,15 @@ try {
   emitReport({
     benchmark: 're;Flux DOM-style, SVG-attribute and Canvas adapter update workloads',
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
-    configuration: { targetCounts, frameCount, frameIntervalMs: round(frameIntervalMs, 4), warmupRounds, warmupFrames, repeats, canvasBurstEmissions: burstEmissions },
+    configuration: {
+      targetCounts,
+      frameCount,
+      frameIntervalMs: round(frameIntervalMs, 4),
+      warmupRounds,
+      warmupFrames,
+      repeats,
+      canvasBurstEmissions: burstEmissions,
+    },
     harness: harnessInfo(repeats),
     note: 'Targets are lightweight mocks. This measures RxJS binding, value conversion, task scheduling and callback dispatch; it does not measure browser layout, SVG paint or Canvas rasterization.',
     results,

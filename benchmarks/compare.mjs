@@ -52,13 +52,17 @@ export function parseArguments(argv) {
     if (argument === '--allow-runtime-mismatch') options.allowRuntimeMismatch = true;
     else if (argument === '--noise') {
       const value = Number(argv[index + 1]);
-      if (!Number.isFinite(value) || value < 0) throw new RangeError('--noise requires a non-negative number of percent.');
+      if (!Number.isFinite(value) || value < 0)
+        throw new RangeError('--noise requires a non-negative number of percent.');
       options.noisePercent = value;
       index += 1;
     } else if (argument.startsWith('--')) throw new RangeError(`Unknown option ${argument}.`);
     else files.push(argument);
   }
-  if (files.length !== 2) throw new RangeError('Usage: compare.mjs <baseline.json> <candidate.json> [--noise <percent>] [--allow-runtime-mismatch]');
+  if (files.length !== 2)
+    throw new RangeError(
+      'Usage: compare.mjs <baseline.json> <candidate.json> [--noise <percent>] [--allow-runtime-mismatch]',
+    );
   return { baselinePath: files[0], candidatePath: files[1], ...options };
 }
 
@@ -95,7 +99,8 @@ export function extractMetrics(report) {
       if (SKIPPED_KEYS.has(key)) continue;
       if (typeof value === 'number' && Number.isFinite(value)) {
         if (METRICS.has(key)) add(trail, key, value, cvFor(key));
-        else if (key === 'medianMs' && ELAPSED_PARENT.test(parentKey ?? '')) add(trail, 'elapsedMedianMs', value, node.cv);
+        else if (key === 'medianMs' && ELAPSED_PARENT.test(parentKey ?? ''))
+          add(trail, 'elapsedMedianMs', value, node.cv);
       } else if (value !== null && typeof value === 'object') {
         walk(value, GENERIC_KEYS.has(key) || Array.isArray(value) ? trail : [...trail, key], key);
       }
@@ -126,28 +131,59 @@ function format(value) {
  */
 function bandFor(metric, left, right, fallbackPercent, fallbackTailPercent) {
   const floor = isTailMetric(metric) ? TAIL_BAND_FLOOR_PERCENT : BAND_FLOOR_PERCENT;
-  if (left.cv === undefined && right.cv === undefined) return isTailMetric(metric) ? fallbackTailPercent : fallbackPercent;
+  if (left.cv === undefined && right.cv === undefined)
+    return isTailMetric(metric) ? fallbackTailPercent : fallbackPercent;
   return Math.max(floor, 2 * 100 * Math.max(left.cv ?? 0, right.cv ?? 0));
 }
 
-export function compareReports(baseline, candidate, noisePercent = DEFAULT_NOISE_PERCENT, tailNoisePercent = noisePercent) {
+export function compareReports(
+  baseline,
+  candidate,
+  noisePercent = DEFAULT_NOISE_PERCENT,
+  tailNoisePercent = noisePercent,
+) {
   const left = extractMetrics(baseline);
   const right = extractMetrics(candidate);
   const rows = [];
   for (const [key, base] of left) {
     const next = right.get(key);
     if (!next) {
-      rows.push({ ...base, baseline: base.value, candidate: null, deltaPercent: null, bandPercent: null, verdict: 'only in baseline' });
+      rows.push({
+        ...base,
+        baseline: base.value,
+        candidate: null,
+        deltaPercent: null,
+        bandPercent: null,
+        verdict: 'only in baseline',
+      });
       continue;
     }
-    const deltaPercent = base.value === 0 ? (next.value === 0 ? 0 : Infinity) : ((next.value - base.value) / Math.abs(base.value)) * 100;
+    const deltaPercent =
+      base.value === 0 ? (next.value === 0 ? 0 : Infinity) : ((next.value - base.value) / Math.abs(base.value)) * 100;
     const worse = isHigherBetter(base.metric) ? deltaPercent < 0 : deltaPercent > 0;
     const bandPercent = bandFor(base.metric, base, next, noisePercent, tailNoisePercent);
-    const verdict = Math.abs(deltaPercent) <= bandPercent ? 'within noise' : (worse ? 'slower/worse' : 'faster/better');
-    rows.push({ workload: base.workload, metric: base.metric, baseline: base.value, candidate: next.value, deltaPercent, bandPercent, verdict });
+    const verdict = Math.abs(deltaPercent) <= bandPercent ? 'within noise' : worse ? 'slower/worse' : 'faster/better';
+    rows.push({
+      workload: base.workload,
+      metric: base.metric,
+      baseline: base.value,
+      candidate: next.value,
+      deltaPercent,
+      bandPercent,
+      verdict,
+    });
   }
   for (const [key, next] of right) {
-    if (!left.has(key)) rows.push({ workload: next.workload, metric: next.metric, baseline: null, candidate: next.value, deltaPercent: null, bandPercent: null, verdict: 'only in candidate' });
+    if (!left.has(key))
+      rows.push({
+        workload: next.workload,
+        metric: next.metric,
+        baseline: null,
+        candidate: next.value,
+        deltaPercent: null,
+        bandPercent: null,
+        verdict: 'only in candidate',
+      });
   }
   return rows;
 }
@@ -159,7 +195,9 @@ function renderTable(rows) {
     row.metric,
     row.baseline === null ? '—' : format(row.baseline),
     row.candidate === null ? '—' : format(row.candidate),
-    row.deltaPercent === null ? '—' : `${row.deltaPercent >= 0 ? '+' : ''}${Number.isFinite(row.deltaPercent) ? row.deltaPercent.toFixed(2) : '∞'}%`,
+    row.deltaPercent === null
+      ? '—'
+      : `${row.deltaPercent >= 0 ? '+' : ''}${Number.isFinite(row.deltaPercent) ? row.deltaPercent.toFixed(2) : '∞'}%`,
     row.bandPercent === null ? '—' : `±${row.bandPercent.toFixed(1)}%`,
     row.verdict,
   ]);
@@ -183,19 +221,30 @@ function main() {
   const candidateRuntime = runtimeOf(candidate);
   const mismatch = baselineRuntime !== candidateRuntime;
   if (mismatch) {
-    process.stderr.write(`WARNING: runtimes differ — baseline ${baselineRuntime ?? 'unknown'} vs candidate ${candidateRuntime ?? 'unknown'}. These numbers are not comparable.\n`);
+    process.stderr.write(
+      `WARNING: runtimes differ — baseline ${baselineRuntime ?? 'unknown'} vs candidate ${candidateRuntime ?? 'unknown'}. These numbers are not comparable.\n`,
+    );
     if (!args.allowRuntimeMismatch) {
-      process.stderr.write('Refusing to compare (exit 2). Re-run on the baseline machine/Node version or pass --allow-runtime-mismatch.\n');
+      process.stderr.write(
+        'Refusing to compare (exit 2). Re-run on the baseline machine/Node version or pass --allow-runtime-mismatch.\n',
+      );
       process.exit(2);
     }
   }
 
-  for (const [label, report] of [['baseline', baseline], ['candidate', candidate]]) {
+  for (const [label, report] of [
+    ['baseline', baseline],
+    ['candidate', candidate],
+  ]) {
     const system = report.harness?.system;
     if (system === undefined) {
-      process.stderr.write(`NOTE: the ${label} report has no machine-load record (recorded before load tracking existed); its timings may have been measured on a busy machine.\n`);
+      process.stderr.write(
+        `NOTE: the ${label} report has no machine-load record (recorded before load tracking existed); its timings may have been measured on a busy machine.\n`,
+      );
     } else if (system.atStart?.busy || system.atEnd?.busy) {
-      process.stderr.write(`WARNING: the ${label} report was recorded on a busy machine (load per core ${system.atStart?.loadPerCore} at start, ${system.atEnd?.loadPerCore} at end; threshold ${system.busyThresholdLoadPerCore}). Do not draw conclusions from it.\n`);
+      process.stderr.write(
+        `WARNING: the ${label} report was recorded on a busy machine (load per core ${system.atStart?.loadPerCore} at start, ${system.atEnd?.loadPerCore} at end; threshold ${system.busyThresholdLoadPerCore}). Do not draw conclusions from it.\n`,
+      );
     }
   }
 
@@ -204,7 +253,9 @@ function main() {
   const rows = compareReports(baseline, candidate, noise, tailNoise);
   process.stdout.write(`Baseline : ${args.baselinePath} (${baselineRuntime ?? 'unknown runtime'})\n`);
   process.stdout.write(`Candidate: ${args.candidatePath} (${candidateRuntime ?? 'unknown runtime'})\n`);
-  process.stdout.write(`Fallback noise band: ±${noise}% for means/elapsed, ±${tailNoise}% for tail metrics, used for rows whose report recorded no variability (${args.noisePercent !== null ? 'from --noise' : candidate.noise?.thresholdPercent !== undefined ? 'from the report' : 'default'}). Rows with recorded run-to-run variability use their own band: twice the larger coefficient of variation, floors 5% / 10%. Benchmarks are descriptive and never gate CI.\n\n`);
+  process.stdout.write(
+    `Fallback noise band: ±${noise}% for means/elapsed, ±${tailNoise}% for tail metrics, used for rows whose report recorded no variability (${args.noisePercent !== null ? 'from --noise' : candidate.noise?.thresholdPercent !== undefined ? 'from the report' : 'default'}). Rows with recorded run-to-run variability use their own band: twice the larger coefficient of variation, floors 5% / 10%. Benchmarks are descriptive and never gate CI.\n\n`,
+  );
   process.stdout.write(`${renderTable(rows)}\n`);
 }
 

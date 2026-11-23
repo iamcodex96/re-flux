@@ -38,9 +38,18 @@ export function drawFrequencyBars(
     throw new RangeError('Frequency bar count must be an integer from 1 to 256.');
   }
   if (barCount > values.length) throw new RangeError('Frequency bar count cannot exceed the supplied data length.');
-  if (!Number.isFinite(gap) || gap < 0 || !Number.isFinite(maxHeight) || maxHeight < 0
-    || !Number.isFinite(minHeight) || minHeight < 0 || minHeight > maxHeight) {
-    throw new RangeError('Frequency bar dimensions must be finite, non-negative, and minHeight must not exceed maxHeight.');
+  if (
+    !Number.isFinite(gap) ||
+    gap < 0 ||
+    !Number.isFinite(maxHeight) ||
+    maxHeight < 0 ||
+    !Number.isFinite(minHeight) ||
+    minHeight < 0 ||
+    minHeight > maxHeight
+  ) {
+    throw new RangeError(
+      'Frequency bar dimensions must be finite, non-negative, and minHeight must not exceed maxHeight.',
+    );
   }
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
@@ -54,9 +63,8 @@ export function drawFrequencyBars(
   context.save();
   try {
     for (let index = 0; index < barCount; index += 1) {
-       
-      const start = Math.floor(index * values.length / barCount);
-      const end = Math.max(start + 1, Math.floor((index + 1) * values.length / barCount));
+      const start = Math.floor((index * values.length) / barCount);
+      const end = Math.max(start + 1, Math.floor(((index + 1) * values.length) / barCount));
       let total = 0;
       for (let bin = start; bin < Math.min(values.length, end); bin += 1) total += values[bin] ?? 0;
       const average = total / Math.max(1, Math.min(values.length, end) - start);
@@ -70,8 +78,6 @@ export function drawFrequencyBars(
     context.restore();
   }
 }
-
-
 
 function validateSize(size: CanvasEffectSize): void {
   if (!Number.isFinite(size.width) || !Number.isFinite(size.height) || size.width < 0 || size.height < 0) {

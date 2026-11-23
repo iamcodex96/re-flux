@@ -60,7 +60,11 @@ function runShared(observeMetrics, framesToRun) {
   let callbackCount = 0;
   let peakRafCallbacks = 0;
   for (let index = 0; index < consumerCount; index += 1) {
-    subscriptions.push(coordinator.frames$.subscribe(() => { callbackCount += 1; }));
+    subscriptions.push(
+      coordinator.frames$.subscribe(() => {
+        callbackCount += 1;
+      }),
+    );
   }
 
   const frameSamples = [];
@@ -102,7 +106,11 @@ function runIndependent(framesToRun) {
   let callbackCount = 0;
   let peakRafCallbacks = 0;
   for (let index = 0; index < consumerCount; index += 1) {
-    subscriptions.push(createAnimationFrameObservable().subscribe(() => { callbackCount += 1; }));
+    subscriptions.push(
+      createAnimationFrameObservable().subscribe(() => {
+        callbackCount += 1;
+      }),
+    );
   }
 
   const frameSamples = [];
@@ -114,7 +122,11 @@ function runIndependent(framesToRun) {
     frameStarts.push(frameStartedAt);
     const callbackBatchSize = advance(frame * frameIntervalMs);
     frameSamples.push(performance.now() - frameStartedAt);
-    assert.equal(callbackBatchSize, consumerCount, 'Each independent observable should schedule one callback per consumer.');
+    assert.equal(
+      callbackBatchSize,
+      consumerCount,
+      'Each independent observable should schedule one callback per consumer.',
+    );
   }
   const elapsedMs = performance.now() - startedAt;
 
@@ -189,28 +201,44 @@ try {
   const sharedMedian = byMode['shared-without-metrics'].summary.elapsedMs.medianMs;
   const observedMedian = byMode['shared-with-metrics'].summary.elapsedMs.medianMs;
   const independentMedian = byMode['independent-raf-per-consumer'].summary.elapsedMs.medianMs;
-  const pairedMetricsDeltas = observations['shared-with-metrics'].map(({ repetition, result }, index) => {
-    const unobserved = observations['shared-without-metrics'].find((entry) => entry.repetition === repetition)?.result;
-    return unobserved ? { repetition, deltaMs: round(result.elapsedMs - unobserved.elapsedMs, 4) } : null;
-  }).filter(Boolean);
+  const pairedMetricsDeltas = observations['shared-with-metrics']
+    .map(({ repetition, result }, index) => {
+      const unobserved = observations['shared-without-metrics'].find(
+        (entry) => entry.repetition === repetition,
+      )?.result;
+      return unobserved ? { repetition, deltaMs: round(result.elapsedMs - unobserved.elapsedMs, 4) } : null;
+    })
+    .filter(Boolean);
 
   emitReport({
     benchmark: 're;Flux FrameCoordinator vs independent RAF observables',
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
-    configuration: { consumerCount, frameCount, frameIntervalMs: round(frameIntervalMs, 4), warmupRounds, warmupFrameCount, repeats },
+    configuration: {
+      consumerCount,
+      frameCount,
+      frameIntervalMs: round(frameIntervalMs, 4),
+      warmupRounds,
+      warmupFrameCount,
+      repeats,
+    },
     harness: harnessInfo(repeats),
     comparison: {
       sharedSpeedupVsIndependent: sharedMedian > 0 ? round(independentMedian / sharedMedian, 3) : null,
       observedVsUnobservedElapsedDeltaMs: round(observedMedian - sharedMedian, 4),
-      observedVsUnobservedElapsedDeltaPercent: sharedMedian > 0 ? round(((observedMedian - sharedMedian) / sharedMedian) * 100, 2) : null,
+      observedVsUnobservedElapsedDeltaPercent:
+        sharedMedian > 0 ? round(((observedMedian - sharedMedian) / sharedMedian) * 100, 2) : null,
       pairedElapsedDeltasMs: pairedMetricsDeltas,
-      medianPairedElapsedDeltaMs: round(pairedMetricsDeltas.length ? median(pairedMetricsDeltas.map((entry) => entry.deltaMs)) : 0, 4),
+      medianPairedElapsedDeltaMs: round(
+        pairedMetricsDeltas.length ? median(pairedMetricsDeltas.map((entry) => entry.deltaMs)) : 0,
+        4,
+      ),
       classification: classifyDelta(
         sharedMedian > 0 ? ((observedMedian - sharedMedian) / sharedMedian) * 100 : null,
         byMode['shared-without-metrics'].summary.elapsedMs.cv,
         byMode['shared-with-metrics'].summary.elapsedMs.cv,
       ),
-      interpretation: 'Deltas include run-to-run variance and metrics-observer work; compare repeated results on the same machine. `classification` says whether the observed-vs-unobserved difference is inside the measured noise band.',
+      interpretation:
+        'Deltas include run-to-run variance and metrics-observer work; compare repeated results on the same machine. `classification` says whether the observed-vs-unobserved difference is inside the measured noise band.',
     },
     note: 'Timings are descriptive, not pass/fail thresholds. Setup and teardown are outside the timed frame loop.',
     results,

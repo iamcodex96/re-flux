@@ -1,5 +1,14 @@
 import type { ValueInterpolator } from '../types/values.js';
-import { compileColorMix, compileNumericTemplate, formatNumber, formatRgba, mixRgba, parseColor, renderNumericTemplate, tokenizeNumbers } from '../utils/valueTemplate.js';
+import {
+  compileColorMix,
+  compileNumericTemplate,
+  formatNumber,
+  formatRgba,
+  mixRgba,
+  parseColor,
+  renderNumericTemplate,
+  tokenizeNumbers,
+} from '../utils/valueTemplate.js';
 
 type AnyRecord = Record<string, unknown>;
 
@@ -40,8 +49,10 @@ function canInterpolate(from: unknown, to: unknown): boolean {
   if (isPlainRecord(from) && isPlainRecord(to)) {
     const fromKeys = Object.keys(from);
     const toKeys = Object.keys(to);
-    return fromKeys.length === toKeys.length && fromKeys.every((key) =>
-      Object.prototype.hasOwnProperty.call(to, key) && canInterpolate(from[key], to[key]));
+    return (
+      fromKeys.length === toKeys.length &&
+      fromKeys.every((key) => Object.prototype.hasOwnProperty.call(to, key) && canInterpolate(from[key], to[key]))
+    );
   }
   return Object.is(from, to);
 }
@@ -56,19 +67,22 @@ type CompiledInterpolator = (start: unknown, end: unknown, progress: number) => 
  */
 function compile(from: unknown, to: unknown): CompiledInterpolator {
   if (typeof from === 'number' && typeof to === 'number') {
-    return (start, end, progress) => typeof start === 'number' && typeof end === 'number'
-      ? start + (end - start) * progress
-      : interpolateValue(start, end, progress);
+    return (start, end, progress) =>
+      typeof start === 'number' && typeof end === 'number'
+        ? start + (end - start) * progress
+        : interpolateValue(start, end, progress);
   }
   if (typeof from === 'string' && typeof to === 'string') {
     const fromColor = parseColor(from);
     const toColor = parseColor(to);
     if (fromColor && toColor) {
       const render = compileColorMix(fromColor, toColor);
-      return (start, end, progress) => start === from && end === to ? render(progress) : interpolateValue(start, end, progress);
+      return (start, end, progress) =>
+        start === from && end === to ? render(progress) : interpolateValue(start, end, progress);
     }
     const render = compileNumericTemplate(tokenizeNumbers(from), tokenizeNumbers(to));
-    return (start, end, progress) => start === from && end === to ? render(progress) : interpolateValue(start, end, progress);
+    return (start, end, progress) =>
+      start === from && end === to ? render(progress) : interpolateValue(start, end, progress);
   }
   if (Array.isArray(from) && Array.isArray(to)) {
     const children = from.map((value, index) => compile(value, to[index]));
@@ -78,7 +92,8 @@ function compile(from: unknown, to: unknown): CompiledInterpolator {
         return interpolateValue(start, end, progress);
       }
       const result = new Array<unknown>(count);
-      for (let index = 0; index < count; index += 1) result[index] = children[index]!(start[index], end[index], progress);
+      for (let index = 0; index < count; index += 1)
+        result[index] = children[index]!(start[index], end[index], progress);
       return result;
     };
   }

@@ -15,7 +15,12 @@ describe('Given steering integration', () => {
 
     it('Then it caps speed and optionally caps unusually large frame deltas', () => {
       expect(stepSteeringAgent(stationary, { x: 100, y: 0 }, 1, { maxSpeed: 5 })).toEqual({ x: 5, y: 0, vx: 5, vy: 0 });
-      expect(stepSteeringAgent(stationary, { x: 10, y: 0 }, 1, { maxDeltaSeconds: 0.1 })).toEqual({ x: 0.1, y: 0, vx: 1, vy: 0 });
+      expect(stepSteeringAgent(stationary, { x: 10, y: 0 }, 1, { maxDeltaSeconds: 0.1 })).toEqual({
+        x: 0.1,
+        y: 0,
+        vx: 1,
+        vy: 0,
+      });
     });
 
     it('Then exponential damping produces equivalent final velocity for split and unsplit time steps', () => {

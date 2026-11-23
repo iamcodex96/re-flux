@@ -198,8 +198,16 @@ describe('Given Animation public contracts', () => {
     describe('And When an Animation plays', () => {
       it('Then completion rejects and no active clock remains', async () => {
         // Given: the browser frame APIs are unavailable in this environment.
-        Object.defineProperty(globalThis, 'requestAnimationFrame', { configurable: true, writable: true, value: undefined });
-        Object.defineProperty(globalThis, 'cancelAnimationFrame', { configurable: true, writable: true, value: undefined });
+        Object.defineProperty(globalThis, 'requestAnimationFrame', {
+          configurable: true,
+          writable: true,
+          value: undefined,
+        });
+        Object.defineProperty(globalThis, 'cancelAnimationFrame', {
+          configurable: true,
+          writable: true,
+          value: undefined,
+        });
         const animation = new Animation({ duration: 100 });
         const completion = animation.toPromise();
 
@@ -234,7 +242,6 @@ describe('Given Animation public contracts', () => {
     });
   });
 
-
   describe('When an idle animation receives a non-finite seek time', () => {
     describe('And When the playhead is set to NaN or Infinity', () => {
       it('Then it normalizes the playhead to zero without starting playback', () => {
@@ -252,5 +259,4 @@ describe('Given Animation public contracts', () => {
       });
     });
   });
-
 });

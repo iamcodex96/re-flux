@@ -1,6 +1,13 @@
 import { Animation } from '../dist/core/Animation.js';
 import { Keyframes } from '../dist/values/Keyframes.js';
-import { consume, createSequence, emitReport, harnessInfo, measureMicroCases, microSettings } from './benchmark-utils.mjs';
+import {
+  consume,
+  createSequence,
+  emitReport,
+  harnessInfo,
+  measureMicroCases,
+  microSettings,
+} from './benchmark-utils.mjs';
 
 /**
  * Per-frame cost of `Keyframes` (segment lookup, easing resolution, interpolation, publishing) driven through
@@ -13,7 +20,9 @@ const DURATION = 1000;
 function makeFrames(count, easing) {
   return Array.from({ length: count }, (_, index) => ({
     value: index * 10,
-    ...(easing === 'per-segment' && index < count - 1 ? { easing: index % 2 === 0 ? 'easeInQuad' : 'easeOutCubic' } : {}),
+    ...(easing === 'per-segment' && index < count - 1
+      ? { easing: index % 2 === 0 ? 'easeInQuad' : 'easeOutCubic' }
+      : {}),
   }));
 }
 
@@ -32,7 +41,10 @@ const cases = [
     name: 'keyframes › animation-only (reference)',
     group: 'reference',
     prepare: () => new Animation({ duration: DURATION }),
-    op: (index, animation) => { animation.seek(forward(index)); return animation.progress$.value + 1; },
+    op: (index, animation) => {
+      animation.seek(forward(index));
+      return animation.progress$.value + 1;
+    },
   },
 ];
 
@@ -45,14 +57,20 @@ for (const frames of [2, 5, 20, 100]) {
       name: `keyframes › ${frames}-frames › ${easing} › forward`,
       group: 'forward',
       prepare: () => new Keyframes(makeOptions(frames, easing)),
-      op: (index, sequence) => { sequence.seek(forward(index)); return consume(sequence.value$.value) + 1; },
+      op: (index, sequence) => {
+        sequence.seek(forward(index));
+        return consume(sequence.value$.value) + 1;
+      },
     });
   }
   cases.push({
     name: `keyframes › ${frames}-frames › linear › scrub`,
     group: 'scrub',
     prepare: () => ({ sequence: new Keyframes(makeOptions(frames, 'linear')), random: createSequence(frames) }),
-    op: (_index, context) => { context.sequence.seek(context.random() * DURATION); return consume(context.sequence.value$.value) + 1; },
+    op: (_index, context) => {
+      context.sequence.seek(context.random() * DURATION);
+      return consume(context.sequence.value$.value) + 1;
+    },
   });
 }
 

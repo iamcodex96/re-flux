@@ -10,7 +10,11 @@ type ValueAnimation = Tween<number> | Keyframes<number>;
 
 const factories: ReadonlyArray<readonly [string, () => ValueAnimation, number]> = [
   ['Tween', () => new Tween({ from: 5, to: 50, duration: 100, delay: 10, repeat: 2 }), 5],
-  ['Keyframes', () => new Keyframes({ keyframes: [{ value: 5 }, { value: 50 }], duration: 100, delay: 10, repeat: 2 }), 5],
+  [
+    'Keyframes',
+    () => new Keyframes({ keyframes: [{ value: 5 }, { value: 50 }], duration: 100, delay: 10, repeat: 2 }),
+    5,
+  ],
 ];
 
 beforeEach(() => raf.install());
@@ -21,15 +25,18 @@ afterEach(() => {
 
 describe.each(factories)('Given a %s built on the shared value-animation shell', (_name, create, initialValue) => {
   describe('When a control method is called', () => {
-    it.each(['play', 'pause', 'stop', 'restart'] as const)('Then %s() forwards to the Animation once and returns the instance', (method) => {
-      const item = create();
-      const spy = jest.spyOn(Animation.prototype, method);
+    it.each(['play', 'pause', 'stop', 'restart'] as const)(
+      'Then %s() forwards to the Animation once and returns the instance',
+      (method) => {
+        const item = create();
+        const spy = jest.spyOn(Animation.prototype, method);
 
-      expect(item[method]()).toBe(item);
-      expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy.mock.instances[0]).not.toBe(item);
-      item.stop();
-    });
+        expect(item[method]()).toBe(item);
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy.mock.instances[0]).not.toBe(item);
+        item.stop();
+      },
+    );
 
     it('Then seek() forwards its argument and returns the instance', () => {
       const item = create();
@@ -70,10 +77,20 @@ describe.each(factories)('Given a %s built on the shared value-animation shell',
       const item = create();
       item.seekLocal(60);
       const order: string[] = [];
-      item.value$.subscribe({ next: (value) => { if (value === initialValue) order.push('value'); } });
+      item.value$.subscribe({
+        next: (value) => {
+          if (value === initialValue) order.push('value');
+        },
+      });
       order.length = 0;
-      jest.spyOn(Animation.prototype, 'stop').mockImplementation(function stubStop(this: Animation) { order.push('stop'); return this; });
-      jest.spyOn(Animation.prototype, 'restart').mockImplementation(function stubRestart(this: Animation) { order.push('restart'); return this; });
+      jest.spyOn(Animation.prototype, 'stop').mockImplementation(function stubStop(this: Animation) {
+        order.push('stop');
+        return this;
+      });
+      jest.spyOn(Animation.prototype, 'restart').mockImplementation(function stubRestart(this: Animation) {
+        order.push('restart');
+        return this;
+      });
 
       item.stop();
       expect(order).toEqual(['stop', 'value']);
@@ -88,9 +105,15 @@ describe.each(factories)('Given a %s built on the shared value-animation shell',
       const item = create();
       item.seekLocal(60);
       const order: string[] = [];
-      item.value$.subscribe({ next: (value) => { if (value === initialValue) order.push('value'); } });
+      item.value$.subscribe({
+        next: (value) => {
+          if (value === initialValue) order.push('value');
+        },
+      });
       order.length = 0;
-      jest.spyOn(Animation.prototype, 'resetInternal').mockImplementation(() => { order.push('reset'); });
+      jest.spyOn(Animation.prototype, 'resetInternal').mockImplementation(() => {
+        order.push('reset');
+      });
 
       item.resetInternal();
       expect(order).toEqual(['reset', 'value']);

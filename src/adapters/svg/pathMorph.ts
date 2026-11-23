@@ -1,5 +1,10 @@
 import { Subscription, type Observable } from 'rxjs';
-import { NUMERIC_TOKEN_SOURCE, compileNumericTemplateJoined, formatNumber, tokenizeNumbers } from '../../utils/valueTemplate.js';
+import {
+  NUMERIC_TOKEN_SOURCE,
+  compileNumericTemplateJoined,
+  formatNumber,
+  tokenizeNumbers,
+} from '../../utils/valueTemplate.js';
 
 interface Point {
   readonly x: number;
@@ -48,7 +53,16 @@ const MAX_PATH_LENGTH = 100_000;
 const MAX_SOURCE_SEGMENTS_PER_SUBPATH = 2_048;
 const MAX_SUBPATHS = 64;
 const COMMAND_ARGUMENTS: Readonly<Record<string, number>> = {
-  M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0,
+  M: 2,
+  L: 2,
+  H: 1,
+  V: 1,
+  C: 6,
+  S: 4,
+  Q: 4,
+  T: 2,
+  A: 7,
+  Z: 0,
 };
 
 function point(x: number, y: number): Point {
@@ -126,7 +140,7 @@ function splitCubic(segment: CubicSegment): readonly [CubicSegment, CubicSegment
 function approximateLength(segment: CubicSegment): number {
   let length = 0;
   let previous = segment.p0;
-   
+
   for (let index = 1; index <= 16; index += 1) {
     const current = cubicPoint(segment, index / 16);
     length += distance(previous, current);
@@ -152,7 +166,7 @@ function arcAsCubics(
   if (samePoint(from, to)) return [];
   if (rx <= EPSILON || ry <= EPSILON) return [lineAsCubic(from, to)];
 
-  const phi = (rotationDegrees % 360) * Math.PI / 180;
+  const phi = ((rotationDegrees % 360) * Math.PI) / 180;
   const cosPhi = Math.cos(phi);
   const sinPhi = Math.sin(phi);
   const dx = (from.x - to.x) / 2;
@@ -175,8 +189,8 @@ function arcAsCubics(
   const numerator = Math.max(0, rx2 * ry2 - rx2 * yPrime2 - ry2 * xPrime2);
   const sign = largeArcFlag === sweepFlag ? -1 : 1;
   const coefficient = denominator <= EPSILON ? 0 : sign * Math.sqrt(numerator / denominator);
-  const cxPrime = coefficient * (rx * yPrime / ry);
-  const cyPrime = coefficient * (-ry * xPrime / rx);
+  const cxPrime = coefficient * ((rx * yPrime) / ry);
+  const cyPrime = coefficient * ((-ry * xPrime) / rx);
   const center = point(
     cosPhi * cxPrime - sinPhi * cyPrime + (from.x + to.x) / 2,
     sinPhi * cxPrime + cosPhi * cyPrime + (from.y + to.y) / 2,
@@ -202,14 +216,16 @@ function arcAsCubics(
 
   const count = Math.max(1, Math.ceil(Math.abs(deltaAngle) / (Math.PI / 2)));
   const step = deltaAngle / count;
-  const mapEllipse = (angle: number): Point => point(
-    center.x + rx * Math.cos(angle) * cosPhi - ry * Math.sin(angle) * sinPhi,
-    center.y + rx * Math.cos(angle) * sinPhi + ry * Math.sin(angle) * cosPhi,
-  );
-  const derivative = (angle: number): Point => point(
-    -rx * Math.sin(angle) * cosPhi - ry * Math.cos(angle) * sinPhi,
-    -rx * Math.sin(angle) * sinPhi + ry * Math.cos(angle) * cosPhi,
-  );
+  const mapEllipse = (angle: number): Point =>
+    point(
+      center.x + rx * Math.cos(angle) * cosPhi - ry * Math.sin(angle) * sinPhi,
+      center.y + rx * Math.cos(angle) * sinPhi + ry * Math.sin(angle) * cosPhi,
+    );
+  const derivative = (angle: number): Point =>
+    point(
+      -rx * Math.sin(angle) * cosPhi - ry * Math.cos(angle) * sinPhi,
+      -rx * Math.sin(angle) * sinPhi + ry * Math.cos(angle) * cosPhi,
+    );
 
   const segments: CubicSegment[] = [];
   for (let index = 0; index < count; index += 1) {
@@ -231,14 +247,18 @@ function arcAsCubics(
 }
 
 function tokenizePath(path: string): string[] {
-  if (typeof path !== 'string' || path.trim().length === 0) throw new TypeError('SVG path data must be a non-empty string.');
-  if (path.length > MAX_PATH_LENGTH) throw new RangeError(`SVG path data must not exceed ${MAX_PATH_LENGTH} characters.`);
+  if (typeof path !== 'string' || path.trim().length === 0)
+    throw new TypeError('SVG path data must be a non-empty string.');
+  if (path.length > MAX_PATH_LENGTH)
+    throw new RangeError(`SVG path data must not exceed ${MAX_PATH_LENGTH} characters.`);
   const tokens = path.match(TOKEN_PATTERN) ?? [];
   const compact = path.replace(/[\s,]+/g, '');
   if (tokens.join('') !== compact) throw new TypeError('SVG path data contains unsupported or malformed tokens.');
   for (const token of tokens) {
     if (/^[a-zA-Z]$/.test(token) && !(token.toUpperCase() in COMMAND_ARGUMENTS)) {
-      throw new TypeError(`Unsupported SVG path command "${token}". Supported commands are M, L, H, V, C, S, Q, T, A and Z.`);
+      throw new TypeError(
+        `Unsupported SVG path command "${token}". Supported commands are M, L, H, V, C, S, Q, T, A and Z.`,
+      );
     }
   }
   return tokens;
@@ -258,7 +278,8 @@ function parsePath(path: string): ParsedPath {
   const hasNumber = (): boolean => index < tokens.length && !/^[a-zA-Z]$/.test(tokens[index] ?? '');
   const readNumber = (): number => {
     const token = tokens[index];
-    if (token === undefined || /^[a-zA-Z]$/.test(token)) throw new TypeError(`SVG command ${command ?? ''} is missing a numeric parameter.`);
+    if (token === undefined || /^[a-zA-Z]$/.test(token))
+      throw new TypeError(`SVG command ${command ?? ''} is missing a numeric parameter.`);
     index += 1;
     const value = Number(token);
     if (!Number.isFinite(value)) throw new TypeError('SVG path coordinates must be finite numbers.');
@@ -271,7 +292,7 @@ function parsePath(path: string): ParsedPath {
       index += 1;
       return Number(token);
     }
-     
+
     if (token.startsWith('0') || token.startsWith('1')) {
       const flag = token[0];
       const remaining = token.slice(1);
@@ -285,7 +306,8 @@ function parsePath(path: string): ParsedPath {
     if (!subpath) throw new TypeError('SVG path must begin with a move-to command (M).');
     return subpath;
   };
-  const absolutePoint = (x: number, y: number, relative: boolean): Point => relative ? point(current.x + x, current.y + y) : point(x, y);
+  const absolutePoint = (x: number, y: number, relative: boolean): Point =>
+    relative ? point(current.x + x, current.y + y) : point(x, y);
   const append = (segment: CubicSegment): void => {
     const active = requireSubpath();
     active.segments.push(segment);
@@ -332,7 +354,8 @@ function parsePath(path: string): ParsedPath {
         if (firstMovePair) {
           subpath = { start: next, segments: [], closed: false };
           subpaths.push(subpath);
-          if (subpaths.length > MAX_SUBPATHS) throw new RangeError(`SVG path must not exceed ${MAX_SUBPATHS} subpaths.`);
+          if (subpaths.length > MAX_SUBPATHS)
+            throw new RangeError(`SVG path must not exceed ${MAX_SUBPATHS} subpaths.`);
           current = next;
           firstMovePair = false;
           previousCommand = 'M';
@@ -373,9 +396,12 @@ function parsePath(path: string): ParsedPath {
           break;
         }
         case 'C': {
-          const x1 = readNumber(); const y1 = readNumber();
-          const x2 = readNumber(); const y2 = readNumber();
-          const x = readNumber(); const y = readNumber();
+          const x1 = readNumber();
+          const y1 = readNumber();
+          const x2 = readNumber();
+          const y2 = readNumber();
+          const x = readNumber();
+          const y = readNumber();
           const c1 = absolutePoint(x1, y1, relative);
           const c2 = absolutePoint(x2, y2, relative);
           const end = absolutePoint(x, y, relative);
@@ -386,11 +412,14 @@ function parsePath(path: string): ParsedPath {
           break;
         }
         case 'S': {
-          const x2 = readNumber(); const y2 = readNumber();
-          const x = readNumber(); const y = readNumber();
-          const c1 = previousCommand === 'C' || previousCommand === 'S'
-            ? subtract(scale(current, 2), previousCubicControl ?? current)
-            : current;
+          const x2 = readNumber();
+          const y2 = readNumber();
+          const x = readNumber();
+          const y = readNumber();
+          const c1 =
+            previousCommand === 'C' || previousCommand === 'S'
+              ? subtract(scale(current, 2), previousCubicControl ?? current)
+              : current;
           const c2 = absolutePoint(x2, y2, relative);
           const end = absolutePoint(x, y, relative);
           append({ p0: current, c1, c2, p3: end });
@@ -400,8 +429,10 @@ function parsePath(path: string): ParsedPath {
           break;
         }
         case 'Q': {
-          const x1 = readNumber(); const y1 = readNumber();
-          const x = readNumber(); const y = readNumber();
+          const x1 = readNumber();
+          const y1 = readNumber();
+          const x = readNumber();
+          const y = readNumber();
           const control = absolutePoint(x1, y1, relative);
           const end = absolutePoint(x, y, relative);
           append(quadraticAsCubic(current, control, end));
@@ -411,10 +442,12 @@ function parsePath(path: string): ParsedPath {
           break;
         }
         case 'T': {
-          const x = readNumber(); const y = readNumber();
-          const control: Point = previousCommand === 'Q' || previousCommand === 'T'
-            ? subtract(scale(current, 2), previousQuadraticControl ?? current)
-            : current;
+          const x = readNumber();
+          const y = readNumber();
+          const control: Point =
+            previousCommand === 'Q' || previousCommand === 'T'
+              ? subtract(scale(current, 2), previousQuadraticControl ?? current)
+              : current;
           const end = absolutePoint(x, y, relative);
           append(quadraticAsCubic(current, control, end));
           previousQuadraticControl = control;
@@ -423,9 +456,13 @@ function parsePath(path: string): ParsedPath {
           break;
         }
         case 'A': {
-          const rx = readNumber(); const ry = readNumber(); const rotation = readNumber();
-          const largeArcFlag = readArcFlag(); const sweepFlag = readArcFlag();
-          const x = readNumber(); const y = readNumber();
+          const rx = readNumber();
+          const ry = readNumber();
+          const rotation = readNumber();
+          const largeArcFlag = readArcFlag();
+          const sweepFlag = readArcFlag();
+          const x = readNumber();
+          const y = readNumber();
           const end = absolutePoint(x, y, relative);
           const segments = arcAsCubics(current, rx, ry, rotation, largeArcFlag, sweepFlag, end);
           for (const segment of segments) append(segment);
@@ -437,13 +474,13 @@ function parsePath(path: string): ParsedPath {
         default:
           throw new TypeError(`Unsupported SVG path command "${command}".`);
       }
-
     }
   }
 
   if (subpaths.length === 0) throw new TypeError('SVG path must contain at least one move-to command.');
   for (const candidate of subpaths) {
-    if (candidate.segments.length === 0) throw new TypeError('SVG path subpaths must contain at least one drawable segment.');
+    if (candidate.segments.length === 0)
+      throw new TypeError('SVG path subpaths must contain at least one drawable segment.');
   }
   return { subpaths };
 }
@@ -495,7 +532,7 @@ function contourAlignmentCost(from: readonly CubicSegment[], to: readonly CubicS
 function alignClosedContour(from: readonly CubicSegment[], to: readonly CubicSegment[]): CubicSegment[] {
   let best = [...to];
   let bestCost = Number.POSITIVE_INFINITY;
-  const candidates = [ [...to], reverseClosedContour(to) ];
+  const candidates = [[...to], reverseClosedContour(to)];
   for (const candidate of candidates) {
     for (let offset = 0; offset < candidate.length; offset += 1) {
       const rotated = rotateSegments(candidate, offset);
@@ -556,19 +593,30 @@ export function normalizeSvgPathPair(
 
     const segmentCount = Math.max(source.segments.length, destination.segments.length);
     if (segmentCount > maxSegments) {
-      throw new RangeError(`SVG subpath ${index + 1} needs ${segmentCount} segments, exceeding maxSegmentsPerSubpath (${maxSegments}).`);
+      throw new RangeError(
+        `SVG subpath ${index + 1} needs ${segmentCount} segments, exceeding maxSegmentsPerSubpath (${maxSegments}).`,
+      );
     }
     const sourceSegments = [...source.segments];
     const destinationSegments = [...destination.segments];
     while (sourceSegments.length < segmentCount) splitLongestSegment(sourceSegments);
     while (destinationSegments.length < segmentCount) splitLongestSegment(destinationSegments);
 
-    const alignedDestination = source.closed && alignClosedContours
-      ? alignClosedContour(sourceSegments, destinationSegments)
-      : destinationSegments;
+    const alignedDestination =
+      source.closed && alignClosedContours
+        ? alignClosedContour(sourceSegments, destinationSegments)
+        : destinationSegments;
 
-    normalizedFrom.push({ start: sourceSegments[0]?.p0 ?? source.start, segments: sourceSegments, closed: source.closed });
-    normalizedTo.push({ start: alignedDestination[0]?.p0 ?? destination.start, segments: alignedDestination, closed: destination.closed });
+    normalizedFrom.push({
+      start: sourceSegments[0]?.p0 ?? source.start,
+      segments: sourceSegments,
+      closed: source.closed,
+    });
+    normalizedTo.push({
+      start: alignedDestination[0]?.p0 ?? destination.start,
+      segments: alignedDestination,
+      closed: destination.closed,
+    });
     segmentCounts.push(segmentCount);
   }
 

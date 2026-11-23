@@ -36,9 +36,7 @@ export function resolveLocaleReferences(locale) {
     }
 
     if (value && typeof value === 'object') {
-      return Object.fromEntries(
-        Object.entries(value).map(([key, item]) => [key, resolve(item, activeReferences)]),
-      );
+      return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, resolve(item, activeReferences)]));
     }
 
     return value;

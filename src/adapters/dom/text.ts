@@ -23,9 +23,12 @@ export function animateText(target: HTMLElement, options: TextAnimationOptions =
   const fromTransform = options.fromTransform ?? 'translateY(0.72em) rotate(3deg)';
   const duration = options.duration ?? 580;
   const stagger = options.stagger ?? 22;
-  if (splitBy !== 'graphemes' && splitBy !== 'words') throw new TypeError('animateText() splitBy must be "graphemes" or "words".');
-  if (!Number.isFinite(fromOpacity) || fromOpacity < 0 || fromOpacity > 1) throw new RangeError('animateText() fromOpacity must be in [0, 1].');
-  if (typeof fromTransform !== 'string') throw new TypeError('animateText() fromTransform must be a CSS transform string.');
+  if (splitBy !== 'graphemes' && splitBy !== 'words')
+    throw new TypeError('animateText() splitBy must be "graphemes" or "words".');
+  if (!Number.isFinite(fromOpacity) || fromOpacity < 0 || fromOpacity > 1)
+    throw new RangeError('animateText() fromOpacity must be in [0, 1].');
+  if (typeof fromTransform !== 'string')
+    throw new TypeError('animateText() fromTransform must be a CSS transform string.');
 
   const originalNodes = Array.from(target.childNodes);
   const originalText = target.textContent ?? '';
@@ -61,7 +64,13 @@ export function animateText(target: HTMLElement, options: TextAnimationOptions =
   }
 
   try {
-    const { splitBy: _splitBy, fromOpacity: _fromOpacity, fromTransform: _fromTransform, stagger: _stagger, ...timingOptions } = options;
+    const {
+      splitBy: _splitBy,
+      fromOpacity: _fromOpacity,
+      fromTransform: _fromTransform,
+      stagger: _stagger,
+      ...timingOptions
+    } = options;
     const animation = animate(animatedSpans, {
       ...timingOptions,
       duration,
@@ -79,7 +88,6 @@ export function animateText(target: HTMLElement, options: TextAnimationOptions =
   }
 }
 
-
 /** Number animation settings for counters, scores, timers and live metrics. */
 export interface NumberAnimationOptions extends Omit<AnimationOptions, 'onUpdate'> {
   readonly from: number;
@@ -94,7 +102,8 @@ export interface NumberAnimationOptions extends Omit<AnimationOptions, 'onUpdate
  */
 export function animateNumber(target: HTMLElement, options: NumberAnimationOptions): DOMAnimation {
   const { from, to, format, duration, delay = 0, easing, repeat = 0, yoyo = false, ...timelineOptions } = options;
-  if (!Number.isFinite(from) || !Number.isFinite(to)) throw new RangeError('animateNumber() from and to values must be finite.');
+  if (!Number.isFinite(from) || !Number.isFinite(to))
+    throw new RangeError('animateNumber() from and to values must be finite.');
   const originalNodes = Array.from(target.childNodes);
   const formatter = format ?? ((value: number) => String(Math.round(value)));
   const animation = new DOMAnimation(timelineOptions);
@@ -106,7 +115,9 @@ export function animateNumber(target: HTMLElement, options: NumberAnimationOptio
     ...(easing === undefined ? {} : { easing }),
     repeat,
     yoyo,
-    onUpdate: (value, progress) => { target.textContent = formatter(value, progress); },
+    onUpdate: (value, progress) => {
+      target.textContent = formatter(value, progress);
+    },
   });
   animation.add(tween);
   animation.addDisposeCallback(() => target.replaceChildren(...originalNodes));
@@ -122,8 +133,9 @@ function splitGraphemes(value: string): string[] {
   type SegmenterLike = { segment(input: string): Iterable<Segment> };
   type SegmenterConstructor = new (locale?: string, options?: { granularity: 'grapheme' }) => SegmenterLike;
   const Constructor = (Intl as unknown as { Segmenter?: SegmenterConstructor }).Segmenter;
-  if (Constructor) return Array.from(new Constructor(undefined, { granularity: 'grapheme' }).segment(value), (part) => part.segment);
-   
+  if (Constructor)
+    return Array.from(new Constructor(undefined, { granularity: 'grapheme' }).segment(value), (part) => part.segment);
+
   return Array.from(value);
 }
 

@@ -25,8 +25,17 @@ function progressAt(index) {
 const cases = samples.flatMap((sample) => {
   const interpolator = resolveInterpolator(sample.from, sample.to);
   return [
-    { name: `interpolate › ${sample.id} › resolved`, group: 'resolved', op: (index) => consume(interpolator(sample.from, sample.to, progressAt(index))) },
-    { name: `interpolate › ${sample.id} › one-shot`, group: 'one-shot', scale: 0.5, op: (index) => consume(interpolate(sample.from, sample.to, progressAt(index))) },
+    {
+      name: `interpolate › ${sample.id} › resolved`,
+      group: 'resolved',
+      op: (index) => consume(interpolator(sample.from, sample.to, progressAt(index))),
+    },
+    {
+      name: `interpolate › ${sample.id} › one-shot`,
+      group: 'one-shot',
+      scale: 0.5,
+      op: (index) => consume(interpolate(sample.from, sample.to, progressAt(index))),
+    },
   ];
 });
 

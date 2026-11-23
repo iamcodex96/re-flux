@@ -35,8 +35,16 @@ describe('Given createAnimationFrameObservable', () => {
       it('Then it emits an explicit error', () => {
         const previousRequest = Object.getOwnPropertyDescriptor(globalThis, 'requestAnimationFrame');
         const previousCancel = Object.getOwnPropertyDescriptor(globalThis, 'cancelAnimationFrame');
-        Object.defineProperty(globalThis, 'requestAnimationFrame', { configurable: true, writable: true, value: undefined });
-        Object.defineProperty(globalThis, 'cancelAnimationFrame', { configurable: true, writable: true, value: undefined });
+        Object.defineProperty(globalThis, 'requestAnimationFrame', {
+          configurable: true,
+          writable: true,
+          value: undefined,
+        });
+        Object.defineProperty(globalThis, 'cancelAnimationFrame', {
+          configurable: true,
+          writable: true,
+          value: undefined,
+        });
         const errors: unknown[] = [];
 
         createAnimationFrameObservable().subscribe({ error: (error: unknown) => errors.push(error) });

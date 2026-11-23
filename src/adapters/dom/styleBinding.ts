@@ -18,10 +18,7 @@ interface StyleState {
  * Binds a stream of CSS property maps to an element. Properties omitted from a later map are restored
  * to their initial inline declarations; unsubscribe restores every declaration touched by this binding.
  */
-export function bindStyle(
-  target: HTMLElement | SVGElement,
-  styles$: Observable<CssStyleMap>,
-): Subscription {
+export function bindStyle(target: HTMLElement | SVGElement, styles$: Observable<CssStyleMap>): Subscription {
   // One state per key ever seen, in first-capture order (restore order on unsubscribe).
   const lookup = new Map<string, StyleState>();
   const states: StyleState[] = [];
@@ -106,10 +103,15 @@ export function bindStyleProperty(
 ): Subscription {
   let original: OriginalStyle | undefined;
   const subscription = new Subscription();
-  subscription.add(value$.subscribe((value) => {
-    original ??= { value: target.style.getPropertyValue(property), priority: target.style.getPropertyPriority(property) };
-    target.style.setProperty(property, value);
-  }));
+  subscription.add(
+    value$.subscribe((value) => {
+      original ??= {
+        value: target.style.getPropertyValue(property),
+        priority: target.style.getPropertyPriority(property),
+      };
+      target.style.setProperty(property, value);
+    }),
+  );
   subscription.add(() => {
     if (original !== undefined) restoreProperty(target, property, original);
     original = undefined;

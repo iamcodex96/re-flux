@@ -11,11 +11,27 @@ const tokens = await readFile(tokenFile, 'utf8');
 const breakpoints = await readFile(breakpointFile, 'utf8');
 
 const requiredTokens = [
-  '--rx-color-background', '--rx-color-surface', '--rx-color-primary', '--rx-color-secondary',
-  '--rx-brand-background-rgb', '--rx-brand-text-rgb', '--rx-space-0', '--rx-space-4', '--rx-space-4-5',
-  '--rx-radius-md', '--rx-font-body', '--rx-font-size-label', '--rx-font-weight-ui',
-  '--rx-line-height-readable', '--rx-line-height-display', '--rx-tracking-meta', '--rx-tracking-display-condensed', '--rx-motion-duration-standard',
-  '--rx-shadow-focus', '--rx-z-header', '--rx-z-skip-link',
+  '--rx-color-background',
+  '--rx-color-surface',
+  '--rx-color-primary',
+  '--rx-color-secondary',
+  '--rx-brand-background-rgb',
+  '--rx-brand-text-rgb',
+  '--rx-space-0',
+  '--rx-space-4',
+  '--rx-space-4-5',
+  '--rx-radius-md',
+  '--rx-font-body',
+  '--rx-font-size-label',
+  '--rx-font-weight-ui',
+  '--rx-line-height-readable',
+  '--rx-line-height-display',
+  '--rx-tracking-meta',
+  '--rx-tracking-display-condensed',
+  '--rx-motion-duration-standard',
+  '--rx-shadow-focus',
+  '--rx-z-header',
+  '--rx-z-skip-link',
 ];
 for (const token of requiredTokens) {
   assert.ok(tokens.includes(token), `Required global design token is missing: ${token}`);
@@ -25,7 +41,7 @@ async function collectScss(directory) {
   const files = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = resolve(directory, entry.name);
-    if (entry.isDirectory()) files.push(...await collectScss(path));
+    if (entry.isDirectory()) files.push(...(await collectScss(path)));
     else if (entry.isFile() && entry.name.endsWith('.scss')) files.push(path);
   }
   return files;
@@ -35,9 +51,12 @@ const files = (await collectScss(stylesRoot)).filter((path) => path !== tokenFil
 const violations = [];
 const rawHex = /#[\da-fA-F]{3,8}\b/g;
 const rawRgb = /rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(?:,|\))/gi;
-const namedColorValue = /(?:^|[;{]\s*)(?:color|background(?:-color)?|border-color|fill|stroke)\s*:\s*(?:black|white|red|blue|purple|cyan|orange|gray|grey)\b/gim;
+const namedColorValue =
+  /(?:^|[;{]\s*)(?:color|background(?:-color)?|border-color|fill|stroke)\s*:\s*(?:black|white|red|blue|purple|cyan|orange|gray|grey)\b/gim;
 const numericBreakpoint = /@media\s*\(\s*(?:min|max)-width\s*:\s*\d+(?:\.\d+)?(?:px|rem|em)\s*\)/g;
-const tokenizedBreakpointRefs = new Set([...breakpoints.matchAll(/\$(rx-breakpoint-[\w-]+)/g)].map((match) => match[1]));
+const tokenizedBreakpointRefs = new Set(
+  [...breakpoints.matchAll(/\$(rx-breakpoint-[\w-]+)/g)].map((match) => match[1]),
+);
 const repeatedLiterals = new Map();
 
 function rememberLiteral(family, value, file, source, index) {
@@ -95,7 +114,10 @@ for (const file of files) {
       }
     }
 
-    if (/^(?:margin|padding|gap|row-gap|column-gap|outline-offset)$/.test(property) && !/(?:clamp|calc|min|max)\(/.test(value)) {
+    if (
+      /^(?:margin|padding|gap|row-gap|column-gap|outline-offset)$/.test(property) &&
+      !/(?:clamp|calc|min|max)\(/.test(value)
+    ) {
       const dimensions = value.matchAll(/(?<![\w.-])-?\d+(?:\.\d+)?(?:rem|px|em)\b/g);
       for (const dimension of dimensions) {
         if (['0px', '0rem', '0em'].includes(dimension[0])) continue;
@@ -117,9 +139,13 @@ for (const file of files) {
 for (const [key, records] of repeatedLiterals) {
   if (records.length < 3) continue;
   for (const record of records) {
-    violations.push(`${record.file}:${record.line}: repeated ${key} should use a shared token (found ${records.length} occurrences)`);
+    violations.push(
+      `${record.file}:${record.line}: repeated ${key} should use a shared token (found ${records.length} occurrences)`,
+    );
   }
 }
 
 assert.deepEqual(violations, [], `SCSS design-token violations:\n${violations.join('\n')}`);
-process.stdout.write(`✓ ${files.length} SCSS files use shared design tokens for colors, typography, spacing, layering, and responsive breakpoints\n`);
+process.stdout.write(
+  `✓ ${files.length} SCSS files use shared design tokens for colors, typography, spacing, layering, and responsive breakpoints\n`,
+);

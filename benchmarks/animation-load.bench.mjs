@@ -22,16 +22,21 @@ import {
 
 const frameIntervalMs = 1000 / 60;
 const measuredFrameCount = positiveInteger(process.env.BENCH_ANIMATION_FRAMES, 180, 'BENCH_ANIMATION_FRAMES');
-const animationCounts = parseIntegerList(process.env.BENCH_ANIMATION_COUNTS, '100,1000,5000', { minimum: 1, label: 'BENCH_ANIMATION_COUNTS' });
+const animationCounts = parseIntegerList(process.env.BENCH_ANIMATION_COUNTS, '100,1000,5000', {
+  minimum: 1,
+  label: 'BENCH_ANIMATION_COUNTS',
+});
 const repeats = positiveInteger(process.env.BENCH_REPEATS, 10, 'BENCH_REPEATS');
 const warmupRounds = nonNegativeInteger(process.env.BENCH_WARMUP_ROUNDS, 2, 'BENCH_WARMUP_ROUNDS');
 const warmupFrameCount = Math.min(measuredFrameCount, 60);
-const callbackWorkIterations = process.env.BENCH_ANIMATION_CALLBACK_WORK === undefined
-  ? null
-  : nonNegativeInteger(process.env.BENCH_ANIMATION_CALLBACK_WORK, 0, 'BENCH_ANIMATION_CALLBACK_WORK');
-const callbackWorkLevels = callbackWorkIterations === null
-  ? parseIntegerList(process.env.BENCH_ANIMATION_WORKLOADS, '0,4', { minimum: 0, label: 'BENCH_ANIMATION_WORKLOADS' })
-  : [callbackWorkIterations];
+const callbackWorkIterations =
+  process.env.BENCH_ANIMATION_CALLBACK_WORK === undefined
+    ? null
+    : nonNegativeInteger(process.env.BENCH_ANIMATION_CALLBACK_WORK, 0, 'BENCH_ANIMATION_CALLBACK_WORK');
+const callbackWorkLevels =
+  callbackWorkIterations === null
+    ? parseIntegerList(process.env.BENCH_ANIMATION_WORKLOADS, '0,4', { minimum: 0, label: 'BENCH_ANIMATION_WORKLOADS' })
+    : [callbackWorkIterations];
 const metricsModes = [
   { id: 'metrics-disabled', observeMetrics: false },
   { id: 'metrics-observed', observeMetrics: true },
@@ -78,22 +83,26 @@ function runScenario(animationCount, workIterations, observeMetrics, frameCount)
   let peakPendingRafCallbacks = 0;
   const metricsSubscription = observeMetrics
     ? frameCoordinator.metrics$.subscribe((sample) => {
-      if (sample.totalFrames > before.totalFrames + 1) {
-        metricNotificationCount += 1;
-        metricWorkSamples.push(sample.lastFrameWorkMs);
-      }
-    })
+        if (sample.totalFrames > before.totalFrames + 1) {
+          metricNotificationCount += 1;
+          metricWorkSamples.push(sample.lastFrameWorkMs);
+        }
+      })
     : null;
   const durationMs = frameCount * frameIntervalMs;
-  const animations = Array.from({ length: animationCount }, () => new Animation({
-    duration: durationMs,
-    onUpdate: (progress, easedProgress) => {
-      callbackCount += 1;
-      let local = progress + easedProgress;
-      for (let index = 0; index < workIterations; index += 1) local = Math.sin(local + index);
-      workSink += local;
-    },
-  }));
+  const animations = Array.from(
+    { length: animationCount },
+    () =>
+      new Animation({
+        duration: durationMs,
+        onUpdate: (progress, easedProgress) => {
+          callbackCount += 1;
+          let local = progress + easedProgress;
+          for (let index = 0; index < workIterations; index += 1) local = Math.sin(local + index);
+          workSink += local;
+        },
+      }),
+  );
   for (const animation of animations) animation.play();
 
   let primingRafCallbacks = 0;
@@ -108,7 +117,10 @@ function runScenario(animationCount, workIterations, observeMetrics, frameCount)
     frameStarts.push(frameStartedAt);
     const callbacksRun = advanceRaf(frame * frameIntervalMs);
     frameSamples.push(performance.now() - frameStartedAt);
-    assert(callbacksRun <= 1, `Expected the shared RAF source to schedule at most one callback, received ${callbacksRun}.`);
+    assert(
+      callbacksRun <= 1,
+      `Expected the shared RAF source to schedule at most one callback, received ${callbacksRun}.`,
+    );
   }
   const elapsedMs = performance.now() - startedAt;
   const after = frameCoordinator.metrics;
@@ -119,7 +131,12 @@ function runScenario(animationCount, workIterations, observeMetrics, frameCount)
   assert.equal(pendingRafCallbacks.size, 0, 'The completed animations must cancel the pending RAF callback.');
   assert.equal(diagnostics.isIdle, true, 'The shared coordinator must be idle after all animations complete.');
   assert.equal(diagnostics.activeFrameSubscribers, 0, 'All Animation frame subscriptions must be cleaned up.');
-  if (observeMetrics) assert.equal(metricNotificationCount, frameCount, 'Exactly one metrics sample should be observed per measured frame.');
+  if (observeMetrics)
+    assert.equal(
+      metricNotificationCount,
+      frameCount,
+      'Exactly one metrics sample should be observed per measured frame.',
+    );
   assert(callbackCount >= animationCount * frameCount, 'Every animation should update on each measured frame.');
 
   return {
@@ -150,7 +167,14 @@ function summarizeModeRuns(runs) {
     medianOfRunP95FrameMs: round(median(runs.map((run) => run.frameStats.p95Ms))),
     medianOfRunP99FrameMs: round(median(runs.map((run) => run.frameStats.p99Ms))),
     worstFrameAcrossRunsMs: round(Math.max(...runs.map((run) => run.frameStats.maxMs))),
-    medianInternalFrameWorkMs: round(median(runs.flatMap((run) => run.internalFrameWorkStats?.meanMs === undefined ? [] : [run.internalFrameWorkStats.meanMs])), 4),
+    medianInternalFrameWorkMs: round(
+      median(
+        runs.flatMap((run) =>
+          run.internalFrameWorkStats?.meanMs === undefined ? [] : [run.internalFrameWorkStats.meanMs],
+        ),
+      ),
+      4,
+    ),
     peakPendingRafCallbacks: Math.max(...runs.map((run) => run.peakPendingRafCallbacks)),
     pendingRafCallbacksAfterCleanup: Math.max(...runs.map((run) => run.pendingRafCallbacksAfterCleanup)),
     p99FrameVariability: variability(runs.map((run) => run.frameStats.p99Ms)),
@@ -171,7 +195,9 @@ try {
       for (let repetition = 0; repetition < repeats; repetition += 1) {
         const executionOrder = rotateOrder(metricsModes, repetition);
         for (const mode of executionOrder) {
-          const run = await observeRun(() => runScenario(animationCount, workIterations, mode.observeMetrics, measuredFrameCount));
+          const run = await observeRun(() =>
+            runScenario(animationCount, workIterations, mode.observeMetrics, measuredFrameCount),
+          );
           run.repetition = repetition + 1;
           run.executionOrder = executionOrder.map(({ id }) => id);
           modeRuns[mode.id].push(run);
@@ -182,10 +208,16 @@ try {
       const observed = summarizeModeRuns(modeRuns['metrics-observed']);
       const elapsedDelta = observed.elapsedMs.medianMs - disabled.elapsedMs.medianMs;
       const p95Delta = observed.medianOfRunP95FrameMs - disabled.medianOfRunP95FrameMs;
-      const pairedElapsedDeltasMs = modeRuns['metrics-disabled'].map((disabledRun) => {
-        const observedRun = modeRuns['metrics-observed'].find((candidate) => candidate.repetition === disabledRun.repetition);
-        return observedRun ? { repetition: disabledRun.repetition, deltaMs: round(observedRun.elapsedMs - disabledRun.elapsedMs, 3) } : null;
-      }).filter(Boolean);
+      const pairedElapsedDeltasMs = modeRuns['metrics-disabled']
+        .map((disabledRun) => {
+          const observedRun = modeRuns['metrics-observed'].find(
+            (candidate) => candidate.repetition === disabledRun.repetition,
+          );
+          return observedRun
+            ? { repetition: disabledRun.repetition, deltaMs: round(observedRun.elapsedMs - disabledRun.elapsedMs, 3) }
+            : null;
+        })
+        .filter(Boolean);
       results.push({
         animationCount,
         callbackWorkIterations: workIterations,
@@ -195,7 +227,8 @@ try {
         },
         comparison: {
           observedVsDisabledMedianElapsedDeltaMs: round(elapsedDelta, 3),
-          observedVsDisabledMedianElapsedDeltaPercent: disabled.elapsedMs.medianMs > 0 ? round((elapsedDelta / disabled.elapsedMs.medianMs) * 100, 2) : null,
+          observedVsDisabledMedianElapsedDeltaPercent:
+            disabled.elapsedMs.medianMs > 0 ? round((elapsedDelta / disabled.elapsedMs.medianMs) * 100, 2) : null,
           pairedElapsedDeltasMs,
           medianPairedElapsedDeltaMs: round(median(pairedElapsedDeltasMs.map((entry) => entry.deltaMs)), 3),
           observedVsDisabledMedianP95DeltaMs: round(p95Delta, 4),
@@ -204,7 +237,8 @@ try {
             disabled.elapsedMs.cv,
             observed.elapsedMs.cv,
           ),
-          interpretation: 'This paired difference estimates end-to-end observer overhead for this workload; it is not a universal intrinsic instrumentation cost.',
+          interpretation:
+            'This paired difference estimates end-to-end observer overhead for this workload; it is not a universal intrinsic instrumentation cost.',
         },
       });
     }

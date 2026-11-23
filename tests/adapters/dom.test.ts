@@ -1,6 +1,19 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { Subject } from 'rxjs';
-import { animate, animateNumber, animateText, draggable, bindScrollTimeline, bindStyle, interpolateCssValue, createScope, createResponsiveScope, scrollProgress$, type CssStyleMap, type DOMAnimateOptions } from '../../src/adapters/dom.js';
+import {
+  animate,
+  animateNumber,
+  animateText,
+  draggable,
+  bindScrollTimeline,
+  bindStyle,
+  interpolateCssValue,
+  createScope,
+  createResponsiveScope,
+  scrollProgress$,
+  type CssStyleMap,
+  type DOMAnimateOptions,
+} from '../../src/adapters/dom.js';
 import { Timeline } from '../../src/core/Timeline.js';
 import { RafController } from '../helpers/RafController.js';
 
@@ -14,8 +27,16 @@ function fakeStyle(initial: Record<string, string> = {}): CSSStyleDeclaration {
   return {
     getPropertyValue: (name: string) => values.get(name) ?? '',
     getPropertyPriority: (name: string) => priorities.get(name) ?? '',
-    setProperty: (name: string, value: string, priority = '') => { values.set(name, value); priorities.set(name, priority); },
-    removeProperty: (name: string) => { const old = values.get(name) ?? ''; values.delete(name); priorities.delete(name); return old; },
+    setProperty: (name: string, value: string, priority = '') => {
+      values.set(name, value);
+      priorities.set(name, priority);
+    },
+    removeProperty: (name: string) => {
+      const old = values.get(name) ?? '';
+      values.delete(name);
+      priorities.delete(name);
+      return old;
+    },
   } as unknown as CSSStyleDeclaration;
 }
 
@@ -23,26 +44,41 @@ function createElement(initial: Record<string, string> = {}): HTMLElement {
   const style = fakeStyle(initial);
   const computedValues = new Map(Object.entries(initial).map(([key, value]) => [normalizePropertyName(key), value]));
   const view = {
-    getComputedStyle: () => ({ getPropertyValue: (name: string) => computedValues.get(name) ?? style.getPropertyValue(name) }),
+    getComputedStyle: () => ({
+      getPropertyValue: (name: string) => computedValues.get(name) ?? style.getPropertyValue(name),
+    }),
   };
   const documentStub = { defaultView: view };
   return { nodeType: 1, style, ownerDocument: documentStub } as unknown as HTMLElement;
 }
 
 function createTextElement(initialText: string): HTMLElement {
-  type FakeNode = { nodeType: number; textContent: string; children?: FakeNode[]; style?: CSSStyleDeclaration; dataset?: Record<string, string>; attributes?: Map<string, string>; append?: (node: FakeNode) => void; setAttribute?: (name: string, value: string) => void };
+  type FakeNode = {
+    nodeType: number;
+    textContent: string;
+    children?: FakeNode[];
+    style?: CSSStyleDeclaration;
+    dataset?: Record<string, string>;
+    attributes?: Map<string, string>;
+    append?: (node: FakeNode) => void;
+    setAttribute?: (name: string, value: string) => void;
+  };
   const makeText = (text: string): FakeNode => ({ nodeType: 3, textContent: text });
   const documentStub = {
     createTextNode: (text: string) => makeText(text),
     createDocumentFragment: () => {
       const fragment: FakeNode = { nodeType: 11, textContent: '', children: [] };
-      fragment.append = (node) => { fragment.children!.push(node); };
+      fragment.append = (node) => {
+        fragment.children!.push(node);
+      };
       return fragment;
     },
     createElement: () => {
       const attributes = new Map<string, string>();
       const element: FakeNode = { nodeType: 1, textContent: '', style: fakeStyle(), dataset: {}, attributes };
-      element.setAttribute = (name, value) => { attributes.set(name, value); };
+      element.setAttribute = (name, value) => {
+        attributes.set(name, value);
+      };
       return element;
     },
   };
@@ -52,21 +88,29 @@ function createTextElement(initialText: string): HTMLElement {
     nodeType: 1,
     ownerDocument: documentStub,
     style: fakeStyle(),
-    get childNodes() { return children; },
-    get textContent() { return children.map((child) => child.textContent).join(''); },
-    set textContent(value: string) { children = [makeText(value)]; },
-    replaceChildren: (...nodes: FakeNode[]) => {
-      children = nodes.flatMap((node) => node.nodeType === 11 ? (node.children ?? []) : [node]);
+    get childNodes() {
+      return children;
     },
-    setAttribute: (name: string, value: string) => { attributes.set(name, value); },
+    get textContent() {
+      return children.map((child) => child.textContent).join('');
+    },
+    set textContent(value: string) {
+      children = [makeText(value)];
+    },
+    replaceChildren: (...nodes: FakeNode[]) => {
+      children = nodes.flatMap((node) => (node.nodeType === 11 ? (node.children ?? []) : [node]));
+    },
+    setAttribute: (name: string, value: string) => {
+      attributes.set(name, value);
+    },
     getAttribute: (name: string) => attributes.get(name) ?? null,
     hasAttribute: (name: string) => attributes.has(name),
-    removeAttribute: (name: string) => { attributes.delete(name); },
+    removeAttribute: (name: string) => {
+      attributes.delete(name);
+    },
   };
   return target as unknown as HTMLElement;
 }
-
-
 
 describe('Given draggable()', () => {
   describe('When a draggable target is configured', () => {
@@ -84,8 +128,12 @@ describe('Given draggable()', () => {
           style,
           ownerDocument,
           getAttribute: (name: string) => attributes.get(name) ?? null,
-          setAttribute: (name: string, value: string) => { attributes.set(name, value); },
-          removeAttribute: (name: string) => { attributes.delete(name); },
+          setAttribute: (name: string, value: string) => {
+            attributes.set(name, value);
+          },
+          removeAttribute: (name: string) => {
+            attributes.delete(name);
+          },
           setPointerCapture: (_pointerId: number) => undefined,
           releasePointerCapture: (_pointerId: number) => undefined,
           hasPointerCapture: (_pointerId: number) => true,
@@ -94,8 +142,12 @@ describe('Given draggable()', () => {
         const pointerEvent = (type: string, x: number, y: number, timeStamp: number): Event => {
           const event = new Event(type);
           Object.defineProperties(event, {
-            isPrimary: { value: true }, button: { value: 0 }, pointerId: { value: 7 },
-            clientX: { value: x }, clientY: { value: y }, timeStamp: { value: timeStamp, configurable: true },
+            isPrimary: { value: true },
+            button: { value: 0 },
+            pointerId: { value: 7 },
+            clientX: { value: x },
+            clientY: { value: y },
+            timeStamp: { value: timeStamp, configurable: true },
           });
           return event;
         };
@@ -123,20 +175,35 @@ describe('Given draggable()', () => {
           });
           const attributes = new Map<string, string>();
           const target = Object.assign(new EventTarget(), {
-            nodeType: 1, style, ownerDocument,
+            nodeType: 1,
+            style,
+            ownerDocument,
             getAttribute: (name: string) => attributes.get(name) ?? null,
-            setAttribute: (name: string, value: string) => { attributes.set(name, value); },
-            removeAttribute: (name: string) => { attributes.delete(name); },
+            setAttribute: (name: string, value: string) => {
+              attributes.set(name, value);
+            },
+            removeAttribute: (name: string) => {
+              attributes.delete(name);
+            },
             setPointerCapture: (_pointerId: number) => undefined,
             releasePointerCapture: (_pointerId: number) => undefined,
             hasPointerCapture: (_pointerId: number) => true,
           }) as unknown as HTMLElement;
-          const controller = draggable(target, { initialPosition: { x: 12, y: 8 }, minVelocity: 10000, snapTo: 10, snapDuration: 100 });
+          const controller = draggable(target, {
+            initialPosition: { x: 12, y: 8 },
+            minVelocity: 10000,
+            snapTo: 10,
+            snapDuration: 100,
+          });
           const pointerEvent = (type: string, x: number, y: number, timeStamp: number): Event => {
             const event = new Event(type);
             Object.defineProperties(event, {
-              isPrimary: { value: true }, button: { value: 0 }, pointerId: { value: 9 },
-              clientX: { value: x }, clientY: { value: y }, timeStamp: { value: timeStamp, configurable: true },
+              isPrimary: { value: true },
+              button: { value: 0 },
+              pointerId: { value: 9 },
+              clientX: { value: x },
+              clientY: { value: y },
+              timeStamp: { value: timeStamp, configurable: true },
             });
             return event;
           };
@@ -158,9 +225,17 @@ describe('Given draggable()', () => {
     });
     describe('And When keyboard input attempts to move beyond the current bounds', () => {
       it('Then it clamps keyboard movement to current bounds and restores owned styles on destroy', () => {
-        const style = fakeStyle({ translate: '3px 4px', cursor: 'crosshair', 'touch-action': 'pan-y', 'user-select': 'text' });
+        const style = fakeStyle({
+          translate: '3px 4px',
+          cursor: 'crosshair',
+          'touch-action': 'pan-y',
+          'user-select': 'text',
+        });
         const attributes = new Map<string, string>([['aria-label', 'Movable panel']]);
-        const ownerDocument = new EventTarget() as EventTarget & { visibilityState: DocumentVisibilityState; defaultView: EventTarget | null };
+        const ownerDocument = new EventTarget() as EventTarget & {
+          visibilityState: DocumentVisibilityState;
+          defaultView: EventTarget | null;
+        };
         ownerDocument.visibilityState = 'visible';
         ownerDocument.defaultView = new EventTarget();
         const target = Object.assign(new EventTarget(), {
@@ -168,8 +243,12 @@ describe('Given draggable()', () => {
           style,
           ownerDocument,
           getAttribute: (name: string) => attributes.get(name) ?? null,
-          setAttribute: (name: string, value: string) => { attributes.set(name, value); },
-          removeAttribute: (name: string) => { attributes.delete(name); },
+          setAttribute: (name: string, value: string) => {
+            attributes.set(name, value);
+          },
+          removeAttribute: (name: string) => {
+            attributes.delete(name);
+          },
           setPointerCapture: (_pointerId: number) => undefined,
           releasePointerCapture: (_pointerId: number) => undefined,
           hasPointerCapture: (_pointerId: number) => true,
@@ -270,14 +349,16 @@ describe('Given animate() DOM API', () => {
         const oldDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
         Object.defineProperty(globalThis, 'document', {
           configurable: true,
-          value: { querySelectorAll: (selector: string) => selector === '.item' ? [element] : [] },
+          value: { querySelectorAll: (selector: string) => (selector === '.item' ? [element] : []) },
         });
         try {
           const animation = animate('.item', { duration: 100, properties: { opacity: [1, 0] } });
           animation.seek(50);
           expect(element.style.getPropertyValue('opacity')).toBe('0.5');
           animation.dispose();
-          expect(() => animate('.missing', { duration: 100, properties: { opacity: [1, 0] } })).toThrow('did not match any elements');
+          expect(() => animate('.missing', { duration: 100, properties: { opacity: [1, 0] } })).toThrow(
+            'did not match any elements',
+          );
         } finally {
           if (oldDocument) Object.defineProperty(globalThis, 'document', oldDocument);
           else Reflect.deleteProperty(globalThis, 'document');
@@ -350,7 +431,9 @@ describe('Given animate() DOM API', () => {
           },
         } as unknown as DOMAnimateOptions;
 
-        expect(() => animate(element, invalidOptions)).toThrow('must define exactly one of "from" + "to", "values", or "keyframes"');
+        expect(() => animate(element, invalidOptions)).toThrow(
+          'must define exactly one of "from" + "to", "values", or "keyframes"',
+        );
         expect(element.style.getPropertyValue('opacity')).toBe('1');
       });
     });
@@ -408,10 +491,12 @@ describe('Given animate() DOM API', () => {
     describe('And When invalid property timing is supplied', () => {
       it('Then it rejects invalid property timing before mutating any target', () => {
         const element = createElement({ opacity: '1' });
-        expect(() => animate(element, {
-          duration: 100,
-          properties: { opacity: { values: [0, 1], duration: Number.NaN } },
-        })).toThrow('duration for CSS property "opacity" must be a finite, non-negative number');
+        expect(() =>
+          animate(element, {
+            duration: 100,
+            properties: { opacity: { values: [0, 1], duration: Number.NaN } },
+          }),
+        ).toThrow('duration for CSS property "opacity" must be a finite, non-negative number');
         expect(element.style.getPropertyValue('opacity')).toBe('1');
       });
     });
@@ -436,19 +521,19 @@ describe('Given animate() DOM API', () => {
       it('Then it rejects a non-finite stagger callback result and restores any earlier targets', () => {
         const first = createElement({ opacity: '1' });
         const second = createElement({ opacity: '1' });
-        expect(() => animate([first, second], {
-          duration: 100,
-          properties: { opacity: [0, 1] },
-          stagger: (index) => index === 0 ? 0 : Number.NaN,
-        })).toThrow('stagger must return a finite number');
+        expect(() =>
+          animate([first, second], {
+            duration: 100,
+            properties: { opacity: [0, 1] },
+            stagger: (index) => (index === 0 ? 0 : Number.NaN),
+          }),
+        ).toThrow('stagger must return a finite number');
         expect(first.style.getPropertyValue('opacity')).toBe('1');
         expect(second.style.getPropertyValue('opacity')).toBe('1');
       });
     });
   });
 });
-
-
 
 describe('Given text and numeric animation helpers', () => {
   describe('When a text or numeric animation helper is configured', () => {
@@ -479,7 +564,9 @@ describe('Given text and numeric animation helpers', () => {
 
         expect(target.getAttribute('aria-label')).toBe('Custom label');
         expect(target.textContent).toBe('Hello reactive world');
-        expect(Array.from(target.childNodes).some((node) => (node as unknown as { nodeType: number }).nodeType === 1)).toBe(true);
+        expect(
+          Array.from(target.childNodes).some((node) => (node as unknown as { nodeType: number }).nodeType === 1),
+        ).toBe(true);
         animation.seek(55);
         animation.dispose();
 
@@ -509,10 +596,12 @@ describe('Given AnimationScope and scroll inputs', () => {
       it('Then it reverts setup resources when scoped setup throws', () => {
         const root = { querySelectorAll: () => [] } as unknown as ParentNode;
         const unsubscribe = jest.fn();
-        expect(() => createScope(root, (scope) => {
-          scope.add({ unsubscribe });
-          throw new Error('setup failed');
-        })).toThrow('setup failed');
+        expect(() =>
+          createScope(root, (scope) => {
+            scope.add({ unsubscribe });
+            throw new Error('setup failed');
+          }),
+        ).toThrow('setup failed');
         expect(unsubscribe).toHaveBeenCalledTimes(1);
       });
     });
@@ -522,8 +611,11 @@ describe('Given AnimationScope and scroll inputs', () => {
         Reflect.deleteProperty(globalThis, 'window');
         let received: unknown;
         try {
-          scrollProgress$({ getBoundingClientRect: () => ({ top: 0, height: 10 }) } as unknown as Element)
-            .subscribe({ error: (error: unknown) => { received = error; } });
+          scrollProgress$({ getBoundingClientRect: () => ({ top: 0, height: 10 }) } as unknown as Element).subscribe({
+            error: (error: unknown) => {
+              received = error;
+            },
+          });
         } finally {
           if (previousWindow) Object.defineProperty(globalThis, 'window', previousWindow);
         }
@@ -537,21 +629,32 @@ describe('Given AnimationScope and scroll inputs', () => {
         const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
         const raf = new RafController();
         const listeners = new Map<string, EventListener>();
-        const removeListener = jest.fn((type: string, _listener: EventListener) => { listeners.delete(type); });
+        const removeListener = jest.fn((type: string, _listener: EventListener) => {
+          listeners.delete(type);
+        });
         const windowStub = {
           innerHeight: 500,
-          addEventListener: (type: string, listener: EventListener) => { listeners.set(type, listener); },
+          addEventListener: (type: string, listener: EventListener) => {
+            listeners.set(type, listener);
+          },
           removeEventListener: removeListener,
         };
         Object.defineProperty(globalThis, 'window', { configurable: true, value: windowStub });
-        Object.defineProperty(globalThis, 'document', { configurable: true, value: { documentElement: { clientHeight: 500 } } });
+        Object.defineProperty(globalThis, 'document', {
+          configurable: true,
+          value: { documentElement: { clientHeight: 500 } },
+        });
         raf.install();
         try {
           let sampledTime = 0;
           const timeline = new Timeline().add({
             duration: 100,
-            seekLocal: (time) => { sampledTime = time; },
-            resetInternal: () => { sampledTime = 0; },
+            seekLocal: (time) => {
+              sampledTime = time;
+            },
+            resetInternal: () => {
+              sampledTime = 0;
+            },
           });
           const target = { getBoundingClientRect: () => ({ top: 100, height: 100 }) } as unknown as Element;
           const binding = bindScrollTimeline(target, timeline);
@@ -575,7 +678,6 @@ describe('Given AnimationScope and scroll inputs', () => {
   });
 });
 
-
 describe('Given responsive animation scopes', () => {
   describe('When a responsive animation scope is configured', () => {
     describe('And When a media query changes its match state', () => {
@@ -584,14 +686,28 @@ describe('Given responsive animation scopes', () => {
         let onChange: ((event: MediaQueryListEvent) => void) | undefined;
         const removed = jest.fn();
         const media = {
-          get matches() { return matches; },
-          addEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => { onChange = listener; },
-          removeEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => { if (onChange === listener) onChange = undefined; removed(); },
+          get matches() {
+            return matches;
+          },
+          addEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => {
+            onChange = listener;
+          },
+          removeEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => {
+            if (onChange === listener) onChange = undefined;
+            removed();
+          },
         } as unknown as MediaQueryList;
         const windowRef = { matchMedia: () => media } as unknown as Window;
         const root = { querySelectorAll: () => [] } as unknown as ParentNode;
         const unsubscribe = jest.fn();
-        const responsive = createResponsiveScope(root, '(min-width: 800px)', (scope) => { scope.add({ unsubscribe }); }, windowRef);
+        const responsive = createResponsiveScope(
+          root,
+          '(min-width: 800px)',
+          (scope) => {
+            scope.add({ unsubscribe });
+          },
+          windowRef,
+        );
 
         expect(responsive.active).toBe(true);
         matches = false;
@@ -608,10 +724,9 @@ describe('Given responsive animation scopes', () => {
       it('Then it supports explicit from/to frames and per-target frame factories', () => {
         const first = createElement({ opacity: '0.2' });
         const second = createElement({ opacity: '0.3' });
-        const factory = jest.fn((_target: Element, index: number, total: number) => [
-          `${index}`,
-          `${total - index}`,
-        ] as const);
+        const factory = jest.fn(
+          (_target: Element, index: number, total: number) => [`${index}`, `${total - index}`] as const,
+        );
         const animation = animate([first, second], {
           duration: 100,
           properties: {
@@ -629,5 +744,4 @@ describe('Given responsive animation scopes', () => {
       });
     });
   });
-
 });

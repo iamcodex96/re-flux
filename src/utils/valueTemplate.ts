@@ -135,7 +135,12 @@ export function parseColor(input: string): Rgba | null {
   const channels = [rgb[1]!, rgb[2]!, rgb[3]!].map((part) => readColorNumber(part, 255));
   const alpha = rgb[4] === undefined ? 1 : readColorNumber(rgb[4], 1);
   if (![...channels, alpha].every(Number.isFinite)) return null;
-  return { r: clampChannel(channels[0]!), g: clampChannel(channels[1]!), b: clampChannel(channels[2]!), a: clampAlpha(alpha) };
+  return {
+    r: clampChannel(channels[0]!),
+    g: clampChannel(channels[1]!),
+    b: clampChannel(channels[2]!),
+    a: clampAlpha(alpha),
+  };
 }
 
 /** Interpolate two colors. Channels and alpha are clamped, so overshooting progress cannot leave the valid range. */
@@ -164,7 +169,8 @@ export function compileColorMix(from: Rgba, to: Rgba): (progress: number) => str
   const dg = to.g - from.g;
   const db = to.b - from.b;
   const da = to.a - from.a;
-  return (progress) => `rgba(${roundChannel(from.r + dr * progress)}, ${roundChannel(from.g + dg * progress)}, ${roundChannel(from.b + db * progress)}, ${constantAlpha ?? formatNumber(clampAlpha(from.a + da * progress))})`;
+  return (progress) =>
+    `rgba(${roundChannel(from.r + dr * progress)}, ${roundChannel(from.g + dg * progress)}, ${roundChannel(from.b + db * progress)}, ${constantAlpha ?? formatNumber(clampAlpha(from.a + da * progress))})`;
 }
 
 /**

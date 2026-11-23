@@ -23,6 +23,8 @@ export function withInterpolatorCompiler<T>(
 }
 
 /** The compiler registered for `interpolator`, if any. */
-export function getInterpolatorCompiler<T>(interpolator: ValueInterpolator<T> | undefined): InterpolatorCompiler<T> | undefined {
-  return interpolator === undefined ? undefined : compilers.get(interpolator) as InterpolatorCompiler<T> | undefined;
+export function getInterpolatorCompiler<T>(
+  interpolator: ValueInterpolator<T> | undefined,
+): InterpolatorCompiler<T> | undefined {
+  return interpolator === undefined ? undefined : (compilers.get(interpolator) as InterpolatorCompiler<T> | undefined);
 }

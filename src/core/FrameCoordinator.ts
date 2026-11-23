@@ -164,8 +164,11 @@ export class FrameCoordinator {
     const metrics = this.makeMetrics();
     return Object.freeze({
       ...metrics,
-      isIdle: !metrics.clockActive && metrics.activeFrameSubscribers === 0
-        && metrics.pendingReadTasks === 0 && metrics.pendingWriteTasks === 0,
+      isIdle:
+        !metrics.clockActive &&
+        metrics.activeFrameSubscribers === 0 &&
+        metrics.pendingReadTasks === 0 &&
+        metrics.pendingWriteTasks === 0,
     });
   }
 
@@ -173,7 +176,9 @@ export class FrameCoordinator {
   assertIdle(): void {
     const diagnostics = this.getDiagnostics();
     if (!diagnostics.isIdle) {
-      throw new Error(`FrameCoordinator is not idle: ${diagnostics.activeFrameSubscribers} frame subscriber(s), ${diagnostics.pendingReadTasks} read task(s), ${diagnostics.pendingWriteTasks} write task(s), clockActive=${diagnostics.clockActive}.`);
+      throw new Error(
+        `FrameCoordinator is not idle: ${diagnostics.activeFrameSubscribers} frame subscriber(s), ${diagnostics.pendingReadTasks} read task(s), ${diagnostics.pendingWriteTasks} write task(s), clockActive=${diagnostics.clockActive}.`,
+      );
     }
   }
 
@@ -208,7 +213,15 @@ export class FrameCoordinator {
 
   /** @internal Open a reusable write channel; see {@link openWriteChannel}. */
   private createWriteChannel(callback: FrameTask): WriteChannel {
-    const entry: ScheduledFrameTask = { callback, subscription: null, queue: this.writeQueue, active: true, running: false, queued: false, generation: 0 };
+    const entry: ScheduledFrameTask = {
+      callback,
+      subscription: null,
+      queue: this.writeQueue,
+      active: true,
+      running: false,
+      queued: false,
+      generation: 0,
+    };
     return {
       request: () => {
         if (!entry.active || entry.queued) return;
@@ -286,7 +299,6 @@ export class FrameCoordinator {
       },
     });
 
-     
     if (subscription.closed) {
       this.clockSubscription = null;
       return this.lastClockError instanceof Error
@@ -306,19 +318,17 @@ export class FrameCoordinator {
     this.frameNumber += 1;
     const frame: AnimationFrameTick = Object.freeze({ timestamp, delta, frame: this.frameNumber });
 
-     
     if (this.readQueue.live > 0) this.runTasks(this.readQueue, frame);
 
     // The snapshot is taken here, after the read phase: a subscriber added by a read task is in it, one added from now
     // on is not (it is a different array by then). It is rebuilt only after a membership change, not every frame.
-    const subscribers = this.frameSubscriberSnapshot ?? (this.frameSubscriberSnapshot = Array.from(this.frameSubscribers));
+    const subscribers =
+      this.frameSubscriberSnapshot ?? (this.frameSubscriberSnapshot = Array.from(this.frameSubscribers));
     for (let index = 0; index < subscribers.length; index += 1) {
       const subscriber = subscribers[index]!;
       if (!subscriber.closed) subscriber.next(frame);
     }
 
-     
-     
     if (this.writeQueue.live > 0) this.runTasks(this.writeQueue, frame);
     this.stopIfIdle();
 
@@ -344,10 +354,10 @@ export class FrameCoordinator {
       try {
         task.callback(frame);
       } catch (error: unknown) {
-         
-        queueMicrotask(() => { throw error; });
+        queueMicrotask(() => {
+          throw error;
+        });
       } finally {
-         
         if (task.subscription) task.subscription.unsubscribe();
         task.running = false;
       }

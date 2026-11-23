@@ -6,7 +6,11 @@ export type { StaggerOptions, StaggerOrigin, StaggerDelayFunction } from './util
 export { FrameCoordinator, frameCoordinator } from './core/FrameCoordinator.js';
 export type { FrameTask, FrameCoordinatorMetrics, FrameCoordinatorDiagnostics } from './core/FrameCoordinator.js';
 export { MotionPreferences } from './core/MotionPreferences.js';
-export type { MotionPreferencesOptions, MotionPreferencesSnapshot, MotionPreferencesSource } from './core/MotionPreferences.js';
+export type {
+  MotionPreferencesOptions,
+  MotionPreferencesSnapshot,
+  MotionPreferencesSource,
+} from './core/MotionPreferences.js';
 export { Tween } from './values/Tween.js';
 export { Keyframes, keyframes } from './values/Keyframes.js';
 export { RetargetableMotion } from './physics/RetargetableMotion.js';
@@ -61,10 +65,31 @@ export { retargetMotion } from './operators/retargetMotion.js';
 export { smoothStream } from './operators/smoothStream.js';
 export { adaptiveTween } from './operators/adaptiveTween.js';
 
-export { addVectors, subtractVectors, scaleVector, vectorMagnitudeSquared, vectorMagnitude, normalizeVector, limitVector, distanceBetween, dotProduct, vectorFromAngle, lerpVector } from './utils/vector2.js';
+export {
+  addVectors,
+  subtractVectors,
+  scaleVector,
+  vectorMagnitudeSquared,
+  vectorMagnitude,
+  normalizeVector,
+  limitVector,
+  distanceBetween,
+  dotProduct,
+  vectorFromAngle,
+  lerpVector,
+} from './utils/vector2.js';
 export type { Vector2 } from './utils/vector2.js';
 export { seek, arrive, flee, separate, combineSteering, stepSteeringAgent, followFlowField } from './steering.js';
-export type { SteeringAgent, SteeringOptions, ArriveOptions, FleeOptions, SeparationOptions, SteeringStepOptions, FlowFollowingOptions, WeightedSteeringForce } from './steering.js';
+export type {
+  SteeringAgent,
+  SteeringOptions,
+  ArriveOptions,
+  FleeOptions,
+  SeparationOptions,
+  SteeringStepOptions,
+  FlowFollowingOptions,
+  WeightedSteeringForce,
+} from './steering.js';
 
 export { createFlowField, sampleFlowField } from './flowField.js';
 export type { FlowField, FlowFieldCell, FlowFieldOptions, FlowFieldEdgeMode } from './flowField.js';

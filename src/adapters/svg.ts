@@ -21,10 +21,7 @@ interface AttributeState {
  * an empty boolean-style attribute, omitted keys restore their original state, and unsubscribe restores
  * every attribute touched by this binding.
  */
-export function bindSvgAttributes(
-  target: SVGElement,
-  attributes$: Observable<SvgAttributeMap>,
-): Subscription {
+export function bindSvgAttributes(target: SVGElement, attributes$: Observable<SvgAttributeMap>): Subscription {
   // One state per key ever seen, in first-capture order (restore order on unsubscribe).
   const lookup = new Map<string, AttributeState>();
   const states: AttributeState[] = [];
@@ -122,7 +119,8 @@ export function bindSvgPathDrawing(
 ): Subscription {
   if (typeof target.getTotalLength !== 'function') throw new TypeError('SVG path drawing requires getTotalLength().');
   const length = target.getTotalLength();
-  if (!Number.isFinite(length) || length < 0) throw new RangeError('SVG geometry length must be finite and non-negative.');
+  if (!Number.isFinite(length) || length < 0)
+    throw new RangeError('SVG geometry length must be finite and non-negative.');
   const previous = {
     dasharray: target.getAttribute('stroke-dasharray'),
     dashoffset: target.getAttribute('stroke-dashoffset'),
@@ -133,15 +131,19 @@ export function bindSvgPathDrawing(
   if (!Number.isFinite(offset)) throw new RangeError('SVG path drawing offset must be finite.');
   target.setAttribute('stroke-dasharray', String(length));
   const subscription = new Subscription();
-  subscription.add(progress$.subscribe((progress) => {
-    const safeProgress = Number.isFinite(progress) ? progress : 0;
-    const normalized = options.clampProgress === false ? safeProgress : Math.min(1, Math.max(0, safeProgress));
-    target.setAttribute('stroke-dashoffset', String(length * (1 - normalized) + offset));
-  }));
+  subscription.add(
+    progress$.subscribe((progress) => {
+      const safeProgress = Number.isFinite(progress) ? progress : 0;
+      const normalized = options.clampProgress === false ? safeProgress : Math.min(1, Math.max(0, safeProgress));
+      target.setAttribute('stroke-dashoffset', String(length * (1 - normalized) + offset));
+    }),
+  );
   subscription.add(() => {
-    if (previous.hadDasharray && previous.dasharray !== null) target.setAttribute('stroke-dasharray', previous.dasharray);
+    if (previous.hadDasharray && previous.dasharray !== null)
+      target.setAttribute('stroke-dasharray', previous.dasharray);
     else target.removeAttribute('stroke-dasharray');
-    if (previous.hadDashoffset && previous.dashoffset !== null) target.setAttribute('stroke-dashoffset', previous.dashoffset);
+    if (previous.hadDashoffset && previous.dashoffset !== null)
+      target.setAttribute('stroke-dashoffset', previous.dashoffset);
     else target.removeAttribute('stroke-dashoffset');
   });
   return subscription;
@@ -178,20 +180,28 @@ export function followSvgPath$(
     throw new TypeError('followSvgPath$ requires SVG geometry with getTotalLength() and getPointAtLength().');
   }
   const length = path.getTotalLength();
-  if (!Number.isFinite(length) || length < 0) throw new RangeError('SVG geometry length must be finite and non-negative.');
+  if (!Number.isFinite(length) || length < 0)
+    throw new RangeError('SVG geometry length must be finite and non-negative.');
   const lookAhead = options.lookAhead ?? 1;
-  if (!Number.isFinite(lookAhead) || lookAhead <= 0) throw new RangeError('SVG motion-path lookAhead must be finite and greater than zero.');
+  if (!Number.isFinite(lookAhead) || lookAhead <= 0)
+    throw new RangeError('SVG motion-path lookAhead must be finite and greater than zero.');
   const shouldClamp = options.clampProgress ?? true;
 
-  return progress$.pipe(map((inputProgress): SvgMotionPathSample => {
-    const progress = Number.isFinite(inputProgress) ? (shouldClamp ? Math.max(0, Math.min(1, inputProgress)) : inputProgress) : 0;
-    const distance = Math.max(0, Math.min(length, progress * length));
-    const point = path.getPointAtLength(distance);
-    const before = path.getPointAtLength(Math.max(0, distance - lookAhead));
-    const after = path.getPointAtLength(Math.min(length, distance + lookAhead));
-    const dx = after.x - before.x;
-    const dy = after.y - before.y;
-    const angle = Math.hypot(dx, dy) > 0 ? Math.atan2(dy, dx) * 180 / Math.PI : 0;
-    return { x: point.x, y: point.y, angle, progress };
-  }));
+  return progress$.pipe(
+    map((inputProgress): SvgMotionPathSample => {
+      const progress = Number.isFinite(inputProgress)
+        ? shouldClamp
+          ? Math.max(0, Math.min(1, inputProgress))
+          : inputProgress
+        : 0;
+      const distance = Math.max(0, Math.min(length, progress * length));
+      const point = path.getPointAtLength(distance);
+      const before = path.getPointAtLength(Math.max(0, distance - lookAhead));
+      const after = path.getPointAtLength(Math.min(length, distance + lookAhead));
+      const dx = after.x - before.x;
+      const dy = after.y - before.y;
+      const angle = Math.hypot(dx, dy) > 0 ? (Math.atan2(dy, dx) * 180) / Math.PI : 0;
+      return { x: point.x, y: point.y, angle, progress };
+    }),
+  );
 }

@@ -87,11 +87,7 @@ export function createFlowField(options: FlowFieldOptions): FlowField {
  * Read the vector at a world-space position. Sampling is nearest-cell rather than bilinear;
  * use `clamp` (default), `wrap`, or `zero` to define out-of-bounds behavior.
  */
-export function sampleFlowField(
-  field: FlowField,
-  position: Vector2,
-  edgeMode: FlowFieldEdgeMode = 'clamp',
-): Vector2 {
+export function sampleFlowField(field: FlowField, position: Vector2, edgeMode: FlowFieldEdgeMode = 'clamp'): Vector2 {
   assertFlowField(field);
   assertFiniteVector(position, 'Flow field sample position');
   if (edgeMode !== 'clamp' && edgeMode !== 'wrap' && edgeMode !== 'zero') {
@@ -138,11 +134,18 @@ function assertFiniteVector(value: Vector2, label: string): void {
 }
 
 function assertFlowField(field: FlowField): void {
-  if (!field || !Number.isSafeInteger(field.columns) || field.columns <= 0
-    || !Number.isSafeInteger(field.rows) || field.rows <= 0
-    || !Number.isFinite(field.cellSize) || field.cellSize <= 0
-    || !field.origin || !Array.isArray(field.vectors)
-    || field.vectors.length !== field.columns * field.rows) {
+  if (
+    !field ||
+    !Number.isSafeInteger(field.columns) ||
+    field.columns <= 0 ||
+    !Number.isSafeInteger(field.rows) ||
+    field.rows <= 0 ||
+    !Number.isFinite(field.cellSize) ||
+    field.cellSize <= 0 ||
+    !field.origin ||
+    !Array.isArray(field.vectors) ||
+    field.vectors.length !== field.columns * field.rows
+  ) {
     throw new RangeError('Invalid flow field structure. Create fields with createFlowField().');
   }
   assertFiniteVector(field.origin, 'Flow field origin');

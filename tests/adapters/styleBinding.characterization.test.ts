@@ -27,7 +27,10 @@ function recordingStyle(initial: Record<string, string | readonly [string, strin
   const priorities = new Map<string, string>();
   for (const [name, entry] of Object.entries(initial)) {
     if (typeof entry === 'string') values.set(name, entry);
-    else { values.set(name, entry[0]); priorities.set(name, entry[1]); }
+    else {
+      values.set(name, entry[0]);
+      priorities.set(name, entry[1]);
+    }
   }
   const calls: StyleCall[] = [];
   const style = {
@@ -49,7 +52,10 @@ function recordingStyle(initial: Record<string, string | readonly [string, strin
   return {
     style,
     calls,
-    externalSet: (name, value, priority = '') => { values.set(name, value); priorities.set(name, priority); },
+    externalSet: (name, value, priority = '') => {
+      values.set(name, value);
+      priorities.set(name, priority);
+    },
     value: (name) => values.get(name) ?? '',
     priority: (name) => priorities.get(name) ?? '',
   };
@@ -57,7 +63,11 @@ function recordingStyle(initial: Record<string, string | readonly [string, strin
 
 function elementWith(recording: RecordingStyle): HTMLElement {
   const computed = { getPropertyValue: (name: string) => recording.value(name) };
-  return { nodeType: 1, style: recording.style, ownerDocument: { defaultView: { getComputedStyle: () => computed } } } as unknown as HTMLElement;
+  return {
+    nodeType: 1,
+    style: recording.style,
+    ownerDocument: { defaultView: { getComputedStyle: () => computed } },
+  } as unknown as HTMLElement;
 }
 
 describe('Given bindStyle write behaviour', () => {
@@ -328,8 +338,14 @@ function recordingSvg(initial: Record<string, string> = {}) {
   const element = {
     hasAttribute: (name: string) => attributes.has(name),
     getAttribute: (name: string) => attributes.get(name) ?? null,
-    setAttribute: (name: string, value: string) => { calls.push(['set', name, value]); attributes.set(name, value); },
-    removeAttribute: (name: string) => { calls.push(['remove', name]); attributes.delete(name); },
+    setAttribute: (name: string, value: string) => {
+      calls.push(['set', name, value]);
+      attributes.set(name, value);
+    },
+    removeAttribute: (name: string) => {
+      calls.push(['remove', name]);
+      attributes.delete(name);
+    },
   } as unknown as SVGElement;
   return { element, calls, attributes };
 }
@@ -378,7 +394,10 @@ describe('Given bindSvgAttributes write behaviour', () => {
         const source = new Subject<SvgAttributeMap>();
         const binding = bindSvgAttributes(element, source);
         source.next({ opacity: 0.5, hidden: false });
-        expect(calls).toEqual([['set', 'opacity', '0.5'], ['remove', 'hidden']]);
+        expect(calls).toEqual([
+          ['set', 'opacity', '0.5'],
+          ['remove', 'hidden'],
+        ]);
         binding.unsubscribe();
       });
     });
@@ -435,8 +454,10 @@ describe('Given PERF-006 write parity (every emission with a value writes)', () 
         source.next({ opacity: '0.5', width: '1px' });
         expect(setProperty).toHaveBeenCalledTimes(4);
         expect(recording.calls).toEqual([
-          ['set', 'opacity', '0.5'], ['set', 'width', '1px'],
-          ['set', 'opacity', '0.5'], ['set', 'width', '1px'],
+          ['set', 'opacity', '0.5'],
+          ['set', 'width', '1px'],
+          ['set', 'opacity', '0.5'],
+          ['set', 'width', '1px'],
         ]);
         binding.unsubscribe();
       });
@@ -445,7 +466,7 @@ describe('Given PERF-006 write parity (every emission with a value writes)', () 
 
   describe('When several keys are omitted by one emission', () => {
     describe('And When their order in the previous emission differs from the order they were first captured in', () => {
-      it('Then bindStyle restores them in the previous emission\'s key order, and unsubscribe in capture order', () => {
+      it("Then bindStyle restores them in the previous emission's key order, and unsubscribe in capture order", () => {
         const recording = recordingStyle();
         const source = new Subject<CssStyleMap>();
         const binding = bindStyle({ style: recording.style } as unknown as HTMLElement, source);
@@ -454,12 +475,20 @@ describe('Given PERF-006 write parity (every emission with a value writes)', () 
         source.next({ c: '2', b: '2', a: '2' });
         recording.calls.length = 0;
         source.next({});
-        expect(recording.calls).toEqual([['remove', 'c'], ['remove', 'b'], ['remove', 'a']]);
+        expect(recording.calls).toEqual([
+          ['remove', 'c'],
+          ['remove', 'b'],
+          ['remove', 'a'],
+        ]);
 
         source.next({ b: '3', a: '3', c: '3' });
         recording.calls.length = 0;
         binding.unsubscribe();
-        expect(recording.calls).toEqual([['remove', 'a'], ['remove', 'b'], ['remove', 'c']]);
+        expect(recording.calls).toEqual([
+          ['remove', 'a'],
+          ['remove', 'b'],
+          ['remove', 'c'],
+        ]);
       });
     });
   });
@@ -477,7 +506,11 @@ describe('Given PERF-006 write parity (every emission with a value writes)', () 
         expect(setProperty).toHaveBeenCalledTimes(2);
         source.next('0.7');
         expect(recording.value('opacity')).toBe('0.7');
-        expect(recording.calls).toEqual([['set', 'opacity', '0.5'], ['set', 'opacity', '0.5'], ['set', 'opacity', '0.7']]);
+        expect(recording.calls).toEqual([
+          ['set', 'opacity', '0.5'],
+          ['set', 'opacity', '0.5'],
+          ['set', 'opacity', '0.7'],
+        ]);
 
         binding.unsubscribe();
         expect(recording.value('opacity')).toBe('0.25');
@@ -498,7 +531,10 @@ describe('Given PERF-006 write parity (every emission with a value writes)', () 
         const second = bindStyleProperty({ style: empty.style } as unknown as HTMLElement, 'height', source);
         source.next('4px');
         second.unsubscribe();
-        expect(empty.calls).toEqual([['set', 'height', '4px'], ['remove', 'height']]);
+        expect(empty.calls).toEqual([
+          ['set', 'height', '4px'],
+          ['remove', 'height'],
+        ]);
       });
     });
 
@@ -528,8 +564,10 @@ describe('Given PERF-006 write parity (every emission with a value writes)', () 
         animation.seek(25);
         animation.seek(25);
         expect(recording.calls).toEqual([
-          ['set', 'opacity', '0.25'], ['set', 'transform-origin', '0px 0px'],
-          ['set', 'opacity', '0.25'], ['set', 'transform-origin', '0px 0px'],
+          ['set', 'opacity', '0.25'],
+          ['set', 'transform-origin', '0px 0px'],
+          ['set', 'opacity', '0.25'],
+          ['set', 'transform-origin', '0px 0px'],
         ]);
         animation.dispose();
       });
@@ -566,7 +604,10 @@ describe('Given PERF-006 write parity (every emission with a value writes)', () 
         const second = animate(element, { duration: 100, properties: { opacity: to } });
         timeline.add(first, 0);
         timeline.add(second, secondStart);
-        const seen = seeks.map((time) => { timeline.seek(time); return recording.value('opacity'); });
+        const seen = seeks.map((time) => {
+          timeline.seek(time);
+          return recording.value('opacity');
+        });
         first.dispose();
         second.dispose();
         return seen;
@@ -590,8 +631,14 @@ describe('Given PERF-006 write parity (every emission with a value writes)', () 
         const element = {
           hasAttribute: (name: string) => attributes.has(name),
           getAttribute: (name: string) => attributes.get(name) ?? null,
-          setAttribute: (name: string, value: string) => { calls.push(`set ${name}=${value}`); attributes.set(name, value); },
-          removeAttribute: (name: string) => { calls.push(`remove ${name}`); attributes.delete(name); },
+          setAttribute: (name: string, value: string) => {
+            calls.push(`set ${name}=${value}`);
+            attributes.set(name, value);
+          },
+          removeAttribute: (name: string) => {
+            calls.push(`remove ${name}`);
+            attributes.delete(name);
+          },
         } as unknown as SVGElement;
         const source = new Subject<SvgAttributeMap>();
         const binding = bindSvgAttributes(element, source);
@@ -600,16 +647,22 @@ describe('Given PERF-006 write parity (every emission with a value writes)', () 
         source.next({ opacity: 0.5, hidden: true, x: false });
         source.next({ opacity: '0.5', hidden: true, x: null });
         expect(calls).toEqual([
-          'set opacity=0.5', 'set hidden=', 'remove x',
-          'set opacity=0.5', 'set hidden=', 'remove x',
-          'set opacity=0.5', 'set hidden=', 'remove x',
+          'set opacity=0.5',
+          'set hidden=',
+          'remove x',
+          'set opacity=0.5',
+          'set hidden=',
+          'remove x',
+          'set opacity=0.5',
+          'set hidden=',
+          'remove x',
         ]);
         binding.unsubscribe();
       });
     });
 
     describe('And When several attributes are omitted by one emission', () => {
-      it('Then omitted keys are restored in the previous emission\'s key order, and unsubscribe in capture order', () => {
+      it("Then omitted keys are restored in the previous emission's key order, and unsubscribe in capture order", () => {
         const { element, calls } = recordingSvg();
         const source = new Subject<SvgAttributeMap>();
         const binding = bindSvgAttributes(element, source);
@@ -617,11 +670,19 @@ describe('Given PERF-006 write parity (every emission with a value writes)', () 
         source.next({ c: 2, b: 2, a: 2 });
         calls.length = 0;
         source.next({});
-        expect(calls).toEqual([['remove', 'c'], ['remove', 'b'], ['remove', 'a']]);
+        expect(calls).toEqual([
+          ['remove', 'c'],
+          ['remove', 'b'],
+          ['remove', 'a'],
+        ]);
         source.next({ b: 3, a: 3, c: 3 });
         calls.length = 0;
         binding.unsubscribe();
-        expect(calls).toEqual([['remove', 'a'], ['remove', 'b'], ['remove', 'c']]);
+        expect(calls).toEqual([
+          ['remove', 'a'],
+          ['remove', 'b'],
+          ['remove', 'c'],
+        ]);
       });
     });
   });

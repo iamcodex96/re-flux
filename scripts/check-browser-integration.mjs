@@ -62,7 +62,7 @@ try {
     page.on('pageerror', (error) => pageErrors.push(error.message));
     try {
       page.setDefaultTimeout(10_000);
-    await page.goto(baseUrl, { waitUntil: 'load' });
+      await page.goto(baseUrl, { waitUntil: 'load' });
       await page.waitForFunction(() => typeof window.__reFluxBrowserTest !== 'undefined');
       await test(page);
       assert.deepEqual(pageErrors, [], `Unexpected browser runtime errors: ${pageErrors.join('; ')}`);
@@ -78,7 +78,9 @@ try {
     await page.evaluate(() => window.__reFluxBrowserTest.startPointerGestures());
     await page.mouse.move(box.x + 20, box.y + 20);
     await page.mouse.down();
-    await page.waitForFunction(() => window.__reFluxBrowserTest.pointerState().events.some((event) => event.type === 'down'));
+    await page.waitForFunction(() =>
+      window.__reFluxBrowserTest.pointerState().events.some((event) => event.type === 'down'),
+    );
 
     const pointerId = await page.evaluate(() => window.__reFluxBrowserTest.pointerState().events[0]?.pointerId);
     assert.equal(typeof pointerId, 'number');
@@ -95,10 +97,15 @@ try {
       outsideX,
     );
     await page.mouse.up();
-    await page.waitForFunction(() => window.__reFluxBrowserTest.pointerState().events.some((event) => event.type === 'up'));
+    await page.waitForFunction(() =>
+      window.__reFluxBrowserTest.pointerState().events.some((event) => event.type === 'up'),
+    );
 
     const state = await page.evaluate(() => window.__reFluxBrowserTest.pointerState());
-    assert.deepEqual(state.events.map((event) => event.type), ['down', 'move', 'up']);
+    assert.deepEqual(
+      state.events.map((event) => event.type),
+      ['down', 'move', 'up'],
+    );
     assert.equal(state.error, null);
     assert.equal(
       await page.evaluate((id) => document.querySelector('#gesture-target').hasPointerCapture(id), pointerId),
@@ -108,38 +115,50 @@ try {
     await page.evaluate(() => window.__reFluxBrowserTest.stopPointerGestures());
   });
 
-  await runCase('pointercancel ends the active gesture and releases capture without stale move events', async (page) => {
-    const box = await page.locator('#gesture-target').boundingBox();
-    assert.ok(box, 'Expected a measurable gesture target.');
-    await page.evaluate(() => window.__reFluxBrowserTest.startPointerGestures());
-    await page.mouse.move(box.x + 20, box.y + 20);
-    await page.mouse.down();
-    await page.waitForFunction(() => window.__reFluxBrowserTest.pointerState().events.some((event) => event.type === 'down'));
-    const pointerId = await page.evaluate(() => window.__reFluxBrowserTest.pointerState().events[0]?.pointerId);
-    assert.equal(typeof pointerId, 'number');
+  await runCase(
+    'pointercancel ends the active gesture and releases capture without stale move events',
+    async (page) => {
+      const box = await page.locator('#gesture-target').boundingBox();
+      assert.ok(box, 'Expected a measurable gesture target.');
+      await page.evaluate(() => window.__reFluxBrowserTest.startPointerGestures());
+      await page.mouse.move(box.x + 20, box.y + 20);
+      await page.mouse.down();
+      await page.waitForFunction(() =>
+        window.__reFluxBrowserTest.pointerState().events.some((event) => event.type === 'down'),
+      );
+      const pointerId = await page.evaluate(() => window.__reFluxBrowserTest.pointerState().events[0]?.pointerId);
+      assert.equal(typeof pointerId, 'number');
 
-    await page.evaluate((id) => {
-      window.dispatchEvent(new PointerEvent('pointercancel', {
-        bubbles: true,
-        pointerId: id,
-        clientX: 90,
-        clientY: 90,
-      }));
-    }, pointerId);
-    await page.waitForFunction(() => window.__reFluxBrowserTest.pointerState().events.some((event) => event.type === 'cancel'));
-    await page.mouse.move(box.x + box.width + 60, box.y + 20);
-    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      await page.evaluate((id) => {
+        window.dispatchEvent(
+          new PointerEvent('pointercancel', {
+            bubbles: true,
+            pointerId: id,
+            clientX: 90,
+            clientY: 90,
+          }),
+        );
+      }, pointerId);
+      await page.waitForFunction(() =>
+        window.__reFluxBrowserTest.pointerState().events.some((event) => event.type === 'cancel'),
+      );
+      await page.mouse.move(box.x + box.width + 60, box.y + 20);
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
-    const state = await page.evaluate(() => window.__reFluxBrowserTest.pointerState());
-    assert.deepEqual(state.events.map((event) => event.type), ['down', 'cancel']);
-    assert.equal(
-      await page.evaluate((id) => document.querySelector('#gesture-target').hasPointerCapture(id), pointerId),
-      false,
-      'Expected capture to be released when the gesture is cancelled.',
-    );
-    await page.mouse.up();
-    await page.evaluate(() => window.__reFluxBrowserTest.stopPointerGestures());
-  });
+      const state = await page.evaluate(() => window.__reFluxBrowserTest.pointerState());
+      assert.deepEqual(
+        state.events.map((event) => event.type),
+        ['down', 'cancel'],
+      );
+      assert.equal(
+        await page.evaluate((id) => document.querySelector('#gesture-target').hasPointerCapture(id), pointerId),
+        false,
+        'Expected capture to be released when the gesture is cancelled.',
+      );
+      await page.mouse.up();
+      await page.evaluate(() => window.__reFluxBrowserTest.stopPointerGestures());
+    },
+  );
 
   await runCase('DOM style binding restores original inline values and !important priority', async (page) => {
     await page.evaluate(() => window.__reFluxBrowserTest.startStyleBinding());
@@ -151,7 +170,11 @@ try {
     await page.evaluate(() => window.__reFluxBrowserTest.emitStyles({ opacity: '0.6' }));
     const omittedTransform = await page.evaluate(() => window.__reFluxBrowserTest.styleState());
     assert.equal(omittedTransform.opacity, '0.6');
-    assert.equal(omittedTransform.transform, '', 'A property omitted from a later snapshot should return to its original declaration.');
+    assert.equal(
+      omittedTransform.transform,
+      '',
+      'A property omitted from a later snapshot should return to its original declaration.',
+    );
 
     await page.evaluate(() => window.__reFluxBrowserTest.stopStyleBinding());
     const restored = await page.evaluate(() => window.__reFluxBrowserTest.styleState());
@@ -167,87 +190,106 @@ try {
     await page.evaluate(() => window.__reFluxBrowserTest.startSvgBinding());
     await page.evaluate(() => window.__reFluxBrowserTest.emitSvgAttributes({ fill: 'blue', cx: null, r: 8 }));
     assert.deepEqual(await page.evaluate(() => window.__reFluxBrowserTest.svgState()), {
-      fill: 'blue', cx: null, r: '8',
+      fill: 'blue',
+      cx: null,
+      r: '8',
     });
 
     await page.evaluate(() => window.__reFluxBrowserTest.emitSvgAttributes({ fill: null }));
     assert.deepEqual(await page.evaluate(() => window.__reFluxBrowserTest.svgState()), {
-      fill: null, cx: '4', r: '2',
+      fill: null,
+      cx: '4',
+      r: '2',
     });
 
     await page.evaluate(() => window.__reFluxBrowserTest.stopSvgBinding());
     assert.deepEqual(await page.evaluate(() => window.__reFluxBrowserTest.svgState()), {
-      fill: 'red', cx: '4', r: '2',
+      fill: 'red',
+      cx: '4',
+      r: '2',
     });
   });
 
-  await runCase('FLIP applies an inverted layout transform and restores its original transform on dispose', async (page) => {
-    const measurement = await page.evaluate(() => window.__reFluxBrowserTest.runFlip());
-    assert.equal(measurement.afterMutationLeft, 180);
-    assert.match(measurement.invertedTransform, /translate\(-160px, 0px\)/);
-    assert.equal(measurement.invertedOrigin, '0px 0px');
-    assert.ok(
-      Math.abs(measurement.invertedLeft - measurement.beforeLeft) < 2,
-      `Expected the inverted layout to preserve the old visual position; before=${measurement.beforeLeft}, inverted=${measurement.invertedLeft}.`,
-    );
+  await runCase(
+    'FLIP applies an inverted layout transform and restores its original transform on dispose',
+    async (page) => {
+      const measurement = await page.evaluate(() => window.__reFluxBrowserTest.runFlip());
+      assert.equal(measurement.afterMutationLeft, 180);
+      assert.match(measurement.invertedTransform, /translate\(-160px, 0px\)/);
+      assert.equal(measurement.invertedOrigin, '0px 0px');
+      assert.ok(
+        Math.abs(measurement.invertedLeft - measurement.beforeLeft) < 2,
+        `Expected the inverted layout to preserve the old visual position; before=${measurement.beforeLeft}, inverted=${measurement.invertedLeft}.`,
+      );
 
-    const restored = await page.evaluate(() => window.__reFluxBrowserTest.disposeFlip());
-    assert.equal(restored.left, '180px', 'FLIP should keep the application-owned layout mutation.');
-    assert.equal(restored.transform, 'translateX(4px)');
-    assert.equal(restored.transformOrigin, 'center center');
-  });
+      const restored = await page.evaluate(() => window.__reFluxBrowserTest.disposeFlip());
+      assert.equal(restored.left, '180px', 'FLIP should keep the application-owned layout mutation.');
+      assert.equal(restored.transform, 'translateX(4px)');
+      assert.equal(restored.transformOrigin, 'center center');
+    },
+  );
 
-  await runCase('Canvas teardown cancels queued writes and clears pixels without leaking coordinator work', async (page) => {
-    // Keep queue inspection and teardown in one browser task. Separate page.evaluate calls allow
-    // requestAnimationFrame to run between them, making this cancellation contract timing-dependent.
-    const { queued, cancelled } = await page.evaluate(() => {
-      const browserTest = window.__reFluxBrowserTest;
-      browserTest.startCanvasBinding();
-      browserTest.emitCanvasColor('rgb(255, 0, 0)');
-      const queued = browserTest.canvasState();
-      browserTest.stopCanvasBinding();
-      const cancelled = browserTest.canvasState();
-      return { queued, cancelled };
-    });
-    assert.equal(queued.coordinator.pendingWriteTasks, 1);
+  await runCase(
+    'Canvas teardown cancels queued writes and clears pixels without leaking coordinator work',
+    async (page) => {
+      // Keep queue inspection and teardown in one browser task. Separate page.evaluate calls allow
+      // requestAnimationFrame to run between them, making this cancellation contract timing-dependent.
+      const { queued, cancelled } = await page.evaluate(() => {
+        const browserTest = window.__reFluxBrowserTest;
+        browserTest.startCanvasBinding();
+        browserTest.emitCanvasColor('rgb(255, 0, 0)');
+        const queued = browserTest.canvasState();
+        browserTest.stopCanvasBinding();
+        const cancelled = browserTest.canvasState();
+        return { queued, cancelled };
+      });
+      assert.equal(queued.coordinator.pendingWriteTasks, 1);
 
-    assert.equal(cancelled.draws, 0, 'A queued draw must not execute after its binding is disposed.');
-    assert.deepEqual(cancelled.pixel, [0, 0, 0, 0]);
-    assert.equal(cancelled.coordinator.isIdle, true);
+      assert.equal(cancelled.draws, 0, 'A queued draw must not execute after its binding is disposed.');
+      assert.deepEqual(cancelled.pixel, [0, 0, 0, 0]);
+      assert.equal(cancelled.coordinator.isIdle, true);
 
-    await page.evaluate(() => window.__reFluxBrowserTest.startCanvasBinding());
-    await page.evaluate(() => window.__reFluxBrowserTest.emitCanvasColor('rgb(0, 0, 255)'));
-    await page.waitForFunction(() => window.__reFluxBrowserTest.canvasState().pixel[3] === 255);
-    const drawn = await page.evaluate(() => window.__reFluxBrowserTest.canvasState());
-    assert.deepEqual(drawn.pixel, [0, 0, 255, 255]);
-    assert.equal(drawn.draws, 1);
+      await page.evaluate(() => window.__reFluxBrowserTest.startCanvasBinding());
+      await page.evaluate(() => window.__reFluxBrowserTest.emitCanvasColor('rgb(0, 0, 255)'));
+      await page.waitForFunction(() => window.__reFluxBrowserTest.canvasState().pixel[3] === 255);
+      const drawn = await page.evaluate(() => window.__reFluxBrowserTest.canvasState());
+      assert.deepEqual(drawn.pixel, [0, 0, 255, 255]);
+      assert.equal(drawn.draws, 1);
 
-    await page.evaluate(() => window.__reFluxBrowserTest.stopCanvasBinding());
-    const disposed = await page.evaluate(() => window.__reFluxBrowserTest.canvasState());
-    assert.deepEqual(disposed.pixel, [0, 0, 0, 0]);
-    assert.equal(disposed.coordinator.isIdle, true);
-  });
+      await page.evaluate(() => window.__reFluxBrowserTest.stopCanvasBinding());
+      const disposed = await page.evaluate(() => window.__reFluxBrowserTest.canvasState());
+      assert.deepEqual(disposed.pixel, [0, 0, 0, 0]);
+      assert.equal(disposed.coordinator.isIdle, true);
+    },
+  );
 
-  await runCase('prefers-reduced-motion finishes opted-in finite animations without affecting unrelated animations', async (page) => {
-    await page.emulateMedia({ reducedMotion: 'no-preference' });
-    await page.evaluate(() => window.__reFluxBrowserTest.startMotionAnimations({ includeUnmanaged: true }));
-    await page.waitForFunction(() => {
-      const state = window.__reFluxBrowserTest.motionAnimationState();
-      return state.state === 'running' && state.progress !== null && state.progress > 0;
-    });
+  await runCase(
+    'prefers-reduced-motion finishes opted-in finite animations without affecting unrelated animations',
+    async (page) => {
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await page.evaluate(() => window.__reFluxBrowserTest.startMotionAnimations({ includeUnmanaged: true }));
+      await page.waitForFunction(() => {
+        const state = window.__reFluxBrowserTest.motionAnimationState();
+        return state.state === 'running' && state.progress !== null && state.progress > 0;
+      });
 
-    await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.waitForFunction(() => {
-      const state = window.__reFluxBrowserTest.motionAnimationState();
-      return state.preferences?.reducedMotion === true && state.state === 'completed';
-    });
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.waitForFunction(() => {
+        const state = window.__reFluxBrowserTest.motionAnimationState();
+        return state.preferences?.reducedMotion === true && state.state === 'completed';
+      });
 
-    const state = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
-    assert.equal(state.callbacks.completes, 1, 'Reduced motion should complete the finite opt-in animation exactly once.');
-    assert.equal(state.progress, 1);
-    assert.equal(state.unmanagedState, 'running', 'Animations without a motion policy must remain independent.');
-    await page.evaluate(() => window.__reFluxBrowserTest.stopMotionAnimations());
-  });
+      const state = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
+      assert.equal(
+        state.callbacks.completes,
+        1,
+        'Reduced motion should complete the finite opt-in animation exactly once.',
+      );
+      assert.equal(state.progress, 1);
+      assert.equal(state.unmanagedState, 'running', 'Animations without a motion policy must remain independent.');
+      await page.evaluate(() => window.__reFluxBrowserTest.stopMotionAnimations());
+    },
+  );
 
   await runCase('prefers-reduced-motion ignore policy keeps opted-in playback running', async (page) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
@@ -258,7 +300,9 @@ try {
     });
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.waitForFunction(() => window.__reFluxBrowserTest.motionAnimationState().preferences?.reducedMotion === true);
+    await page.waitForFunction(
+      () => window.__reFluxBrowserTest.motionAnimationState().preferences?.reducedMotion === true,
+    );
     const before = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
     assert.equal(before.state, 'running');
     assert.equal(before.callbacks.completes, 0);
@@ -300,39 +344,50 @@ try {
     }
   });
 
-  await runCase('explicit pause while hidden prevents automatic resume when the document becomes visible', async (page) => {
-    await page.emulateMedia({ reducedMotion: 'no-preference' });
-    await page.evaluate(() => window.__reFluxBrowserTest.startMotionAnimations({ pauseWhenHidden: true }));
-    await page.waitForFunction(() => {
-      const state = window.__reFluxBrowserTest.motionAnimationState();
-      return state.state === 'running' && state.progress !== null && state.progress > 0;
-    });
-
-    try {
-      await page.evaluate(() => window.__reFluxBrowserTest.setDocumentVisibility(false));
+  await runCase(
+    'explicit pause while hidden prevents automatic resume when the document becomes visible',
+    async (page) => {
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await page.evaluate(() => window.__reFluxBrowserTest.startMotionAnimations({ pauseWhenHidden: true }));
       await page.waitForFunction(() => {
         const state = window.__reFluxBrowserTest.motionAnimationState();
-        return state.preferences?.visible === false && state.state === 'paused';
+        return state.state === 'running' && state.progress !== null && state.progress > 0;
       });
-      await page.evaluate(() => window.__reFluxBrowserTest.explicitlyPauseMotionAnimation());
-      const explicitlyPaused = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
 
-      await page.evaluate(() => window.__reFluxBrowserTest.setDocumentVisibility(true));
-      await page.waitForFunction(() => window.__reFluxBrowserTest.motionAnimationState().preferences?.visible === true);
-      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      const afterVisibility = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
-      assert.equal(afterVisibility.state, 'paused', 'An explicit user pause must not be overridden by visibility recovery.');
-      assert.equal(afterVisibility.callbacks.resumes, 0);
-      assert.equal(afterVisibility.progress, explicitlyPaused.progress);
-    } finally {
-      await page.evaluate(() => window.__reFluxBrowserTest.stopMotionAnimations());
-    }
-  });
+      try {
+        await page.evaluate(() => window.__reFluxBrowserTest.setDocumentVisibility(false));
+        await page.waitForFunction(() => {
+          const state = window.__reFluxBrowserTest.motionAnimationState();
+          return state.preferences?.visible === false && state.state === 'paused';
+        });
+        await page.evaluate(() => window.__reFluxBrowserTest.explicitlyPauseMotionAnimation());
+        const explicitlyPaused = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
+
+        await page.evaluate(() => window.__reFluxBrowserTest.setDocumentVisibility(true));
+        await page.waitForFunction(
+          () => window.__reFluxBrowserTest.motionAnimationState().preferences?.visible === true,
+        );
+        await page.evaluate(
+          () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+        );
+        const afterVisibility = await page.evaluate(() => window.__reFluxBrowserTest.motionAnimationState());
+        assert.equal(
+          afterVisibility.state,
+          'paused',
+          'An explicit user pause must not be overridden by visibility recovery.',
+        );
+        assert.equal(afterVisibility.callbacks.resumes, 0);
+        assert.equal(afterVisibility.progress, explicitlyPaused.progress);
+      } finally {
+        await page.evaluate(() => window.__reFluxBrowserTest.stopMotionAnimations());
+      }
+    },
+  );
 
   process.stdout.write('Browser integration checks passed (10 cases).\n');
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) => {
-    server.close((error) => error ? reject(error) : resolve());
+    server.close((error) => (error ? reject(error) : resolve()));
   });
 }

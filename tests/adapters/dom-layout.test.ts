@@ -21,7 +21,12 @@ afterEach(() => {
 /** An element whose rectangle can be changed from the mutation callback. */
 function movable(rect: FakeRect): { element: HTMLElement; move: (next: FakeRect) => void } {
   let current = rect;
-  return { element: createElement({}, () => current), move: (next) => { current = next; } };
+  return {
+    element: createElement({}, () => current),
+    move: (next) => {
+      current = next;
+    },
+  };
 }
 
 describe('Given flip() layout transitions', () => {
@@ -74,9 +79,13 @@ describe('Given flip() layout transitions', () => {
 
       const scene = flip(element, () => move({ left: 20, top: 0, width: 10, height: 10 }));
 
-      expect(element.style.getPropertyValue('transform')).toBe('translate(-20px, 0px) scale(1, 1) matrix(1, 0, 0, 1, 5, 5)');
+      expect(element.style.getPropertyValue('transform')).toBe(
+        'translate(-20px, 0px) scale(1, 1) matrix(1, 0, 0, 1, 5, 5)',
+      );
       scene.seek(400);
-      expect(element.style.getPropertyValue('transform')).toBe('translate(0px, 0px) scale(1, 1) matrix(1, 0, 0, 1, 5, 5)');
+      expect(element.style.getPropertyValue('transform')).toBe(
+        'translate(0px, 0px) scale(1, 1) matrix(1, 0, 0, 1, 5, 5)',
+      );
     });
   });
 
@@ -85,10 +94,14 @@ describe('Given flip() layout transitions', () => {
       const first = movable({ left: 0, top: 0, width: 10, height: 10 });
       const second = movable({ left: 0, top: 0, width: 10, height: 10 });
 
-      const scene = flip([first.element, second.element], () => {
-        first.move({ left: 10, top: 0, width: 10, height: 10 });
-        second.move({ left: 10, top: 0, width: 10, height: 10 });
-      }, { duration: 100, stagger: 50 });
+      const scene = flip(
+        [first.element, second.element],
+        () => {
+          first.move({ left: 10, top: 0, width: 10, height: 10 });
+          second.move({ left: 10, top: 0, width: 10, height: 10 });
+        },
+        { duration: 100, stagger: 50 },
+      );
 
       expect(scene.duration).toBe(150);
       scene.seek(100);
@@ -115,9 +128,11 @@ describe('Given flip() layout transitions', () => {
       const first = movable({ left: 0, top: 0, width: 10, height: 10 });
       const second = movable({ left: 0, top: 0, width: 10, height: 10 });
 
-      expect(() => flip([first.element, second.element], () => first.move({ left: 9, top: 0, width: 10, height: 10 }), {
-        stagger: (index: number) => (index === 1 ? Number.NaN : 0),
-      })).toThrow('FLIP stagger must be finite for target 1.');
+      expect(() =>
+        flip([first.element, second.element], () => first.move({ left: 9, top: 0, width: 10, height: 10 }), {
+          stagger: (index: number) => (index === 1 ? Number.NaN : 0),
+        }),
+      ).toThrow('FLIP stagger must be finite for target 1.');
 
       expect(first.element.style.getPropertyValue('transform')).toBe('');
       expect(second.element.style.getPropertyValue('transform')).toBe('');

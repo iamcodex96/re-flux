@@ -19,7 +19,15 @@ const cases = [
     entry: path.join(entries, 'core.ts'),
     entryModule: 'dist/core.js',
     required: ['dist/core/Animation.js'],
-    forbidden: ['dist/adapters/dom/', 'dist/adapters/svg.js', 'dist/adapters/canvas.js', 'dist/adapters/three.js', 'dist/effects/canvas.js', 'dist/operators/', 'dist/physics/'],
+    forbidden: [
+      'dist/adapters/dom/',
+      'dist/adapters/svg.js',
+      'dist/adapters/canvas.js',
+      'dist/adapters/three.js',
+      'dist/effects/canvas.js',
+      'dist/operators/',
+      'dist/physics/',
+    ],
   },
   {
     name: 'steering',
@@ -40,7 +48,16 @@ const cases = [
     entry: path.join(entries, 'dom.ts'),
     entryModule: 'dist/adapters/dom.js',
     required: ['dist/adapters/dom/animation.js'],
-    forbidden: ['dist/adapters/dom/draggable.js', 'dist/adapters/dom/text.js', 'dist/adapters/dom/layout.js', 'dist/adapters/dom/scrollTrigger.js', 'dist/adapters/svg.js', 'dist/adapters/canvas.js', 'dist/adapters/three.js', 'dist/effects/canvas.js'],
+    forbidden: [
+      'dist/adapters/dom/draggable.js',
+      'dist/adapters/dom/text.js',
+      'dist/adapters/dom/layout.js',
+      'dist/adapters/dom/scrollTrigger.js',
+      'dist/adapters/svg.js',
+      'dist/adapters/canvas.js',
+      'dist/adapters/three.js',
+      'dist/effects/canvas.js',
+    ],
   },
   {
     name: 'svg',
@@ -81,20 +98,20 @@ for (const testCase of cases) {
     logLevel: 'silent',
   });
 
-   
-   
-   
-  const resolvedInputs = Object.keys(result.metafile.inputs)
-    .map((input) => input.replaceAll('\\', '/'));
+  const resolvedInputs = Object.keys(result.metafile.inputs).map((input) => input.replaceAll('\\', '/'));
   assert(
     resolvedInputs.some((input) => input.endsWith(testCase.entryModule)),
     `${testCase.name}: expected package entry ${testCase.entryModule} to be resolved; inputs were:\n${resolvedInputs.join('\n')}`,
   );
 
-  const contributingInputs = [...new Set(Object.values(result.metafile.outputs)
-    .flatMap((output) => Object.entries(output.inputs ?? []))
-    .filter(([, details]) => details.bytesInOutput > 0)
-    .map(([input]) => input.replaceAll('\\', '/')))];
+  const contributingInputs = [
+    ...new Set(
+      Object.values(result.metafile.outputs)
+        .flatMap((output) => Object.entries(output.inputs ?? []))
+        .filter(([, details]) => details.bytesInOutput > 0)
+        .map(([input]) => input.replaceAll('\\', '/')),
+    ),
+  ];
 
   for (const expected of testCase.required) {
     assert(
@@ -109,7 +126,9 @@ for (const testCase of cases) {
     );
   }
   const bytes = result.outputFiles.reduce((total, output) => total + output.contents.byteLength, 0);
-  process.stdout.write(`✓ ${testCase.name.padEnd(8)} ${String(bytes).padStart(6)} bytes; entry ${testCase.entryModule} resolved; ${contributingInputs.length} contributing modules\n`);
+  process.stdout.write(
+    `✓ ${testCase.name.padEnd(8)} ${String(bytes).padStart(6)} bytes; entry ${testCase.entryModule} resolved; ${contributingInputs.length} contributing modules\n`,
+  );
 }
 
 process.stdout.write('Tree-shaking checks passed. Optional adapters are not pulled into unrelated bundles.\n');

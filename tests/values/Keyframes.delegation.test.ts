@@ -26,16 +26,24 @@ describe('Given Keyframes that wrap an Animation', () => {
       ['a non-finite offset', [{ value: 0, offset: Number.NaN }, { value: 1 }]],
     ])('And When a frame has %s', (_label, frames) => {
       it('Then it throws a RangeError naming the valid range', () => {
-        expect(() => new Keyframes({ duration: 100, keyframes: frames })).toThrow('Keyframe offsets must be finite numbers between 0 and 1.');
+        expect(() => new Keyframes({ duration: 100, keyframes: frames })).toThrow(
+          'Keyframe offsets must be finite numbers between 0 and 1.',
+        );
       });
     });
 
     describe('And When explicit offsets do not increase', () => {
       it('Then it throws a RangeError', () => {
-        expect(() => new Keyframes({
-          duration: 100,
-          keyframes: [{ value: 0, offset: 0.5 }, { value: 1, offset: 0.5 }],
-        })).toThrow('Explicit keyframe offsets must be strictly increasing.');
+        expect(
+          () =>
+            new Keyframes({
+              duration: 100,
+              keyframes: [
+                { value: 0, offset: 0.5 },
+                { value: 1, offset: 0.5 },
+              ],
+            }),
+        ).toThrow('Explicit keyframe offsets must be strictly increasing.');
       });
     });
 
@@ -56,7 +64,10 @@ describe('Given Keyframes that wrap an Animation', () => {
       it('Then the first and last values are held before and after the explicit offsets', () => {
         const sequence = new Keyframes({
           duration: 100,
-          keyframes: [{ value: 0, offset: 0.2 }, { value: 10, offset: 0.8 }],
+          keyframes: [
+            { value: 0, offset: 0.2 },
+            { value: 10, offset: 0.8 },
+          ],
         });
 
         sequence.seek(10);

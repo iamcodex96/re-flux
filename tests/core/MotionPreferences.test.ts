@@ -6,7 +6,9 @@ class MockMediaQueryList extends EventTarget {
   readonly media = '(prefers-reduced-motion: reduce)';
   onchange: ((this: MediaQueryList, ev: MediaQueryListEvent) => unknown) | null = null;
 
-  get matches(): boolean { return this.currentMatches; }
+  get matches(): boolean {
+    return this.currentMatches;
+  }
   setMatches(value: boolean): void {
     this.currentMatches = value;
     this.dispatchEvent(new Event('change'));
@@ -32,7 +34,11 @@ describe('Given MotionPreferences', () => {
           document: documentRef,
           matchMedia: () => media as unknown as MediaQueryList,
         } as unknown as Window;
-        preferences = new MotionPreferences({ window: windowRef, document: documentRef, mediaQueryList: media as unknown as MediaQueryList });
+        preferences = new MotionPreferences({
+          window: windowRef,
+          document: documentRef,
+          mediaQueryList: media as unknown as MediaQueryList,
+        });
 
         const states: Array<{ reducedMotion: boolean; visible: boolean }> = [];
         const subscription = preferences.state$.subscribe((state) => states.push(state));
