@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, access } from 'node:fs/promises';
+import { access, readdir, readFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveLocaleReferences } from './lib/locale.mjs';
@@ -39,56 +39,11 @@ assert.ok(
 );
 assert.ok(await exists('apps/docs/src/views/BrowserBenchmarks.vue'), 'Benchmark route component is missing.');
 
-for (const fragment of [
-  'https://esm.sh/gsap@3.15.0',
-  'https://esm.sh/animejs@4.5.0',
-  'requestAnimationFrame',
-  'performance.now()',
-  'long-animation-frame',
-  'longtask',
-  'frameBudgetReferenceMs',
-  'renderedTargetsPerCallback',
-  'calibrateFrameInterval',
-  'estimatedRafCadenceHz',
-  'estimatedMissedRefreshCount',
-  'engine-only',
-  'per-target-dom',
-  'schemaVersion: 2',
-  'methodology',
-  'createObjectURL',
-  'schemaVersion: 2',
-  'methodology',
-  'createObjectURL',
-])
-  assert.ok(page.includes(fragment), `Browser benchmark is missing ${fragment}.`);
 assert.ok(
   Object.values(benchmarkCopy).some((value) => value.includes('No benchmark results are uploaded')),
   'Benchmark privacy caveat must remain available in locale data.',
 );
 
-assert.ok(
-  page.includes("id: 'dom'") && page.includes("id: 'svg'") && page.includes("id: 'canvas'"),
-  'DOM, SVG and Canvas scenarios must be available.',
-);
-assert.ok(page.includes('runOrders'), 'The engine order must rotate across measured repetitions.');
-assert.ok(
-  page.includes('const repetitions = 10;'),
-  'The browser benchmark must run ten measured repetitions per engine.',
-);
-assert.ok(
-  page.includes('calibrationIntervalCount = 60'),
-  'The active requestAnimationFrame cadence must be calibrated before measurement.',
-);
-assert.ok(page.includes('estimateMissedRefreshes'), 'Refresh-aware missed-frame estimates must be reported.');
-assert.ok(
-  page.includes('createPerTargetRunner'),
-  'Engine-only and per-target DOM workloads must use per-target animation paths.',
-);
-assert.ok(page.includes('rendererWorkSamples'), 'Shared renderer callback cost must be sampled.');
-assert.ok(
-  page.includes('longTaskSupported ? longTaskDurations.length : null'),
-  'Unsupported browser diagnostics must be represented as unavailable, not zero.',
-);
 assert.ok(
   styles.includes('@media (prefers-reduced-motion: reduce)'),
   'Benchmark transitions must respect reduced-motion preferences.',
@@ -128,12 +83,25 @@ assert.ok(
 );
 
 // Keep third-party animation engines runtime-loaded instead of pulling them into the main application entrypoint.
-assert.doesNotMatch(
-  page,
-  /from\s+['"](?:gsap|animejs)['"]/,
-  'GSAP and Anime.js must stay out of the static import graph; load them on demand from pinned browser modules.',
+const engineSources = await Promise.all(
+  (await readdir(resolve(root, 'apps/docs/src/benchmarks')))
+    .filter((file) => file.endsWith('.ts'))
+    .map((file) => read(`apps/docs/src/benchmarks/${file}`)),
+);
+for (const source of [page, ...engineSources]) {
+  assert.doesNotMatch(
+    source,
+    /from\s+['"](?:gsap|animejs)['"]/,
+    'GSAP and Anime.js must stay out of the static import graph; load them on demand from pinned browser modules.',
+  );
+}
+
+// The measurement engine lives in apps/docs/src/benchmarks and is covered by tests/docs/*.test.ts; the page stays a thin view.
+assert.ok(
+  page.split('\n').length < 400,
+  'BrowserBenchmarks.vue must stay a thin view (under 400 lines); put logic in apps/docs/src/benchmarks.',
 );
 
 process.stdout.write(
-  '✓ Public browser benchmark route, methodology, instrumentation, responsive styles and lazy competitors verified\n',
+  '✓ Public browser benchmark route, thin view, responsive styles and lazy competitors verified (measurement behaviour: tests/docs)\n',
 );

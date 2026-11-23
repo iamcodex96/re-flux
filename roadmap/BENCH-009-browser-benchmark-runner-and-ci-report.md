@@ -28,7 +28,7 @@ What was built:
 
 - A default run (`--scenarios dom,svg,canvas`, 500 targets, 1.5 s, load average 9–17 on 8 cores, so indicative only) produced 118 KB of JSON with three `shared-renderer` reports (dom, svg, canvas), each with results for re;Flux, GSAP and Anime.js, 10 measured runs per engine and `cleanupPassed: true` for all nine. Median renderer p95 (ms): DOM 0.4 / 0.4 / 0.4, SVG 1.05 / 0.85 / 0.9, Canvas 0.6 / 0.65 / 0.55 (re;Flux / GSAP / Anime.js). Frame p95 was 16.7 ms for every engine and scenario: headless Chromium locks `requestAnimationFrame` to a 59.88 Hz virtual cadence (`estimatedRafCadenceHz`), so frame-pacing metrics do not discriminate in headless mode — which is why the caveat is in the README and in the runner's `frameTimingNote`.
 - A smoke run on 100 targets / 1 s showed the same structure and confirmed that both comparison libraries were served from the local bundles (`served.size === 2` assertion).
-- Not verified: a quiet-machine run, a headed run, a Linux/CI run, the `--cdn` path, the `engine-only` and `per-target-dom` scenarios through the runner (the code path is the same, selected by `--scenarios`).
+- Not verified: a quiet-machine run, a headed run, a Linux/CI run, the `--cdn` path, the `engine-only` and `per-target-dom` scenarios through the runner at the time of this commit (verified afterwards, with DOCS-004: both ran through the runner on the refactored page and produced 10 runs per engine).
 
 ## Problem
 

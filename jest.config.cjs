@@ -13,6 +13,7 @@ module.exports = {
     ],
   },
   moduleNameMapper: {
+    '^@lib$': '<rootDir>/src/index.ts',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   clearMocks: true,
