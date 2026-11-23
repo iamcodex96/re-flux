@@ -16,7 +16,7 @@ import {
   standardDeviation as benchmarkStandardDeviation,
   variability,
 } from '../../benchmarks/benchmark-utils.mjs';
-import { median as docsMedian } from '../../apps/docs/src/benchmarks/statistics.js';
+import { median as docsMedian, percentile as docsPercentile } from '../../apps/docs/src/benchmarks/statistics.js';
 
 /**
  * CHORE-011 evidence, kept as tests: re;Flux's own helpers are compared with the `@re-code/basics` functions that look
@@ -175,6 +175,7 @@ describe('Given re;Flux helpers and the similar @re-code/basics functions', () =
     it('Then empty and single-sample inputs keep the results the reports have always shown (0 or null, never NaN)', () => {
       expect(benchmarkMedian([])).toBe(0);
       expect(docsMedian([])).toBeNull();
+      expect(docsPercentile([], 0.95)).toBeNull();
       expect(benchmarkStandardDeviation([])).toBe(0);
       expect(benchmarkStandardDeviation([4])).toBe(0);
       expect(variability([])).toEqual({ cv: 0, stdev: 0, min: 0, median: 0, max: 0, maxOverMin: 1 });
@@ -193,11 +194,25 @@ describe('Given re;Flux helpers and the similar @re-code/basics functions', () =
   });
 
   describe('When the benchmark percentile is compared with Basics percentile', () => {
-    it('Then they differ: the benchmarks use nearest rank, Basics interpolates (R-7)', () => {
+    it('Then the default Basics rule interpolates (R-7), so it differs from the nearest-rank benchmarks', () => {
       expect(benchmarkPercentile([1, 2, 3, 4], 0.5)).toBe(2);
       expect(basicsPercentile([1, 2, 3, 4], 0.5)).toBe(2.5);
       expect(benchmarkPercentile([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 0.95)).toBe(10);
       expect(basicsPercentile([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 0.95)).toBeCloseTo(9.55, 12);
+    });
+    it('Then the benchmarks delegate to the nearest-rank method added in Basics 0.2.1 and keep 0 for an empty list', () => {
+      const next = mulberry32(11);
+      for (let run = 0; run < 400; run += 1) {
+        const samples = Array.from({ length: 1 + Math.floor(next() * 60) }, () => (next() - 0.4) * 1000);
+        for (const fraction of [0, 0.01, 0.5, 0.95, 0.99, 1]) {
+          const sorted = [...samples].sort((left, right) => left - right);
+          const reference = sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(fraction * sorted.length) - 1))];
+          expect(Object.is(benchmarkPercentile(samples, fraction), reference)).toBe(true);
+          expect(Object.is(basicsPercentile(samples, fraction, { method: 'nearest-rank' }), reference)).toBe(true);
+        }
+      }
+      expect(benchmarkPercentile([], 0.95)).toBe(0);
+      expect(basicsPercentile([], 0.95, { method: 'nearest-rank' })).toBeNaN();
     });
   });
 });

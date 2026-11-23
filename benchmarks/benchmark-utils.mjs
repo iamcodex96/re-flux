@@ -7,6 +7,7 @@ import v8 from 'node:v8';
 import vm from 'node:vm';
 import { coefficientOfVariation } from '@re-code/basics/number/coefficientOfVariation';
 import { median as basicsMedian } from '@re-code/basics/number/median';
+import { percentile as basicsPercentile } from '@re-code/basics/number/percentile';
 import { standardDeviation as basicsStandardDeviation } from '@re-code/basics/number/standardDeviation';
 
 /**
@@ -86,11 +87,9 @@ export function median(values) {
   return values.length === 0 ? 0 : basicsMedian(values);
 }
 
+/** Nearest-rank percentile (an observed value); 0 for an empty list (`@re-code/basics` returns `NaN` there). */
 export function percentile(values, fraction) {
-  if (values.length === 0) return 0;
-  const sorted = [...values].sort((left, right) => left - right);
-  const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil(fraction * sorted.length) - 1));
-  return sorted[index] ?? 0;
+  return values.length === 0 ? 0 : basicsPercentile(values, fraction, { method: 'nearest-rank' });
 }
 
 /** Summarize samples from one run (usually one measured frame per sample). */

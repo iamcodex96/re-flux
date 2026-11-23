@@ -1,4 +1,5 @@
 import { median as basicsMedian } from '@re-code/basics/number/median';
+import { percentile as basicsPercentile } from '@re-code/basics/number/percentile';
 import { ENGINE_CATALOG } from './config';
 import type { BrowserRunResult, EngineId, EngineMeta, EngineSummary } from './types';
 
@@ -13,11 +14,7 @@ export function median(values: readonly number[]): number | null {
 
 /** Nearest-rank percentile (`quantile` in [0, 1]). */
 export function percentile(values: readonly number[], quantile: number): number | null {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil(quantile * sorted.length) - 1));
-  const value = sorted[index];
-  return value === undefined ? null : round(value);
+  return values.length === 0 ? null : round(basicsPercentile(values, quantile, { method: 'nearest-rank' }));
 }
 
 /** Whole display refreshes a callback interval most likely skipped, given the calibrated reference interval. */
