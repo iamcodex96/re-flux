@@ -34,6 +34,7 @@ Only the docs workspace changes; `src/` is not touched, and the published packag
 | Step | Versions | Result |
 |---|---|---|
 | 1 | `vue` 3.5.46, `vue-router` 4.6.5, `sass` 1.108.2 (`apps/docs/package.json` ranges raised to the new floors) | docs build 0 warnings; CSS byte-identical in size (642,336 B), JavaScript +2,543 B (836,206 B); smoke test clean (19 routes); `check:all` passes (44 s). |
+| 2 | `vite` 8.3.8 (Rolldown-based) with `@vitejs/plugin-vue` 6.0.11 (`apps/docs/package.json`: `^8.3.8`, `^6.0.11`) | No config or source change needed: `vite.config.ts` (aliases, `define`, the GitHub Pages 404 plugin) works as is. Build 6.6 s wall (`vite build` 1.5 s against 2.6 s), 449 modules, 82 files (one fewer), JavaScript 812,099 B (−21.6 KB, −2.6%), CSS 640,549 B (−1.8 KB), 0 warnings; smoke test clean (19 routes); `check:all` passes (45 s), including `check-built-route-fallback`. The root `esbuild` 0.28.2 from CHORE-007 satisfies Vite 8's optional `esbuild ^0.27 || ^0.28` peer. `vite` dev server starts (v8.3.8, 0.35 s) and serves `main.ts` and the SFCs; its start-up dependency scan reports `@re-code/flux/*` as unresolved (code samples inside template literals), which is **identical on Vite 6.4.4**, so it is not a regression. `npm audit` (dev tree) went from 22 to 21 reported vulnerabilities. |
 
 ## Scope
 
