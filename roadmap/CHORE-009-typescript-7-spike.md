@@ -17,7 +17,7 @@ The toolchain is pinned to `~5.7.2`; a two-major jump affects `ts-jest`, `vue-ts
 
 ## Status
 
-**Spike done 2026-11-23 — recommendation: NO-GO for TypeScript 7 today, GO for TypeScript 5.9.3 as a zero-change stepping stone (owner's decision to take it); no code or dependency change landed from this item.** Everything was run in a throwaway worktree outside the repository (Node 24.15.0, darwin arm64, 8 cores, load average 6–10 — a quiet machine, timings are the median of three runs); the repository's `typescript` stays `~5.7.2`. TypeScript 7.0.2 is on npm (`latest`, native port: `typescript@7` has no `main`, exposes only `./lib/version.cjs` and `./unstable/*`), 6.0.3 is `6.0.x`, 5.9.3 is the last 5.x.
+**Spike done 2026-11-23 — recommendation: NO-GO for TypeScript 7 today, GO for TypeScript 5.9.3 as a zero-change stepping stone (owner's decision to take it); the 5.9.3 step was then taken on the owner's instruction (see the last paragraph of this section); nothing else landed from this item.** Everything was run in a throwaway worktree outside the repository (Node 24.15.0, darwin arm64, 8 cores, load average 6–10 — a quiet machine, timings are the median of three runs); the repository's `typescript` was `~5.7.2` during the spike (5.9.3 was taken afterwards, see below). TypeScript 7.0.2 is on npm (`latest`, native port: `typescript@7` has no `main`, exposes only `./lib/version.cjs` and `./unstable/*`), 6.0.3 is `6.0.x`, 5.9.3 is the last 5.x.
 
 ### Results
 
@@ -46,6 +46,8 @@ The native compiler is 3.5–4.5× faster for the library's own typecheck and bu
 ### Recommendation and conditions to re-open
 
 No-go for 7 until `ts-jest` supports it (peer range includes 7 and the supported way to run tests) **and** `vue-tsc` runs on it. Re-dated: re-check on **2026-12-23** or when `npm view ts-jest peerDependencies.typescript` stops saying `<7`. In the meantime TypeScript 5.9.3 is a zero-change bump (all gates identical, tests pass, declarations byte-identical) if the owner wants one; going to 6.0.x additionally needs the two config changes above. The same spike script runs in minutes: install the version, `tsc --noEmit`, `tsc -p tsconfig.test.json`, `npm run build:lib`, diff `dist/` against a 5.7.3 build.
+
+**Update, same day: TypeScript 5.9.3 taken.** `typescript` is now `~5.9.3` in the root and in `apps/docs` (`package.json` and lockfile: only `typescript` 5.7.3 → 5.9.3). Verified: `rm -rf dist && npm run build:lib` gives a `dist/` that is byte-identical (JavaScript and declarations) to the 5.7.3 build, and `npm run check:all` passes (65 suites, 1,609 tests; docs type-check with `vue-tsc` 3.3.14 on 5.9.3). TypeScript 6 and 7 stay deferred as described above.
 
 ## Scope
 

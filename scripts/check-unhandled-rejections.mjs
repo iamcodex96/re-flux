@@ -72,10 +72,10 @@ void earlyPromise.catch(() => undefined);
 
 // The promise exists (somebody called toPromise()) but nobody handles its rejection: still not reported.
 const requested = new Animation({ duration: 10 });
-requested.toPromise();
+void requested.toPromise();
 requested.stop();
 const requestedTimeline = new Timeline().add(new Animation({ duration: 10 }));
-requestedTimeline.toPromise();
+void requestedTimeline.toPromise();
 requestedTimeline.stop();
 
 await settle();
