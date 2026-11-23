@@ -20,6 +20,8 @@ The docs app lives in `apps/docs` and is managed as the `re-flux-docs` npm works
 ## Validation commands
 
 ```bash
+npm run lint
+npm run format:check
 npm run typecheck
 npm run typecheck:tests
 npm test -- --runInBand

@@ -1,4 +1,4 @@
-import { Observable, Subject, Subscription } from 'rxjs';
+import { type Observable, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Tween } from '../../values/Tween.js';
 import type {

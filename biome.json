@@ -1,6 +1,10 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
     "includes": ["src/**/*.ts", "tests/**/*.ts", "scripts/**/*.mjs", "benchmarks/**/*.mjs", "jest.config.cjs"]
   },
@@ -19,6 +23,23 @@
       "arrowParentheses": "always"
     }
   },
-  "linter": { "enabled": false },
-  "assist": { "enabled": false }
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "none",
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error"
+      },
+      "style": {
+        "useImportType": "error"
+      },
+      "nursery": {
+        "noFloatingPromises": "error"
+      }
+    }
+  },
+  "assist": {
+    "enabled": false
+  }
 }

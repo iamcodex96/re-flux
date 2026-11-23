@@ -25,6 +25,16 @@ Thanks for helping improve re;Flux. Keep changes focused, typed, tested, and com
 - Keep source comments minimal. Use TSDoc for public API contracts and non-obvious types; avoid narrating straightforward implementation steps. Retain compiler or tooling directives when they affect behavior.
 - Do not commit generated build output, local dependency directories, or temporary patch/review notes.
 
+## Lint and format
+
+[Biome](https://biomejs.dev) is the single lint and format tool (configuration: [`biome.json`](../biome.json)). It covers `src/`, `tests/`, `scripts/`, `benchmarks/` and `jest.config.cjs`; the docs app in `apps/docs` is not covered yet.
+
+- `npm run lint` checks the minimal rule set: no unused variables or imports, `import type` for type-only imports, and no floating promises (including `PromiseLike` values such as `Animation` and `Timeline`).
+- `npm run lint:fix` applies the safe fixes; `npm run format` rewrites files; `npm run format:check` verifies formatting without writing.
+- Formatting is 2 spaces, single quotes, semicolons, trailing commas and a line width of 120. Do not hand-format around it, and do not mix a formatting-only change with a logic change (separate commits).
+- Silence a rule only with a `// biome-ignore lint/<group>/<rule>: <reason>` comment that gives the reason.
+- CI runs both `npm run lint` and `npm run format:check`; they are also part of `npm run check:all`.
+
 ## Tests and checks
 
 Useful commands are listed in [`SETUP.md`](./SETUP.md). For core timing, gesture, physics, and stream behavior, prefer deterministic clocks and test cleanup as well as emitted values. For public exports, test package subpaths and tree-shaking. For DOM features, include edge cases such as missing targets, cancellation, reduced motion, and teardown.

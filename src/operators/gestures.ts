@@ -1,7 +1,7 @@
 import {
   Observable,
   type OperatorFunction,
-  Subscription,
+  type Subscription,
   filter,
   fromEvent,
   map,

@@ -1,7 +1,7 @@
 import { Observable, Subscription } from 'rxjs';
 import { frameCoordinator } from '../../core/FrameCoordinator.js';
 import { resolveEasing } from '../../utils/easings.js';
-import { Timeline } from '../../core/Timeline.js';
+import type { Timeline } from '../../core/Timeline.js';
 import type { EasingOption } from '../../types.js';
 
 /** Browser scroll progress source for an element, from entering the scroll root to leaving it. */

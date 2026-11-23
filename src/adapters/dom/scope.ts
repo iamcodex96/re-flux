@@ -1,4 +1,4 @@
-import { animate, DOMAnimation } from './animation.js';
+import { animate, type DOMAnimation } from './animation.js';
 import type { DOMAnimateOptions, DOMAnimationTarget } from './animation.js';
 import { draggable } from './draggable.js';
 import type { DraggableHandle, DraggableOptions } from './draggable.js';
