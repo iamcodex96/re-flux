@@ -230,6 +230,72 @@ try {
   );
 
   await runCase(
+    'flip() and animate() read layout and computed styles before they write any inline style',
+    async (page) => {
+      for (const operation of ['flip', 'animate-implicit']) {
+        const order = await page.evaluate(
+          (name) => window.__reFluxBrowserTest.recordReadWriteOrder(name, 12),
+          operation,
+        );
+        assert.ok(
+          order.reads > 0 && order.writes > 0,
+          `${operation} should read and write (${JSON.stringify(order)}).`,
+        );
+        assert.equal(
+          order.readsAfterFirstWrite,
+          0,
+          `${operation} read layout or computed style after writing an inline style (${JSON.stringify(order)}).`,
+        );
+      }
+    },
+  );
+
+  await runCase(
+    'flip() and animate() over 200 elements force at most a handful of recalculations and layouts',
+    async (page) => {
+      const session = await page.context().newCDPSession(page);
+      await session.send('Performance.enable', { timeDomain: 'timeTicks' });
+      const metrics = async () => {
+        const { metrics: entries } = await session.send('Performance.getMetrics');
+        return Object.fromEntries(entries.map((entry) => [entry.name, entry.value]));
+      };
+      for (const [label, call] of [
+        ['flip', 'runGridFlip'],
+        ['animate with implicit start values', 'runGridImplicitAnimate'],
+      ]) {
+        const forced = [];
+        for (let repetition = 0; repetition < 3; repetition += 1) {
+          await page.evaluate(async () => {
+            window.__reFluxBrowserTest.buildLayoutGrid(200);
+            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          });
+          const before = await metrics();
+          await page.evaluate((method) => window.__reFluxBrowserTest[method](), call);
+          const after = await metrics();
+          forced.push({
+            layouts: after.LayoutCount - before.LayoutCount,
+            recalculations: after.RecalcStyleCount - before.RecalcStyleCount,
+          });
+          await page.evaluate(() => window.__reFluxBrowserTest.disposeGrid());
+        }
+        // Thrash would need about 200 (flip) or 600 (animate) here; a stray rendered frame adds at most one or two.
+        const best = forced.reduce((a, b) => (a.layouts + a.recalculations <= b.layouts + b.recalculations ? a : b));
+        assert.ok(
+          best.layouts <= 5 && best.recalculations <= 5,
+          `${label} forced ${best.layouts} layouts and ${best.recalculations} style recalculations for 200 elements (all runs: ${JSON.stringify(forced)}).`,
+        );
+      }
+    },
+  );
+
+  await runCase('flip() keeps measuring a nested target after its ancestor is inverted', async (page) => {
+    const nested = await page.evaluate(() => window.__reFluxBrowserTest.runNestedFlip());
+    assert.equal(nested.parent, 'translate(-100px, 0px) scale(1, 1)');
+    // The child rides on its parent's inverse transform; inverting it as well would displace it twice.
+    assert.equal(nested.child, 'translate(0px, 0px) scale(1, 1)');
+  });
+
+  await runCase(
     'Canvas teardown cancels queued writes and clears pixels without leaking coordinator work',
     async (page) => {
       // Keep queue inspection and teardown in one browser task. Separate page.evaluate calls allow
@@ -384,7 +450,7 @@ try {
     },
   );
 
-  process.stdout.write('Browser integration checks passed (10 cases).\n');
+  process.stdout.write('Browser integration checks passed (13 cases).\n');
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) => {

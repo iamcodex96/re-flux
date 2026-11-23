@@ -1,0 +1,15 @@
+# Forced style/layout events by calling function (Chrome trace, sync case, 1000 elements, 2 repetitions)
+# before = src of dce1beb; after = this change. Produced with:
+#   node scripts/run-browser-benchmark.mjs --suite adapters --cases sync --counts 1000 --repetitions 2 --trace <file> --out <file>
+#   node roadmap/perf-010/trace-by-function.mjs <trace>
+trace-before.json
+  browser-frame   {"UpdateLayoutTree":{"count":15,"ms":19.4},"Layout":{"count":10,"ms":9.3}}
+  build           {"UpdateLayoutTree":{"count":10,"ms":6.3},"Layout":{"count":10,"ms":8.2}}
+  controlThrash   {"UpdateLayoutTree":{"count":2000,"ms":0.1},"Layout":{"count":2000,"ms":705.2}}
+  flipGrid        {"UpdateLayoutTree":{"count":2000,"ms":2.2},"Layout":{"count":2000,"ms":842.4}}
+  animateGrid     {"UpdateLayoutTree":{"count":5998,"ms":2.3}}
+trace-after.json
+  browser-frame   {"UpdateLayoutTree":{"count":9,"ms":6.5},"Layout":{"count":5,"ms":1}}
+  build           {"UpdateLayoutTree":{"count":10,"ms":6},"Layout":{"count":10,"ms":7.1}}
+  controlThrash   {"UpdateLayoutTree":{"count":2000,"ms":7.7},"Layout":{"count":2000,"ms":883.2}}
+  flipGrid        {"UpdateLayoutTree":{"count":2,"ms":0.1},"Layout":{"count":2,"ms":0.9}}

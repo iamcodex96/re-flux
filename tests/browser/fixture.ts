@@ -2,6 +2,7 @@ import { Subject, type Subscription } from 'rxjs';
 import { bindCanvas, resizeCanvas } from '../../src/adapters/canvas.js';
 import { bindStyle } from '../../src/adapters/dom/styleBinding.js';
 import type { CssStyleMap } from '../../src/adapters/dom/animationTypes.js';
+import { animate } from '../../src/adapters/dom/animation.js';
 import { flip } from '../../src/adapters/dom/layout.js';
 import { bindSvgAttributes, type SvgAttributeMap } from '../../src/adapters/svg.js';
 import { frameCoordinator } from '../../src/core/FrameCoordinator.js';
@@ -28,6 +29,14 @@ interface FlipMeasurement {
   readonly invertedLeft: number;
   readonly invertedTransform: string;
   readonly invertedOrigin: string;
+}
+
+interface ReadWriteOrder {
+  readonly elements: number;
+  readonly reads: number;
+  readonly writes: number;
+  /** Reads (bounding rectangles, computed styles) that happened after the first inline-style write. */
+  readonly readsAfterFirstWrite: number;
 }
 
 interface CanvasState {
@@ -72,6 +81,12 @@ interface BrowserContractApi {
   stopSvgBinding(): void;
   runFlip(): FlipMeasurement;
   disposeFlip(): { left: string; transform: string; transformOrigin: string };
+  recordReadWriteOrder(operation: 'flip' | 'animate-implicit', count: number): ReadWriteOrder;
+  buildLayoutGrid(count: number): void;
+  runGridFlip(): void;
+  runNestedFlip(): { parent: string; child: string };
+  runGridImplicitAnimate(): void;
+  disposeGrid(): void;
   startCanvasBinding(): void;
   emitCanvasColor(color: string): void;
   canvasState(): CanvasState;
@@ -114,6 +129,13 @@ let svgSubscription: Subscription | null = null;
 
 let flipAnimation: ReturnType<typeof flip> | null = null;
 
+const layoutGrid = document.createElement('div');
+layoutGrid.style.cssText = 'display: flex; flex-wrap: wrap; width: 600px;';
+document.body.append(layoutGrid);
+let gridAnimation: ReturnType<typeof flip> | null = null;
+
+const gridBoxes = (): HTMLElement[] => Array.from(layoutGrid.children) as HTMLElement[];
+
 const canvasValues = new Subject<string>();
 let canvasSubscription: Subscription | null = null;
 let canvasDraws = 0;
@@ -124,6 +146,24 @@ let unmanagedMotionAnimation: Animation | null = null;
 let motionCallbacks: MotionCallbackCounts = { starts: 0, pauses: 0, resumes: 0, completes: 0 };
 let simulatedVisibility: boolean | null = null;
 let originalVisibilityDescriptor: PropertyDescriptor | undefined;
+
+/** Layout-affecting mutation for the FLIP cases: widening the container reflows every box. */
+const widenGrid = (): void => {
+  layoutGrid.style.width = '900px';
+};
+
+/** Fill the layout grid with `count` fixed-size boxes in a wrapping flex container and flush layout. */
+function probeGrid(count: number): void {
+  layoutGrid.style.width = '600px';
+  layoutGrid.replaceChildren(
+    ...Array.from({ length: count }, () => {
+      const box = document.createElement('div');
+      box.style.cssText = 'width: 20px; height: 20px; margin: 2px; flex: none; opacity: 1;';
+      return box;
+    }),
+  );
+  void document.body.offsetHeight;
+}
 
 window.__reFluxBrowserTest = {
   startPointerGestures(): void {
@@ -230,6 +270,90 @@ window.__reFluxBrowserTest = {
       transform: flipTarget.style.transform,
       transformOrigin: flipTarget.style.transformOrigin,
     };
+  },
+
+  recordReadWriteOrder(operation, count) {
+    probeGrid(count);
+    const events: Array<'read' | 'write'> = [];
+    const originalRect = Element.prototype.getBoundingClientRect;
+    const originalComputed = window.getComputedStyle;
+    const originalSetProperty = CSSStyleDeclaration.prototype.setProperty;
+    Element.prototype.getBoundingClientRect = function (this: Element) {
+      events.push('read');
+      return originalRect.call(this);
+    };
+    window.getComputedStyle = ((element: Element, pseudo?: string | null) => {
+      events.push('read');
+      return originalComputed.call(window, element, pseudo);
+    }) as typeof window.getComputedStyle;
+    CSSStyleDeclaration.prototype.setProperty = function (
+      this: CSSStyleDeclaration,
+      ...args: [string, string | null, string?]
+    ) {
+      events.push('write');
+      return originalSetProperty.apply(this, args);
+    };
+    let animation: ReturnType<typeof flip> | null = null;
+    try {
+      animation =
+        operation === 'flip'
+          ? flip(gridBoxes(), widenGrid, { duration: 200 })
+          : animate(gridBoxes(), { duration: 200, properties: { opacity: 0.4, 'margin-left': 6 } });
+    } finally {
+      Element.prototype.getBoundingClientRect = originalRect;
+      window.getComputedStyle = originalComputed;
+      CSSStyleDeclaration.prototype.setProperty = originalSetProperty;
+      animation?.dispose();
+      layoutGrid.replaceChildren();
+    }
+    const firstWrite = events.indexOf('write');
+    return {
+      elements: count,
+      reads: events.filter((event) => event === 'read').length,
+      writes: events.filter((event) => event === 'write').length,
+      readsAfterFirstWrite: firstWrite === -1 ? 0 : events.slice(firstWrite).filter((event) => event === 'read').length,
+    };
+  },
+
+  buildLayoutGrid(count) {
+    probeGrid(count);
+  },
+
+  runGridFlip() {
+    gridAnimation?.dispose();
+    gridAnimation = flip(gridBoxes(), widenGrid, { duration: 200 });
+  },
+
+  runNestedFlip() {
+    layoutGrid.replaceChildren();
+    const parent = document.createElement('div');
+    parent.style.cssText = 'position: absolute; left: 10px; top: 10px; width: 100px; height: 100px;';
+    const child = document.createElement('div');
+    child.style.cssText = 'position: absolute; left: 5px; top: 5px; width: 20px; height: 20px;';
+    parent.append(child);
+    layoutGrid.append(parent);
+    const animation = flip(
+      [parent, child],
+      () => {
+        parent.style.left = '110px';
+      },
+      { duration: 200 },
+    );
+    const result = { parent: parent.style.transform, child: child.style.transform };
+    animation.dispose();
+    layoutGrid.replaceChildren();
+    return result;
+  },
+
+  runGridImplicitAnimate() {
+    gridAnimation?.dispose();
+    gridAnimation = animate(gridBoxes(), { duration: 200, properties: { opacity: 0.4, 'margin-left': 6 } });
+  },
+
+  disposeGrid() {
+    gridAnimation?.dispose();
+    gridAnimation = null;
+    layoutGrid.replaceChildren();
   },
 
   startCanvasBinding(): void {

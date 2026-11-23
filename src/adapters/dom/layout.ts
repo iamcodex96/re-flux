@@ -59,14 +59,22 @@ export function flip(targets: DOMAnimationTarget, mutate: () => void, options: F
     ...(onResume === undefined ? {} : { onResume }),
     ...(onStop === undefined ? {} : { onStop }),
   });
+  // Read phase: every layout and style read happens before any animation writes an inline style, so the browser
+  // lays out once for the whole set instead of once per element. When a target contains another target the old,
+  // interleaved order is kept: a descendant must be measured after its ancestor's inverted transform is applied, or the
+  // ancestor's displacement would be counted twice.
+  const measureLast = (element: Element) => ({
+    last: element.getBoundingClientRect(),
+    computedTransform: window.getComputedStyle(element).transform,
+  });
+  const measured = hasNestedTargets(elements) ? null : elements.map(measureLast);
   elements.forEach((element, index) => {
     const first = firstRects[index]!;
-    const last = element.getBoundingClientRect();
+    const { last, computedTransform } = measured === null ? measureLast(element) : measured[index]!;
     const dx = first.left - last.left;
     const dy = first.top - last.top;
     const sx = last.width > 0 ? first.width / last.width : 1;
     const sy = last.height > 0 ? first.height / last.height : 1;
-    const computedTransform = window.getComputedStyle(element).transform;
     const baseTransform = computedTransform && computedTransform !== 'none' ? ` ${computedTransform}` : '';
     const fromTransform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})${baseTransform}`;
     const toTransform = `translate(0px, 0px) scale(1, 1)${baseTransform}`;
@@ -91,4 +99,14 @@ export function flip(targets: DOMAnimationTarget, mutate: () => void, options: F
     scene.add(child, childOffset);
   });
   return scene;
+}
+
+function hasNestedTargets(elements: readonly Element[]): boolean {
+  const targets = new Set<Element>(elements);
+  return elements.some((element) => {
+    for (let ancestor = element.parentElement; ancestor; ancestor = ancestor.parentElement) {
+      if (targets.has(ancestor)) return true;
+    }
+    return false;
+  });
 }

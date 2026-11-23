@@ -1,0 +1,353 @@
+{
+  "benchmark": "re-flux-browser-adapter-layout-probe",
+  "schemaVersion": 2,
+  "kind": "adapter-probe",
+  "createdAt": "2026-11-23T03:20:45.928Z",
+  "runner": {
+    "script": "scripts/run-browser-benchmark.mjs --suite adapters",
+    "gitRevision": null,
+    "headless": true,
+    "browser": {
+      "name": "chromium",
+      "version": "156.0.8078.4",
+      "launchArguments": [
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows"
+      ]
+    },
+    "node": "v24.15.0",
+    "platform": "darwin-arm64",
+    "os": "Darwin 24.6.0",
+    "system": {
+      "atStart": {
+        "cpuCount": 8,
+        "loadAvg1m": 35.79,
+        "loadPerCore": 4.47,
+        "busy": true
+      },
+      "atEnd": {
+        "cpuCount": 8,
+        "loadAvg1m": 34.28,
+        "loadPerCore": 4.29,
+        "busy": true
+      },
+      "busyThresholdLoadPerCore": 0.5
+    },
+    "trace": null
+  },
+  "probe": {
+    "description": "Chrome DevTools Performance counters around operations of tests/browser/layout-probe.ts. Synchronous cases: counts are forced work (no frame can render mid-call; a stray frame between the call and the read can add at most one, which the minimum filters). Frame cases: counts per rendered frame while the animation runs.",
+    "repetitions": 5,
+    "synchronous": [
+      {
+        "case": "control: write+read per element (thrash by construction)",
+        "elements": 100,
+        "repetitions": 5,
+        "recalcStyleCount": {
+          "min": 100,
+          "median": 100,
+          "max": 100
+        },
+        "layoutCount": {
+          "min": 100,
+          "median": 100,
+          "max": 100
+        },
+        "recalcStyleMs": {
+          "min": 0.252,
+          "median": 0.262,
+          "max": 0.276
+        },
+        "layoutMs": {
+          "min": 3.826,
+          "median": 4.383,
+          "max": 4.867
+        },
+        "callMs": {
+          "min": 4.4,
+          "median": 4.9,
+          "max": 5.5
+        }
+      },
+      {
+        "case": "control: reads first, then writes (batched)",
+        "elements": 100,
+        "repetitions": 5,
+        "recalcStyleCount": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "layoutCount": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "recalcStyleMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "layoutMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "callMs": {
+          "min": 0.1,
+          "median": 0.1,
+          "max": 0.2
+        }
+      },
+      {
+        "case": "flip()",
+        "elements": 100,
+        "repetitions": 5,
+        "recalcStyleCount": {
+          "min": 100,
+          "median": 100,
+          "max": 101
+        },
+        "layoutCount": {
+          "min": 100,
+          "median": 100,
+          "max": 101
+        },
+        "recalcStyleMs": {
+          "min": 0.695,
+          "median": 0.728,
+          "max": 0.957
+        },
+        "layoutMs": {
+          "min": 5.413,
+          "median": 5.544,
+          "max": 6.933
+        },
+        "callMs": {
+          "min": 8.1,
+          "median": 9.2,
+          "max": 15.8
+        }
+      },
+      {
+        "case": "animate() x3 properties, explicit [from, to]",
+        "elements": 100,
+        "repetitions": 5,
+        "recalcStyleCount": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "layoutCount": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "recalcStyleMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "layoutMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "callMs": {
+          "min": 1,
+          "median": 1.5,
+          "max": 2.3
+        }
+      },
+      {
+        "case": "animate() x3 properties, implicit start (computed)",
+        "elements": 100,
+        "repetitions": 5,
+        "recalcStyleCount": {
+          "min": 299,
+          "median": 299,
+          "max": 299
+        },
+        "layoutCount": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "recalcStyleMs": {
+          "min": 0.925,
+          "median": 1.072,
+          "max": 1.156
+        },
+        "layoutMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "callMs": {
+          "min": 3.4,
+          "median": 3.6,
+          "max": 3.9
+        }
+      },
+      {
+        "case": "control: write+read per element (thrash by construction)",
+        "elements": 1000,
+        "repetitions": 5,
+        "recalcStyleCount": {
+          "min": 1000,
+          "median": 1000,
+          "max": 1000
+        },
+        "layoutCount": {
+          "min": 1000,
+          "median": 1000,
+          "max": 1000
+        },
+        "recalcStyleMs": {
+          "min": 2.919,
+          "median": 3.133,
+          "max": 4.261
+        },
+        "layoutMs": {
+          "min": 358.422,
+          "median": 368.465,
+          "max": 390.945
+        },
+        "callMs": {
+          "min": 363.9,
+          "median": 374.2,
+          "max": 398.4
+        }
+      },
+      {
+        "case": "control: reads first, then writes (batched)",
+        "elements": 1000,
+        "repetitions": 5,
+        "recalcStyleCount": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "layoutCount": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "recalcStyleMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "layoutMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "callMs": {
+          "min": 0.7,
+          "median": 0.7,
+          "max": 0.8
+        }
+      },
+      {
+        "case": "flip()",
+        "elements": 1000,
+        "repetitions": 5,
+        "recalcStyleCount": {
+          "min": 1001,
+          "median": 1001,
+          "max": 1001
+        },
+        "layoutCount": {
+          "min": 1001,
+          "median": 1001,
+          "max": 1001
+        },
+        "recalcStyleMs": {
+          "min": 7.13,
+          "median": 7.504,
+          "max": 13.597
+        },
+        "layoutMs": {
+          "min": 369.395,
+          "median": 378.802,
+          "max": 464.703
+        },
+        "callMs": {
+          "min": 391.2,
+          "median": 412.5,
+          "max": 510.9
+        }
+      },
+      {
+        "case": "animate() x3 properties, explicit [from, to]",
+        "elements": 1000,
+        "repetitions": 5,
+        "recalcStyleCount": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "layoutCount": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "recalcStyleMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "layoutMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "callMs": {
+          "min": 7.4,
+          "median": 8.9,
+          "max": 9.5
+        }
+      },
+      {
+        "case": "animate() x3 properties, implicit start (computed)",
+        "elements": 1000,
+        "repetitions": 5,
+        "recalcStyleCount": {
+          "min": 3000,
+          "median": 3000,
+          "max": 3000
+        },
+        "layoutCount": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "recalcStyleMs": {
+          "min": 5.813,
+          "median": 6.139,
+          "max": 6.533
+        },
+        "layoutMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "callMs": {
+          "min": 17.9,
+          "median": 19.2,
+          "max": 23.5
+        }
+      }
+    ],
+    "framePlayback": {
+      "framesPerRepetition": 60,
+      "idleBaselineRecalcStylePerFrame": null,
+      "idleBaselineLayoutPerFrame": null,
+      "cases": []
+    },
+    "svgPathQueries": [],
+    "pageErrors": []
+  }
+}

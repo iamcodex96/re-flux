@@ -129,21 +129,28 @@ export function animate(targets: DOMAnimationTarget, options: DOMAnimateOptions)
   const animation = new DOMAnimation(timelineOptions);
 
   try {
-    elements.forEach((element, elementIndex) => {
+    // Read phase first: resolving implicit start values reads computed styles, and a computed-style read after an
+    // inline-style write forces a style recalculation. Creating the bindings (which write the first frame) comes second.
+    const planned = elements.map((element, elementIndex) => {
       const staggerDelay =
         typeof stagger === 'function' ? stagger(elementIndex, element, elements.length) : elementIndex * stagger;
       if (!Number.isFinite(staggerDelay)) {
         throw new RangeError(`stagger must return a finite number of milliseconds for target ${elementIndex}.`);
       }
+      const keyframesByProperty = propertyEntries.map((property) =>
+        resolveDOMPropertyKeyframes(element, property, elementIndex, elements.length),
+      );
+      return { element, staggerDelay, keyframesByProperty };
+    });
 
-      for (const property of propertyEntries) {
-        const keyframes = resolveDOMPropertyKeyframes(element, property, elementIndex, elements.length);
+    for (const { element, staggerDelay, keyframesByProperty } of planned) {
+      propertyEntries.forEach((property, propertyIndex) => {
         const keyframeItem = new Keyframes<string>({
           duration: property.duration,
           repeat: property.repeat,
           yoyo: property.yoyo,
           ...(property.easing === undefined ? {} : { easing: property.easing }),
-          keyframes,
+          keyframes: keyframesByProperty[propertyIndex]!,
           interpolate: compiledCssInterpolator(),
         });
 
@@ -152,8 +159,8 @@ export function animate(targets: DOMAnimationTarget, options: DOMAnimateOptions)
         );
         const startTime = Math.max(0, delay + property.delay + staggerDelay);
         animation.add(keyframeItem, startTime);
-      }
-    });
+      });
+    }
   } catch (error) {
     animation.dispose();
     throw error;
