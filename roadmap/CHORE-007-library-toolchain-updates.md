@@ -17,13 +17,13 @@ Dev tools lag; most are low-risk patch/minor bumps.
 
 ## Status
 
-**Partly done 2026-11-23** on branch `claude/chores-00a6db` (not merged, not pushed). Dev-only change; the published package is untouched (`dist/**/*.d.ts` not regenerated differently because `src/` did not change; `npm audit --omit=dev` still reports 0 vulnerabilities).
+**Done 2026-11-23** (Node 22 half unverified) on branch `claude/chores-00a6db` (not merged, not pushed). Dev-only change; the published package is untouched (`dist/**/*.d.ts` not regenerated differently because `src/` did not change; `npm audit --omit=dev` still reports 0 vulnerabilities).
 
 | Package | Before | After | Note |
 |---|---|---|---|
 | `ts-jest` | 29.4.14 | **29.4.15** (`^29.4.15`) | Suite unchanged. |
 | `esbuild` | 0.24.2 | **0.28.2** (`^0.28.2`) | Taken in one jump instead of four single steps because every consumer (`check-tree-shaking`, `check-browser-integration`, `check-package-consumer`, the benchmark scripts) passed unchanged; no output-format dependency broke. The docs workspace keeps its own nested `esbuild@0.25.12` via Vite 6. |
-| `playwright` | 1.64.1 | **1.64.1 (not bumped)** | 1.65.1 needs Chromium build 1255 (Chrome for Testing 159) and the machine only has build 1248; installing it means downloading roughly 150 MB of browser binaries from `cdn.playwright.dev`, which was not authorised. Bump together with `npx playwright install chromium` when that download is approved. |
+| `playwright` | 1.64.1 | **1.65.1** (exact pin kept) | Taken after the owner approved the Chromium download: `npx playwright install chromium` fetched Chromium 159 (build 1255, 100.8 MiB headless shell plus Chromium) from Playwright's CDN. `check:browser-integration`, `check:browser-benchmark` and the docs checks pass on it; the old 1248 builds are still in `~/Library/Caches/ms-playwright`. |
 | `@types/node` | 22.20.5 | unchanged | Stays on 22 to match `engines`. |
 
 Evidence (Node 24.15.0, load average 50–65 on 8 cores, so timing was not measured): `lint`, `format:check`, `typecheck`, `typecheck:tests` pass; `npm test -- --runInBand` 63 suites / **1593 tests** (same as before); `check:tree-shaking`, `check:package`, `check:package:consumer`, `check:browser-integration`, `check:unhandled-rejections`, `check:docs` and the docs build pass. The `package-lock.json` diff contains only `esbuild` (and its platform binaries, including the new `@esbuild/openharmony-arm64`) and `ts-jest`.
@@ -44,7 +44,7 @@ Evidence (Node 24.15.0, load average 50–65 on 8 cores, so timing was not measu
 
 Every box must be checkable by running the named command or inspecting the named file.
 
-- [ ] `npm outdated` no longer lists ts-jest or playwright; esbuild bump (if taken) is justified in the PR. *ts-jest and esbuild done; playwright intentionally left at 1.64.1 (browser download not authorised), so it is still listed.*
+- [x] `npm outdated` no longer lists ts-jest or playwright; esbuild bump (if taken) is justified in the PR.
 - [ ] `npm run check:all` passes locally on Node 22 and 24. *Node 24.15.0: every `check:all` step passed individually. Node 22 is not installed on this machine, so that half is unverified.*
 - [x] `package-lock.json` diff contains only the intended packages.
 
